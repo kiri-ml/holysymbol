@@ -81,18 +81,35 @@ const DEFAULT_RATIO_BILLING: RatioBilling = {
   expPerMesoRatio: 3.3,
 };
 
-function emptyInstance(index: number, billing: LeechBilling = DEFAULT_RATIO_BILLING, id = createId('leech')): LeechInstance {
+function defaultRunName(createdAt: string) {
+  const date = new Date(createdAt);
+  if (Number.isNaN(date.getTime())) return 'Run';
+
+  const time = date.toLocaleTimeString(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  const day = date.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  });
+
+  return `${day} · ${time}`;
+}
+
+function emptyInstance(billing: LeechBilling = DEFAULT_RATIO_BILLING, id = createId('leech')): LeechInstance {
+  const createdAt = new Date().toISOString();
   return {
     id,
-    name: `Run #${index}`,
+    name: defaultRunName(createdAt),
     billing,
     buyers: [],
-    createdAt: new Date().toISOString(),
+    createdAt,
   };
 }
 
 function initialInstances(): LeechInstance[] {
-  return [emptyInstance(1)];
+  return [emptyInstance()];
 }
 
 function confirmDeletion(message: string) {
@@ -1271,7 +1288,7 @@ export default function App() {
     const id = createId('leech');
     setHighlightedRunId(id);
     setSelectedRunId(id);
-    setInstances((current) => [...current, emptyInstance(current.length + 1, DEFAULT_RATIO_BILLING, id)]);
+    setInstances((current) => [...current, emptyInstance(DEFAULT_RATIO_BILLING, id)]);
   }
 
   async function loadCharacter(ign: string): Promise<CharacterSnapshot> {
@@ -1337,7 +1354,7 @@ export default function App() {
                 onUpdate={upsertInstance}
                 onDelete={() => {
                   if (!isEmptyInstance(selectedInstance) && !confirmDeletion(`Delete ${selectedInstance.name}?`)) return;
-                  setInstances((current) => (current.length <= 1 ? [emptyInstance(1)] : current.filter((item) => item.id !== selectedInstance.id)));
+                  setInstances((current) => (current.length <= 1 ? [emptyInstance()] : current.filter((item) => item.id !== selectedInstance.id)));
                 }}
               />
             </div>
