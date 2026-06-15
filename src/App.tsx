@@ -1,14 +1,16 @@
 import {
   AlertCircle,
-  BarChart3,
   Download,
   Lock,
+  Monitor,
+  Moon,
   Pause,
   Play,
   Plus,
   RefreshCw,
   RotateCcw,
   Square,
+  Sun,
   Trash2,
   Unlock,
   UserPlus,
@@ -42,6 +44,7 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 import './styles/app.css';
 
 type Notice = { type: 'error' | 'info'; text: string } | null;
+type ThemeMode = 'system' | 'light' | 'dark';
 
 type QuickEstimateState = {
   fromLevel: number;
@@ -61,6 +64,7 @@ type DraftSnapshotState = {
 
 const INSTANCES_STORAGE_KEY = 'legends-leech-calculator.instances.v5';
 const ESTIMATE_STORAGE_KEY = 'legends-leech-calculator.estimate.v1';
+const THEME_STORAGE_KEY = 'legends-leech-calculator.theme.v1';
 const MANUAL_SNAPSHOT_COMMIT_DELAY_MS = 350;
 
 const DEFAULT_ESTIMATE: QuickEstimateState = {
@@ -295,6 +299,31 @@ function FlowCard({ step, title, children }: { step: string; title: string; chil
         <strong>{title}</strong>
       </div>
       {children}
+    </div>
+  );
+}
+
+function ThemeSwitch({ theme, onChange }: { theme: ThemeMode; onChange: (theme: ThemeMode) => void }) {
+  const options: Array<{ value: ThemeMode; label: string; icon: ReactNode }> = [
+    { value: 'system', label: 'System', icon: <Monitor size={15} /> },
+    { value: 'light', label: 'Light', icon: <Sun size={15} /> },
+    { value: 'dark', label: 'Dark', icon: <Moon size={15} /> },
+  ];
+
+  return (
+    <div className="theme-switch segmented-control" role="group" aria-label="Theme">
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          className={theme === option.value ? 'active' : ''}
+          onClick={() => onChange(option.value)}
+          aria-pressed={theme === option.value}
+        >
+          {option.icon}
+          <span>{option.label}</span>
+        </button>
+      ))}
     </div>
   );
 }
@@ -1046,12 +1075,118 @@ function LeechInstanceCard({
   );
 }
 
+function RunRail({
+  instances,
+  selectedRunId,
+  now,
+  onSelect,
+  onAdd,
+}: {
+  instances: LeechInstance[];
+  selectedRunId: string | null;
+  now: number;
+  onSelect: (id: string) => void;
+  onAdd: () => void;
+}) {
+  return (
+    <aside className="run-rail" aria-label="Runs">
+      <div className="rail-header">
+        <div>
+          <span className="rail-kicker">Runs</span>
+          <strong>{instances.length} active</strong>
+        </div>
+        <button type="button" className="icon-button" onClick={onAdd} aria-label="New run">
+          <Plus size={17} />
+        </button>
+      </div>
+
+      <div className="run-tabs">
+        {instances.map((instance) => {
+          const summary = calculateInstance(instance, now);
+          const selected = instance.id === selectedRunId;
+          return (
+            <button
+              key={instance.id}
+              type="button"
+              className={`run-tab${selected ? ' run-tab--active' : ''}`}
+              onClick={() => onSelect(instance.id)}
+              aria-current={selected ? 'true' : undefined}
+            >
+              <span>
+                <strong>{instance.name || 'Untitled run'}</strong>
+                <small>{billingLabel(instance.billing)}</small>
+              </span>
+              <span>
+                <b>{formatMesosShort(summary.totalMesosDue)}</b>
+                <small>{summary.buyerCount} buyer{summary.buyerCount === 1 ? '' : 's'}</small>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </aside>
+  );
+}
+
+function RunTools({ instance, now }: { instance?: LeechInstance; now: number }) {
+  if (!instance) {
+    return (
+      <section className="panel run-tools">
+        <div className="panel-heading">
+          <div>
+            <h2>Run status</h2>
+            <p>Select or create a run to see live totals.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const summary = calculateInstance(instance, now);
+  return (
+    <section className="panel run-tools">
+      <div className="panel-heading">
+        <div>
+          <h2>Run status</h2>
+          <p>{instance.billing.type === 'ratio' ? `Ratio ${billingLabel(instance.billing)}` : `Hourly ${billingLabel(instance.billing)}`}</p>
+        </div>
+      </div>
+      <div className="tool-stat tool-stat--due">
+        <span>Total due</span>
+        <strong>{formatMesosShort(summary.totalMesosDue)}</strong>
+        <small>{formatMesosValue(summary.totalMesosDue)}</small>
+      </div>
+      <div className="tools-grid">
+        <div className="tool-stat">
+          <span>Buyers</span>
+          <strong>{summary.buyerCount}</strong>
+          <small>{summary.completedBuyerCount} refreshed</small>
+        </div>
+        <div className="tool-stat">
+          <span>Total EXP</span>
+          <strong>{formatCompact(summary.totalExpGained)}</strong>
+          <small>{formatExp(summary.totalExpGained)}</small>
+        </div>
+        {instance.billing.type === 'hourly' ? (
+          <div className="tool-stat">
+            <span>Run time</span>
+            <strong>{formatDuration(summary.billableMs)}</strong>
+            <small>{timerStatusLabel(instance.billing.timer.status)}</small>
+          </div>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
 export default function App() {
   const [instances, setInstances] = useLocalStorage<LeechInstance[]>(INSTANCES_STORAGE_KEY, initialInstances());
   const [estimate, setEstimate] = useLocalStorage<QuickEstimateState>(ESTIMATE_STORAGE_KEY, DEFAULT_ESTIMATE);
+  const [theme, setTheme] = useLocalStorage<ThemeMode>(THEME_STORAGE_KEY, 'system');
   const [notice, setNotice] = useState<Notice>(null);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [highlightedRunId, setHighlightedRunId] = useState<string | null>(null);
+  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
@@ -1067,6 +1202,19 @@ export default function App() {
     return () => window.clearTimeout(id);
   }, [highlightedRunId]);
 
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
+
+  useEffect(() => {
+    if (instances.length === 0) {
+      setSelectedRunId(null);
+      return;
+    }
+    if (selectedRunId && instances.some((instance) => instance.id === selectedRunId)) return;
+    setSelectedRunId(instances[0].id);
+  }, [instances, selectedRunId]);
+
   function upsertInstance(nextInstance: LeechInstance) {
     setInstances((current) => current.map((instance) => (instance.id === nextInstance.id ? nextInstance : instance)));
   }
@@ -1074,6 +1222,7 @@ export default function App() {
   function addInstance() {
     const id = createId('leech');
     setHighlightedRunId(id);
+    setSelectedRunId(id);
     setInstances((current) => [...current, emptyInstance(current.length + 1, DEFAULT_RATIO_BILLING, id)]);
   }
 
@@ -1093,21 +1242,28 @@ export default function App() {
   }
 
   const displayedInstances = useMemo(() => [...instances].sort((a, b) => createdAtMs(b) - createdAtMs(a)), [instances]);
+  const selectedInstance = useMemo(
+    () => displayedInstances.find((instance) => instance.id === selectedRunId) ?? displayedInstances[0],
+    [displayedInstances, selectedRunId],
+  );
 
   return (
     <main className="app-shell">
-      <section className="hero">
-        <div>
-          <span className="eyebrow">MapleLegends Leech Calculator</span>
-          <h1>Holy Symbol</h1>
-          <p>Track leech runs, buyer EXP, and mesos due.</p>
+      <header className="app-topbar">
+        <div className="brand-lockup">
+          <img src="/assets/icons/hs.png" alt="" className="brand-logo" />
+          <div>
+            <span className="app-mark">Holy Symbol</span>
+            <p>Leech Calculator for MapleLegends</p>
+          </div>
         </div>
-        <div className="hero-card">
-          <BarChart3 size={24} />
-          <strong>{instances.length}</strong>
-          <span>active run{instances.length === 1 ? '' : 's'}</span>
+        <div className="topbar-actions">
+          <ThemeSwitch theme={theme} onChange={setTheme} />
+          <button type="button" className="secondary-button" onClick={() => exportInstances(instances, now)} disabled={instances.length === 0}>
+            <Download size={16} /> Export CSV
+          </button>
         </div>
-      </section>
+      </header>
 
       {notice ? (
         <div className={`notice notice--${notice.type}`}>
@@ -1116,43 +1272,32 @@ export default function App() {
         </div>
       ) : null}
 
-      <div className="main-layout">
-        <section className="runs-column instances-section">
-          <div className="section-heading">
-            <div>
-              <h2>Active runs</h2>
-            </div>
-            <div className="button-row wrap">
-              <button type="button" onClick={addInstance}>
-                <Plus size={16} /> New run
-              </button>
-              <button type="button" className="secondary-button" onClick={() => exportInstances(instances, now)} disabled={instances.length === 0}>
-                <Download size={16} /> Export
-              </button>
-            </div>
-          </div>
+      <div className="workbench-layout">
+        <RunRail instances={displayedInstances} selectedRunId={selectedInstance?.id ?? null} now={now} onSelect={setSelectedRunId} onAdd={addInstance} />
 
-          <div className="instances-stack">
-            {displayedInstances.map((instance, index) => (
+        <section className="ledger-column instances-section" aria-label="Selected run ledger">
+          {selectedInstance ? (
+            <div className="instances-stack">
               <LeechInstanceCard
-                key={instance.id}
-                instance={instance}
-                index={index}
-                highlighted={instance.id === highlightedRunId}
+                key={selectedInstance.id}
+                instance={selectedInstance}
+                index={displayedInstances.findIndex((instance) => instance.id === selectedInstance.id)}
+                highlighted={selectedInstance.id === highlightedRunId}
                 busyKey={busyKey}
                 now={now}
                 onFetchSnapshot={loadCharacter}
                 onUpdate={upsertInstance}
                 onDelete={() => {
-                  if (!isEmptyInstance(instance) && !confirmDeletion(`Delete ${instance.name}?`)) return;
-                  setInstances((current) => (current.length <= 1 ? [emptyInstance(1)] : current.filter((item) => item.id !== instance.id)));
+                  if (!isEmptyInstance(selectedInstance) && !confirmDeletion(`Delete ${selectedInstance.name}?`)) return;
+                  setInstances((current) => (current.length <= 1 ? [emptyInstance(1)] : current.filter((item) => item.id !== selectedInstance.id)));
                 }}
               />
-            ))}
-          </div>
+            </div>
+          ) : null}
         </section>
 
-        <aside className="calculator-column">
+        <aside className="tools-column">
+          <RunTools instance={selectedInstance} now={now} />
           <QuickEstimate estimate={estimate} onChange={setEstimate} />
         </aside>
       </div>
