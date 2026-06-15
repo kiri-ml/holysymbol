@@ -28,13 +28,12 @@ export type ExpTableRow = {
 
 export type BillingType = 'ratio' | 'hourly';
 
-export type TimerStatus = 'idle' | 'running' | 'paused' | 'ended';
+export type TimerStatus = 'idle' | 'running' | 'paused';
 
 export type LeechTimer = {
   status: TimerStatus;
   accumulatedMs: number;
   lastStartedAt?: string;
-  endedAt?: string;
 };
 
 export type RatioBilling = {

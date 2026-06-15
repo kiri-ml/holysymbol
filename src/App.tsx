@@ -9,7 +9,6 @@ import {
   Plus,
   RefreshCw,
   RotateCcw,
-  Square,
   Sun,
   Trash2,
   Unlock,
@@ -23,7 +22,6 @@ import {
   calculateBuyer,
   calculateEstimate,
   calculateInstance,
-  endTimer,
   getBillableMs,
   pauseTimer,
   resetTimer,
@@ -112,7 +110,7 @@ function isEmptyBuyer(buyer: LeechBuyer) {
 function isEmptyInstance(instance: LeechInstance) {
   if (instance.buyers.some((buyer) => !isEmptyBuyer(buyer)) || instance.quote) return false;
   if (instance.billing.type !== 'hourly') return true;
-  return instance.billing.timer.status === 'idle' && instance.billing.timer.accumulatedMs === 0 && !instance.billing.timer.lastStartedAt && !instance.billing.timer.endedAt;
+  return instance.billing.timer.status === 'idle' && instance.billing.timer.accumulatedMs === 0 && !instance.billing.timer.lastStartedAt;
 }
 
 function clampLevel(value: number) {
@@ -157,11 +155,9 @@ function timerStatusLabel(status: TimerStatus) {
       return 'running';
     case 'paused':
       return 'paused';
-    case 'ended':
-      return 'ended';
     case 'idle':
     default:
-      return 'not started';
+      return 'idle';
   }
 }
 
@@ -614,27 +610,27 @@ function QuickEstimate({
 
 function TimerControls({ billing, onChange, now }: { billing: Extract<LeechBilling, { type: 'hourly' }>; onChange: (billing: LeechBilling) => void; now: number }) {
   const billableMs = getBillableMs(billing.timer, now);
+  const isRunning = billing.timer.status === 'running';
 
   return (
-    <div className="timer-card">
-      <div>
+    <div className={`timer-card timer-card--${billing.timer.status}`}>
+      <div className="timer-card__header">
         <span>Run time</span>
-        <strong>{formatDuration(billableMs)}</strong>
-        <small>{timerStatusLabel(billing.timer.status)}</small>
+        <small className="timer-status">{timerStatusLabel(billing.timer.status)}</small>
       </div>
-      <div className="button-row wrap">
-        <button type="button" onClick={() => onChange({ ...billing, timer: startTimer(billing.timer) })} disabled={billing.timer.status === 'running'}>
-          <Play size={16} /> Start
-        </button>
-        <button type="button" className="secondary-button" onClick={() => onChange({ ...billing, timer: pauseTimer(billing.timer) })} disabled={billing.timer.status !== 'running'}>
-          <Pause size={16} /> Pause
-        </button>
-        <button type="button" className="secondary-button" onClick={() => onChange({ ...billing, timer: endTimer(billing.timer) })} disabled={billing.timer.status === 'idle' || billing.timer.status === 'ended'}>
-          <Square size={16} /> End
-        </button>
-        <button type="button" className="ghost-button" onClick={() => onChange({ ...billing, timer: resetTimer() })}>
-          <RotateCcw size={16} /> Reset
-        </button>
+      <div className="timer-card__body">
+        <div className="timer-card__main">
+          <strong>{formatDuration(billableMs)}</strong>
+        </div>
+        <div className="timer-card__actions">
+          <button type="button" className="timer-card__toggle" onClick={() => onChange({ ...billing, timer: isRunning ? pauseTimer(billing.timer) : startTimer(billing.timer) })} aria-label={isRunning ? 'Pause run timer' : 'Start run timer'}>
+            {isRunning ? <Pause size={16} /> : <Play size={16} />}
+            {isRunning ? 'Pause' : 'Start'}
+          </button>
+          <button type="button" className="secondary-button timer-card__reset" onClick={() => onChange({ ...billing, timer: resetTimer() })} disabled={isRunning}>
+            <RotateCcw size={16} /> Reset
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -934,7 +930,7 @@ function LeechInstanceCard({
           <span>Pricing</span>
           {ratioBilling ? (
             <label className="compact-label">
-              Ratio
+              EXP ratio
               <span className="ratio-input">
                 <span>1 :</span>
                 <input
@@ -950,7 +946,7 @@ function LeechInstanceCard({
           ) : null}
           {hourlyBilling ? (
             <label className="compact-label">
-              Price
+              Hourly rate
               <span className="unit-input">
                 <input
                   type="number"
@@ -968,15 +964,17 @@ function LeechInstanceCard({
         {hourlyBilling ? (
           <TimerControls billing={hourlyBilling} now={now} onChange={updateBilling} />
         ) : null}
-        <div className="tip-card tip-card--inline">
-          <div className="tip-card__content">
-            <strong>Keep EXP updated <AlertCircle size={14} /></strong>
-            <div className="tip-card__rows">
-              <span><b>Seller refresh</b><em>Reinvite your HS mule or another party member.</em></span>
-              <span><b>Buyer refresh</b><em>Change maps/channels or enter and exit the Cash Shop.</em></span>
+        {ratioBilling ? (
+          <div className="tip-card tip-card--inline">
+            <div className="tip-card__content">
+              <strong>Keep EXP updated <AlertCircle size={14} /></strong>
+              <div className="tip-card__rows">
+                <span><b>Seller refresh</b><em>Reinvite your HS mule or another party member.</em></span>
+                <span><b>Buyer refresh</b><em>Change maps/channels or enter and exit the Cash Shop.</em></span>
+              </div>
             </div>
           </div>
-        </div>
+        ) : null}
       </div>
 
       <div className="buyers-header buyers-toolbar">

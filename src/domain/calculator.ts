@@ -22,7 +22,6 @@ export function startTimer(timer: LeechTimer, nowIso = new Date().toISOString())
     ...timer,
     status: 'running',
     lastStartedAt: nowIso,
-    endedAt: undefined,
   };
 }
 
@@ -33,16 +32,6 @@ export function pauseTimer(timer: LeechTimer, now = Date.now()): LeechTimer {
     status: 'paused',
     accumulatedMs: getBillableMs(timer, now),
     lastStartedAt: undefined,
-  };
-}
-
-export function endTimer(timer: LeechTimer, now = Date.now(), nowIso = new Date(now).toISOString()): LeechTimer {
-  return {
-    ...timer,
-    status: 'ended',
-    accumulatedMs: getBillableMs(timer, now),
-    lastStartedAt: undefined,
-    endedAt: nowIso,
   };
 }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateBuyer, calculateEstimate, calculateInstance, endTimer, getBillableMs, pauseTimer, startTimer } from './calculator';
+import { calculateBuyer, calculateEstimate, calculateInstance, getBillableMs, pauseTimer, startTimer } from './calculator';
 import { LEGENDS_EXP_TABLE, expGainedBetween, expToLevel, rawExpAt } from './expTable';
 import type { CharacterSnapshot, LeechBuyer, LeechInstance, LeechTimer } from './types';
 
@@ -161,13 +161,6 @@ describe('EXP and billing math', () => {
     expect(result.mesosPerBuyer).toBe(6_000_000);
     expect(result.totalMesosDue).toBe(12_000_000);
     expect(buyerResult.hourlyMesosDue).toBe(6_000_000);
-  });
-
-  it('ends a running timer by preserving elapsed time', () => {
-    const timer = startTimer({ status: 'idle', accumulatedMs: 0 }, '2026-06-09T00:00:00.000Z');
-    const ended = endTimer(timer, new Date('2026-06-09T02:00:00.000Z').getTime(), '2026-06-09T02:00:00.000Z');
-    expect(ended.status).toBe('ended');
-    expect(ended.accumulatedMs).toBe(7_200_000);
   });
 
   it('converts a level and percentage to raw accumulated EXP', () => {

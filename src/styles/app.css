@@ -675,7 +675,7 @@ h3 {
 
 .instance-billing {
   display: grid;
-  grid-template-columns: minmax(13rem, 0.65fr) minmax(0, 1.35fr) minmax(18rem, 1fr);
+  grid-template-columns: minmax(12rem, 0.62fr) minmax(18rem, 1.55fr);
   gap: var(--space-3);
   align-items: stretch;
 }
@@ -691,14 +691,108 @@ h3 {
 }
 
 .timer-card {
-  display: flex;
-  justify-content: space-between;
+  --timer-accent: var(--primary);
+  --timer-accent-soft: var(--primary-softer);
+  --timer-bg: var(--surface);
+  --timer-status-bg: var(--surface-2);
+
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  border-color: var(--timer-accent);
+  background: var(--timer-bg);
+}
+
+.timer-card--running {
+  --timer-accent: var(--success);
+  --timer-accent-soft: var(--success-soft);
+  --timer-bg: var(--success-soft);
+  --timer-status-bg: var(--surface);
+}
+
+.timer-card--paused {
+  --timer-accent: var(--warning);
+  --timer-accent-soft: var(--warning-soft);
+  --timer-bg: var(--warning-soft);
+  --timer-status-bg: var(--surface);
+}
+
+.timer-card__main {
+  min-width: 0;
+}
+
+.timer-card__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--space-3);
   align-items: center;
-  background: var(--warning-soft);
+}
+
+.timer-card__header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.timer-card .timer-status {
+  min-height: 1.45rem;
+  border: 1px solid color-mix(in oklch, var(--timer-accent) 42%, transparent);
+  border-radius: 999px;
+  padding: 0.16rem 0.48rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--timer-accent);
+  background: var(--timer-status-bg);
+  font-size: 0.72rem;
+  font-weight: 820;
+  line-height: 1;
+  text-transform: capitalize;
+}
+
+.timer-card .timer-status::before {
+  content: "";
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.timer-card--idle .timer-status {
+  color: var(--muted);
+}
+
+.timer-card--idle .timer-status::before {
+  background: var(--border-strong);
 }
 
 .timer-card strong {
+  margin-top: 0;
+  color: var(--timer-accent);
+  font-size: 1.45rem;
+  letter-spacing: 0;
+}
+
+.timer-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.timer-card__toggle {
+  min-width: 6.4rem;
+}
+
+.timer-card__reset {
+  min-width: 5.9rem;
+}
+
+.timer-card__reset:hover:not(:disabled) {
+  border-color: var(--warning);
+  background: var(--warning-soft);
   color: var(--warning);
 }
 
@@ -1149,11 +1243,7 @@ h3 {
   }
 
   .instance-billing {
-    grid-template-columns: minmax(13rem, 0.65fr) minmax(0, 1.35fr);
-  }
-
-  .tip-card--inline {
-    grid-column: 1 / -1;
+    grid-template-columns: minmax(12rem, 0.7fr) minmax(18rem, 1.15fr);
   }
 }
 
@@ -1233,6 +1323,7 @@ h3 {
   .topbar-actions > button,
   .add-buyer-form,
   .timer-card,
+  .timer-card__body,
   .tip-card span,
   .estimate-fields,
   .estimate-fields--compact,
@@ -1250,6 +1341,11 @@ h3 {
   .add-buyer-form,
   .timer-card {
     display: grid;
+  }
+
+  .timer-card__actions,
+  .timer-card__actions > button {
+    width: 100%;
   }
 
   .buyer-row-metrics {
