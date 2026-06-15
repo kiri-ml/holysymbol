@@ -1,0 +1,1161 @@
+import {
+  AlertCircle,
+  BarChart3,
+  Download,
+  Lock,
+  Pause,
+  Play,
+  Plus,
+  RefreshCw,
+  RotateCcw,
+  Square,
+  Trash2,
+  Unlock,
+  UserPlus,
+} from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { ComponentPropsWithoutRef, FocusEvent, KeyboardEvent, ReactNode } from 'react';
+import { avatarUrl, fetchCharacter } from './api/legends';
+import { createManualSnapshot } from './domain/character';
+import {
+  calculateBuyer,
+  calculateEstimate,
+  calculateInstance,
+  endTimer,
+  getBillableMs,
+  pauseTimer,
+  resetTimer,
+  startTimer,
+} from './domain/calculator';
+import { formatCompact, formatDuration, formatExp, formatLocalDateTime, formatMesosShort, formatMesosShortPrecise, formatMesosValue, formatPercent, formatRatio } from './domain/format';
+import { createId } from './domain/id';
+import type {
+  BillingType,
+  CharacterSnapshot,
+  LeechBilling,
+  LeechBuyer,
+  LeechInstance,
+  RatioBilling,
+  TimerStatus,
+} from './domain/types';
+import { useLocalStorage } from './hooks/useLocalStorage';
+import './styles/app.css';
+
+type Notice = { type: 'error' | 'info'; text: string } | null;
+
+type QuickEstimateState = {
+  fromLevel: number;
+  fromExpPercent: number;
+  toLevel: number;
+  toExpPercent: number;
+  billingType: BillingType;
+  expPerMesoRatio: number;
+  hourlyRateMillions: number;
+  expPerHourMillions: number;
+};
+
+type DraftSnapshotState = {
+  level: number;
+  expPercent: number;
+};
+
+const INSTANCES_STORAGE_KEY = 'legends-leech-calculator.instances.v5';
+const ESTIMATE_STORAGE_KEY = 'legends-leech-calculator.estimate.v1';
+const MANUAL_SNAPSHOT_COMMIT_DELAY_MS = 350;
+
+const DEFAULT_ESTIMATE: QuickEstimateState = {
+  fromLevel: 120,
+  fromExpPercent: 0,
+  toLevel: 125,
+  toExpPercent: 0,
+  billingType: 'ratio',
+  expPerMesoRatio: 3.3,
+  hourlyRateMillions: 12,
+  expPerHourMillions: 35,
+};
+
+const DEFAULT_RATIO_BILLING: RatioBilling = {
+  type: 'ratio',
+  expPerMesoRatio: 3.3,
+};
+
+function emptyInstance(index: number, billing: LeechBilling = DEFAULT_RATIO_BILLING, id = createId('leech')): LeechInstance {
+  return {
+    id,
+    name: `Run #${index}`,
+    billing,
+    buyers: [],
+    createdAt: new Date().toISOString(),
+  };
+}
+
+function initialInstances(): LeechInstance[] {
+  return [emptyInstance(1)];
+}
+
+function confirmDeletion(message: string) {
+  return window.confirm(message);
+}
+
+function confirmSnapshotOverwrite(label: 'start') {
+  return window.confirm(`Refresh ${label} EXP? This will overwrite the current level and EXP data.`);
+}
+
+function isEmptyBuyer(buyer: LeechBuyer) {
+  return !buyer.ign.trim() && !buyer.start && !buyer.current;
+}
+
+function isEmptyInstance(instance: LeechInstance) {
+  if (instance.buyers.some((buyer) => !isEmptyBuyer(buyer)) || instance.quote) return false;
+  if (instance.billing.type !== 'hourly') return true;
+  return instance.billing.timer.status === 'idle' && instance.billing.timer.accumulatedMs === 0 && !instance.billing.timer.lastStartedAt && !instance.billing.timer.endedAt;
+}
+
+function clampLevel(value: number) {
+  if (!Number.isFinite(value)) return 1;
+  return Math.max(1, Math.min(200, Math.round(value)));
+}
+
+function clampPercent(value: number) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(99.999, value));
+}
+
+function roundToHundredth(value: number) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.round(value * 100) / 100;
+}
+
+function normalizePercent(value: number) {
+  return Math.max(0, Math.min(99.99, roundToHundredth(value)));
+}
+
+function normalizeNonNegativeHundredth(value: number) {
+  return Math.max(0, roundToHundredth(value));
+}
+
+function numberInputText(value: number) {
+  return Number.isFinite(value) ? String(value) : '';
+}
+
+function csvEscape(value: unknown) {
+  return `"${String(value ?? '').replaceAll('"', '""')}"`;
+}
+
+function billingLabel(billing: LeechBilling) {
+  if (billing.type === 'ratio') return formatRatio(billing.expPerMesoRatio);
+  return `${formatMesosShort(billing.hourlyRateMesos)}/hr`;
+}
+
+function timerStatusLabel(status: TimerStatus) {
+  switch (status) {
+    case 'running':
+      return 'running';
+    case 'paused':
+      return 'paused';
+    case 'ended':
+      return 'ended';
+    case 'idle':
+    default:
+      return 'not started';
+  }
+}
+
+function makeManualSnapshot(ign: string, draft: DraftSnapshotState): CharacterSnapshot {
+  return createManualSnapshot({
+    ign: ign || 'Entered buyer',
+    level: clampLevel(draft.level),
+    expPercent: clampPercent(draft.expPercent),
+  });
+}
+
+function draftDiffersFromSnapshot(draft: DraftSnapshotState, snapshot?: CharacterSnapshot) {
+  return !snapshot || snapshot.level !== clampLevel(draft.level) || snapshot.expPercent !== clampPercent(draft.expPercent);
+}
+
+function createdAtMs(instance: LeechInstance) {
+  const ms = new Date(instance.createdAt).getTime();
+  return Number.isFinite(ms) ? ms : 0;
+}
+
+function buyerLookupIgn(buyer: LeechBuyer) {
+  return (buyer.ign || buyer.start?.ign || buyer.current?.ign || '').trim();
+}
+
+function snapshotShort(snapshot?: CharacterSnapshot) {
+  return snapshot ? `Lv.${snapshot.level} · ${formatPercent(snapshot.expPercent)}` : '—';
+}
+
+function exportInstances(instances: LeechInstance[], now = Date.now()) {
+  const columns = [
+    'instance',
+    'created_at',
+    'billing',
+    'buyer',
+    'start_level',
+    'start_exp_percent',
+    'start_time',
+    'current_level',
+    'current_exp_percent',
+    'current_time',
+    'exp_gained',
+    'mesos_due',
+    'billable_ms',
+  ];
+
+  const rows = instances.flatMap((instance) => {
+    const instanceCalc = calculateInstance(instance, now);
+    const chargedBuyerCount = instance.billing.type === 'hourly' ? instance.buyers.filter((buyer) => buyer.start).length : 1;
+    return instance.buyers.map((buyer) => {
+      const buyerCalc = calculateBuyer(buyer, instance.billing, now, chargedBuyerCount);
+      const due = instance.billing.type === 'ratio' ? buyerCalc.ratioMesosDue : buyerCalc.hourlyMesosDue;
+      return [
+        instance.name,
+        instance.createdAt,
+        billingLabel(instance.billing),
+        buyerLookupIgn(buyer),
+        buyer.start?.level,
+        buyer.start?.expPercent,
+        buyer.start?.capturedAt,
+        buyer.current?.level,
+        buyer.current?.expPercent,
+        buyer.current?.capturedAt,
+        buyerCalc.expGained,
+        due,
+        instanceCalc.billableMs,
+      ].map(csvEscape).join(',');
+    });
+  });
+
+  const blob = new Blob([[columns.join(','), ...rows].join('\n')], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = `holy-symbol-${new Date().toISOString().slice(0, 10)}.csv`;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+function updateBuyer(instance: LeechInstance, buyerId: string, updater: (buyer: LeechBuyer) => LeechBuyer): LeechInstance {
+  return {
+    ...instance,
+    buyers: instance.buyers.map((buyer) => (buyer.id === buyerId ? updater(buyer) : buyer)),
+  };
+}
+
+function SnapshotSummary({
+  title,
+  tone,
+  snapshot,
+  draft,
+  refreshLabel,
+  refreshDisabled,
+  refreshing,
+  onDraftChange,
+  onCommitDraft,
+  onRefresh,
+}: {
+  title: string;
+  tone: 'start' | 'current';
+  snapshot?: CharacterSnapshot;
+  draft: DraftSnapshotState;
+  refreshLabel: string;
+  refreshDisabled: boolean;
+  refreshing: boolean;
+  onDraftChange: (value: DraftSnapshotState) => void;
+  onCommitDraft: (value: DraftSnapshotState) => void;
+  onRefresh: () => void;
+}) {
+  const sourceLabel = snapshot?.source === 'manual' ? 'entered' : 'refreshed';
+
+  return (
+    <div className={`snapshot-summary snapshot-summary--${tone}`}>
+      <div className="snapshot-summary__head">
+        <div>
+          <span>{title}</span>
+          <strong>{snapshotShort(snapshot)}</strong>
+        </div>
+        <button type="button" className="icon-button snapshot-refresh-button" onClick={onRefresh} disabled={refreshDisabled} aria-label={refreshLabel}>
+          <RefreshCw size={15} className={refreshing ? 'spin' : ''} />
+        </button>
+      </div>
+      <small>{snapshot ? `${formatLocalDateTime(snapshot.capturedAt)} · ${sourceLabel}` : 'Fetch or enter EXP'}</small>
+      <div className="manual-snapshot">
+        <LevelExpInputs value={draft} onChange={onDraftChange} onCommit={onCommitDraft} />
+      </div>
+    </div>
+  );
+}
+
+function FlowCard({ step, title, children }: { step: string; title: string; children: ReactNode }) {
+  return (
+    <div className="flow-card">
+      <div className="flow-card__heading">
+        <span>{step}</span>
+        <strong>{title}</strong>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+type EditableNumberInputProps = Omit<ComponentPropsWithoutRef<'input'>, 'value' | 'onChange'> & {
+  value: number;
+  onValueChange: (value: number) => void;
+  emptyValue?: number;
+  normalize?: (value: number) => number;
+};
+
+function EditableNumberInput({
+  value,
+  onValueChange,
+  emptyValue = 0,
+  normalize = (nextValue) => nextValue,
+  onBlur,
+  onFocus,
+  ...inputProps
+}: EditableNumberInputProps) {
+  const [text, setText] = useState(numberInputText(value));
+  const focusedRef = useRef(false);
+
+  useEffect(() => {
+    if (!focusedRef.current) setText(numberInputText(value));
+  }, [value]);
+
+  function parseText(raw: string) {
+    if (raw === '') return emptyValue;
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? parsed : emptyValue;
+  }
+
+  return (
+    <input
+      {...inputProps}
+      value={text}
+      onFocus={(event) => {
+        focusedRef.current = true;
+        onFocus?.(event);
+      }}
+      onBlur={(event) => {
+        focusedRef.current = false;
+        const normalized = normalize(parseText(text));
+        const nextText = String(normalized);
+        event.currentTarget.value = nextText;
+        setText(nextText);
+        onValueChange(normalized);
+        onBlur?.(event);
+      }}
+      onChange={(event) => {
+        const nextText = event.target.value;
+        setText(nextText);
+        if (nextText === '') return;
+        const parsed = Number(nextText);
+        if (Number.isFinite(parsed)) onValueChange(parsed);
+      }}
+    />
+  );
+}
+
+function LevelExpInputs({
+  value,
+  onChange,
+  onCommit,
+  prefix = '',
+}: {
+  value: DraftSnapshotState;
+  onChange: (value: DraftSnapshotState) => void;
+  onCommit?: (value: DraftSnapshotState) => void;
+  prefix?: string;
+}) {
+  const commitTimerRef = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    return () => {
+      if (commitTimerRef.current !== undefined) window.clearTimeout(commitTimerRef.current);
+    };
+  }, []);
+
+  function clearScheduledCommit() {
+    if (commitTimerRef.current === undefined) return;
+    window.clearTimeout(commitTimerRef.current);
+    commitTimerRef.current = undefined;
+  }
+
+  function scheduleCommit(nextValue: DraftSnapshotState) {
+    if (!onCommit) return;
+    clearScheduledCommit();
+    commitTimerRef.current = window.setTimeout(() => {
+      commitTimerRef.current = undefined;
+      onCommit(nextValue);
+    }, MANUAL_SNAPSHOT_COMMIT_DELAY_MS);
+  }
+
+  function updateValue(nextValue: DraftSnapshotState) {
+    onChange(nextValue);
+    scheduleCommit(nextValue);
+  }
+
+  function handleBlur(event: FocusEvent<HTMLDivElement>) {
+    const nextTarget = event.relatedTarget;
+    if (nextTarget instanceof Node && event.currentTarget.contains(nextTarget)) return;
+
+    const inputs = event.currentTarget.querySelectorAll('input');
+    const normalized = {
+      level: clampLevel(Number(inputs[0].value)),
+      expPercent: normalizePercent(Number(inputs[1].value)),
+    };
+
+    inputs[0].value = String(normalized.level);
+    inputs[1].value = String(normalized.expPercent);
+
+    clearScheduledCommit();
+    onChange(normalized);
+    onCommit?.(normalized);
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== 'Enter') return;
+    event.currentTarget.blur();
+  }
+
+  return (
+    <div className="level-exp-grid" onBlur={handleBlur}>
+      <label>
+        {prefix}Level
+        <EditableNumberInput
+          type="number"
+          min={1}
+          max={200}
+          value={value.level}
+          emptyValue={1}
+          normalize={clampLevel}
+          onKeyDown={handleKeyDown}
+          onValueChange={(level) => updateValue({ ...value, level })}
+        />
+      </label>
+      <label>
+        {prefix}EXP %
+        <EditableNumberInput
+          type="number"
+          min={0}
+          max={99.999}
+          step={0.01}
+          value={value.expPercent}
+          normalize={normalizePercent}
+          onKeyDown={handleKeyDown}
+          onValueChange={(expPercent) => updateValue({ ...value, expPercent })}
+        />
+      </label>
+    </div>
+  );
+}
+
+function QuickEstimate({
+  estimate,
+  onChange,
+}: {
+  estimate: QuickEstimateState;
+  onChange: (next: QuickEstimateState) => void;
+}) {
+  const result = useMemo(
+    () =>
+      calculateEstimate({
+        fromLevel: clampLevel(estimate.fromLevel),
+        fromExpPercent: estimate.fromExpPercent,
+        toLevel: clampLevel(estimate.toLevel),
+        toExpPercent: estimate.toExpPercent,
+        billingType: estimate.billingType,
+        expPerMesoRatio: estimate.expPerMesoRatio,
+        hourlyRateMesos: estimate.hourlyRateMillions * 1_000_000,
+        expPerHourMillions: estimate.expPerHourMillions,
+      }),
+    [estimate],
+  );
+
+  return (
+    <section className="panel estimate-panel">
+      <div className="panel-heading">
+        <div>
+          <h2>Quote calculator</h2>
+          <p>Calculate a leech quote without starting a run.</p>
+        </div>
+        <div className="segmented-control" role="group" aria-label="Estimate pricing type">
+          <button type="button" className={estimate.billingType === 'ratio' ? 'active' : ''} onClick={() => onChange({ ...estimate, billingType: 'ratio' })}>
+            Ratio
+          </button>
+          <button type="button" className={estimate.billingType === 'hourly' ? 'active' : ''} onClick={() => onChange({ ...estimate, billingType: 'hourly' })}>
+            Hourly
+          </button>
+        </div>
+      </div>
+
+      <div className="estimate-grid">
+        <FlowCard step="1" title="From">
+          <LevelExpInputs
+            value={{ level: estimate.fromLevel, expPercent: estimate.fromExpPercent }}
+            onChange={(value) => onChange({ ...estimate, fromLevel: clampLevel(value.level), fromExpPercent: clampPercent(value.expPercent) })}
+          />
+        </FlowCard>
+
+        <FlowCard step="2" title="To">
+          <LevelExpInputs
+            value={{ level: estimate.toLevel, expPercent: estimate.toExpPercent }}
+            onChange={(value) => onChange({ ...estimate, toLevel: clampLevel(value.level), toExpPercent: clampPercent(value.expPercent) })}
+          />
+        </FlowCard>
+
+        <FlowCard step="3" title="Pricing">
+          {estimate.billingType === 'ratio' ? (
+            <label>
+              Ratio
+              <span className="ratio-input">
+                <span>1 :</span>
+                <EditableNumberInput
+                  type="number"
+                  min={0.1}
+                  step={0.1}
+                  value={estimate.expPerMesoRatio}
+                  aria-label="EXP per meso ratio"
+                  onValueChange={(expPerMesoRatio) => onChange({ ...estimate, expPerMesoRatio })}
+                />
+              </span>
+            </label>
+          ) : (
+            <div className="estimate-fields estimate-fields--compact">
+              <label>
+                Price
+                <span className="unit-input">
+                  <EditableNumberInput
+                    type="number"
+                    min={0}
+                    step={0.5}
+                    value={estimate.hourlyRateMillions}
+                    aria-label="Hourly price in millions of mesos"
+                    onValueChange={(hourlyRateMillions) => onChange({ ...estimate, hourlyRateMillions })}
+                  />
+                  <span>m/h</span>
+                </span>
+              </label>
+              <label>
+                EPH
+                <span className="unit-input">
+                  <EditableNumberInput
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={estimate.expPerHourMillions}
+                    normalize={normalizeNonNegativeHundredth}
+                    aria-label="EXP rate in millions per hour"
+                    onValueChange={(expPerHourMillions) => onChange({ ...estimate, expPerHourMillions })}
+                  />
+                  <span>m EXP/h</span>
+                </span>
+              </label>
+            </div>
+          )}
+        </FlowCard>
+
+        <div className="estimate-result flow-card">
+          <div className="flow-card__heading">
+            <span>4</span>
+            <strong>Result</strong>
+          </div>
+          <div>
+            <span>EXP needed</span>
+            <strong>{formatCompact(result.expNeeded)}</strong>
+            <small>{formatExp(result.expNeeded)}</small>
+          </div>
+          {estimate.billingType === 'hourly' ? (
+            <div>
+              <span>Expected time</span>
+              <strong>{formatDuration(result.expectedDurationMs)}</strong>
+              <small>{estimate.expPerHourMillions || 0}m EXP/h</small>
+            </div>
+          ) : null}
+          <div>
+            <span>Estimated cost</span>
+            <strong>{formatMesosShort(estimate.billingType === 'ratio' ? result.ratioMesosDue : result.hourlyMesosDue)}</strong>
+            <small>{estimate.billingType === 'ratio' ? formatRatio(estimate.expPerMesoRatio) : `${estimate.hourlyRateMillions || 0}m/h`}</small>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TimerControls({ billing, onChange, now }: { billing: Extract<LeechBilling, { type: 'hourly' }>; onChange: (billing: LeechBilling) => void; now: number }) {
+  const billableMs = getBillableMs(billing.timer, now);
+
+  return (
+    <div className="timer-card">
+      <div>
+        <span>Run time</span>
+        <strong>{formatDuration(billableMs)}</strong>
+        <small>{timerStatusLabel(billing.timer.status)}</small>
+      </div>
+      <div className="button-row wrap">
+        <button type="button" onClick={() => onChange({ ...billing, timer: startTimer(billing.timer) })} disabled={billing.timer.status === 'running'}>
+          <Play size={16} /> Start
+        </button>
+        <button type="button" className="secondary-button" onClick={() => onChange({ ...billing, timer: pauseTimer(billing.timer) })} disabled={billing.timer.status !== 'running'}>
+          <Pause size={16} /> Pause
+        </button>
+        <button type="button" className="secondary-button" onClick={() => onChange({ ...billing, timer: endTimer(billing.timer) })} disabled={billing.timer.status === 'idle' || billing.timer.status === 'ended'}>
+          <Square size={16} /> End
+        </button>
+        <button type="button" className="ghost-button" onClick={() => onChange({ ...billing, timer: resetTimer() })}>
+          <RotateCcw size={16} /> Reset
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function BuyerRow({
+  instance,
+  buyer,
+  busy,
+  now,
+  onUpdate,
+  onDelete,
+  onFetchSnapshot,
+}: {
+  instance: LeechInstance;
+  buyer: LeechBuyer;
+  busy: boolean;
+  now: number;
+  onUpdate: (buyer: LeechBuyer) => void;
+  onDelete: () => void;
+  onFetchSnapshot: (ign: string) => Promise<CharacterSnapshot>;
+}) {
+  const [startDraft, setStartDraft] = useState<DraftSnapshotState>({ level: buyer.start?.level ?? 120, expPercent: buyer.start?.expPercent ?? 0 });
+  const [currentDraft, setCurrentDraft] = useState<DraftSnapshotState>({ level: buyer.current?.level ?? buyer.start?.level ?? 120, expPercent: buyer.current?.expPercent ?? 0 });
+  const [refreshingSnapshot, setRefreshingSnapshot] = useState<'start' | 'current' | null>(null);
+  const chargedBuyerCount = instance.billing.type === 'hourly' ? instance.buyers.filter((item) => item.start).length : 1;
+  const calc = calculateBuyer(buyer, instance.billing, now, chargedBuyerCount);
+  const due = instance.billing.type === 'ratio' ? calc.ratioMesosDue : calc.hourlyMesosDue;
+  const lookupIgn = buyerLookupIgn(buyer);
+  const displayIgn = lookupIgn || 'Buyer';
+  const locked = buyer.locked ?? false;
+
+  useEffect(() => {
+    if (!buyer.start) return;
+    setStartDraft({ level: buyer.start.level, expPercent: buyer.start.expPercent });
+  }, [buyer.start?.id, buyer.start?.level, buyer.start?.expPercent]);
+
+  useEffect(() => {
+    if (!buyer.current) return;
+    setCurrentDraft({ level: buyer.current.level, expPercent: buyer.current.expPercent });
+  }, [buyer.current?.id, buyer.current?.level, buyer.current?.expPercent]);
+
+  async function fetchStart() {
+    if (buyer.start && !confirmSnapshotOverwrite('start')) return;
+    setRefreshingSnapshot('start');
+    try {
+      const snapshot = await onFetchSnapshot(lookupIgn);
+      onUpdate({ ...buyer, ign: snapshot.ign, start: snapshot, current: buyer.current ?? snapshot });
+    } finally {
+      setRefreshingSnapshot(null);
+    }
+  }
+
+  async function fetchCurrent() {
+    setRefreshingSnapshot('current');
+    try {
+      const snapshot = await onFetchSnapshot(lookupIgn);
+      onUpdate({ ...buyer, ign: snapshot.ign, current: snapshot });
+    } finally {
+      setRefreshingSnapshot(null);
+    }
+  }
+
+  function commitStartDraft(nextDraft = startDraft) {
+    if (!draftDiffersFromSnapshot(nextDraft, buyer.start)) return;
+    const snapshot = makeManualSnapshot(lookupIgn, nextDraft);
+    onUpdate({ ...buyer, ign: buyer.ign || snapshot.ign, start: snapshot, current: buyer.current ?? snapshot });
+  }
+
+  function commitCurrentDraft(nextDraft = currentDraft) {
+    if (!draftDiffersFromSnapshot(nextDraft, buyer.current)) return;
+    const snapshot = makeManualSnapshot(lookupIgn, nextDraft);
+    onUpdate({ ...buyer, ign: buyer.ign || buyer.start?.ign || snapshot.ign, current: snapshot });
+  }
+
+  return (
+    <article className="buyer-row-card">
+      <div className={`buyer-row-main${locked ? ' buyer-row-main--locked' : ''}`}>
+        <div className="buyer-identity-cell">
+          {lookupIgn ? (
+            <div className="avatar-frame avatar-frame--small">
+              <img src={avatarUrl(lookupIgn, !locked)} alt="" loading="lazy" />
+            </div>
+          ) : (
+            <div className="avatar-frame avatar-frame--small avatar-frame--empty"><UserPlus size={18} /></div>
+          )}
+          <div className="buyer-name-display">
+            <strong>{buyer.ign || 'BuyerName'}</strong>
+          </div>
+        </div>
+        <div className="buyer-row-metrics">
+          <div className="buyer-row-stat">
+            <span>Start</span>
+            <strong>{snapshotShort(buyer.start)}</strong>
+            {buyer.start ? <small>{formatLocalDateTime(buyer.start.capturedAt)}</small> : null}
+          </div>
+          <div className="buyer-row-stat">
+            <span>Current</span>
+            <strong>{snapshotShort(buyer.current)}</strong>
+            {buyer.current ? <small>{formatLocalDateTime(buyer.current.capturedAt)}</small> : null}
+          </div>
+          <div className="buyer-row-stat">
+            <span>EXP gained</span>
+            <strong>{formatCompact(calc.expGained)}</strong>
+            <small>{formatExp(calc.expGained)}</small>
+          </div>
+          <div className="buyer-row-stat buyer-row-stat--due">
+            <span>Due</span>
+            <strong>{formatMesosShortPrecise(due)}</strong>
+            <small>{formatMesosValue(due)}</small>
+          </div>
+        </div>
+        <div className="buyer-row-actions">
+          <button
+            type="button"
+            className={`icon-button lock-button${locked ? ' lock-button--locked' : ''}`}
+            onClick={() => onUpdate({ ...buyer, locked: !locked })}
+            aria-label={`${locked ? 'Unlock' : 'Lock'} ${displayIgn}`}
+            aria-pressed={locked}
+          >
+            {locked ? <Unlock size={16} /> : <Lock size={16} />}
+          </button>
+          <button type="button" className="icon-button danger-button" onClick={onDelete} aria-label={`Remove ${displayIgn}`}>
+            <Trash2 size={16} />
+          </button>
+        </div>
+      </div>
+
+      {!locked ? (
+        <details className="buyer-details">
+          <summary>Edit buyer</summary>
+          <div className="snapshot-editor-grid">
+            <SnapshotSummary
+              title="Start"
+              tone="start"
+              snapshot={buyer.start}
+              draft={startDraft}
+              refreshLabel="Fetch start EXP"
+              refreshDisabled={busy || !lookupIgn}
+              refreshing={refreshingSnapshot === 'start'}
+              onDraftChange={setStartDraft}
+              onCommitDraft={commitStartDraft}
+              onRefresh={fetchStart}
+            />
+
+            <SnapshotSummary
+              title="Current"
+              tone="current"
+              snapshot={buyer.current}
+              draft={currentDraft}
+              refreshLabel="Refresh EXP"
+              refreshDisabled={busy || !lookupIgn}
+              refreshing={refreshingSnapshot === 'current'}
+              onDraftChange={setCurrentDraft}
+              onCommitDraft={commitCurrentDraft}
+              onRefresh={fetchCurrent}
+            />
+          </div>
+        </details>
+      ) : null}
+    </article>
+  );
+}
+
+function LeechInstanceCard({
+  instance,
+  index,
+  highlighted,
+  busyKey,
+  now,
+  onUpdate,
+  onDelete,
+  onFetchSnapshot,
+}: {
+  instance: LeechInstance;
+  index: number;
+  highlighted: boolean;
+  busyKey: string | null;
+  now: number;
+  onUpdate: (instance: LeechInstance) => void;
+  onDelete: () => void;
+  onFetchSnapshot: (ign: string) => Promise<CharacterSnapshot>;
+}) {
+  const [newBuyerIgn, setNewBuyerIgn] = useState('');
+  const [addingBuyer, setAddingBuyer] = useState(false);
+  const [refreshingRun, setRefreshingRun] = useState(false);
+  const [refreshResult, setRefreshResult] = useState<string | null>(null);
+  const summary = calculateInstance(instance, now);
+  const ratioBilling = instance.billing.type === 'ratio' ? instance.billing : undefined;
+  const hourlyBilling = instance.billing.type === 'hourly' ? instance.billing : undefined;
+  const refreshableBuyers = instance.buyers.filter((buyer) => !buyer.locked && buyerLookupIgn(buyer));
+
+  function updateBilling(billing: LeechBilling) {
+    onUpdate({ ...instance, billing });
+  }
+
+  function setBillingType(type: BillingType) {
+    if (type === instance.billing.type) return;
+    const billing: LeechBilling =
+      type === 'ratio'
+        ? { type: 'ratio', expPerMesoRatio: 3.3 }
+        : { type: 'hourly', hourlyRateMesos: 12_000_000, expPerHourMillions: 35, timer: { status: 'idle', accumulatedMs: 0 } };
+    updateBilling(billing);
+  }
+
+  async function addBuyerFromInput() {
+    const ign = newBuyerIgn.trim();
+    if (!ign) return;
+
+    setAddingBuyer(true);
+    setRefreshResult(null);
+    try {
+      const snapshot = await onFetchSnapshot(ign);
+      const buyer: LeechBuyer = {
+        id: createId('buyer'),
+        ign: snapshot.ign,
+        start: snapshot,
+        current: snapshot,
+      };
+      onUpdate({ ...instance, buyers: [...instance.buyers, buyer] });
+      setNewBuyerIgn('');
+    } catch {
+      const buyer: LeechBuyer = {
+        id: createId('buyer'),
+        ign,
+      };
+      onUpdate({ ...instance, buyers: [...instance.buyers, buyer] });
+      setNewBuyerIgn('');
+    } finally {
+      setAddingBuyer(false);
+    }
+  }
+
+  async function refreshRunCurrentExp() {
+    if (refreshableBuyers.length === 0) return;
+
+    setRefreshingRun(true);
+    setRefreshResult(null);
+    const snapshots = new Map<string, CharacterSnapshot>();
+    const failures: string[] = [];
+
+    for (const buyer of refreshableBuyers) {
+      const ign = buyerLookupIgn(buyer);
+      try {
+        const snapshot = await onFetchSnapshot(ign);
+        snapshots.set(buyer.id, snapshot);
+      } catch {
+        failures.push(ign);
+      }
+    }
+
+    const refreshedAt = snapshots.size > 0 ? new Date().toISOString() : instance.lastCurrentRefreshedAt;
+    onUpdate({
+      ...instance,
+      lastCurrentRefreshedAt: refreshedAt,
+      buyers: instance.buyers.map((buyer) => {
+        const snapshot = snapshots.get(buyer.id);
+        return snapshot ? { ...buyer, ign: snapshot.ign, current: snapshot } : buyer;
+      }),
+    });
+
+    setRefreshResult(
+      failures.length > 0
+        ? `Updated ${snapshots.size}/${refreshableBuyers.length}. Failed: ${failures.join(', ')}`
+        : `Updated ${snapshots.size} buyer${snapshots.size === 1 ? '' : 's'}`,
+    );
+    setRefreshingRun(false);
+  }
+
+  return (
+    <section className={`panel leech-instance${highlighted ? ' leech-instance--highlighted' : ''}`}>
+      <div className="instance-header">
+        <div>
+          <input
+            className="instance-title-input"
+            value={instance.name}
+            onChange={(event) => onUpdate({ ...instance, name: event.target.value })}
+            aria-label={`Name for leech run ${index + 1}`}
+          />
+          <p className="run-created-at">
+            {instance.billing.type === 'ratio' ? `Ratio · ${billingLabel(instance.billing)}` : `Hourly · ${billingLabel(instance.billing)}`} · Created {formatLocalDateTime(instance.createdAt)}
+          </p>
+        </div>
+        <div className="button-row wrap">
+          <div className="segmented-control" role="group" aria-label="Billing type">
+            <button type="button" className={instance.billing.type === 'ratio' ? 'active' : ''} onClick={() => setBillingType('ratio')}>Ratio</button>
+            <button type="button" className={instance.billing.type === 'hourly' ? 'active' : ''} onClick={() => setBillingType('hourly')}>Hourly</button>
+          </div>
+          <button type="button" className="icon-button danger-button" onClick={onDelete} aria-label="Delete run">
+            <Trash2 size={16} />
+          </button>
+        </div>
+      </div>
+
+      <div className="instance-billing">
+        <div className="billing-settings">
+          <span>Pricing</span>
+          {ratioBilling ? (
+            <label className="compact-label">
+              Ratio
+              <span className="ratio-input">
+                <span>1 :</span>
+                <input
+                  type="number"
+                  min={0.1}
+                  step={0.1}
+                  value={ratioBilling.expPerMesoRatio}
+                  aria-label="Run EXP per meso ratio"
+                  onChange={(event) => updateBilling({ type: 'ratio', expPerMesoRatio: Number(event.target.value) })}
+                />
+              </span>
+            </label>
+          ) : null}
+          {hourlyBilling ? (
+            <label className="compact-label">
+              Price
+              <span className="unit-input">
+                <input
+                  type="number"
+                  min={0}
+                  step={0.5}
+                  value={hourlyBilling.hourlyRateMesos / 1_000_000}
+                  aria-label="Run hourly price in millions of mesos"
+                  onChange={(event) => updateBilling({ ...hourlyBilling, hourlyRateMesos: Number(event.target.value) * 1_000_000 })}
+                />
+                <span>m / hr</span>
+              </span>
+            </label>
+          ) : null}
+        </div>
+        {hourlyBilling ? (
+          <TimerControls billing={hourlyBilling} now={now} onChange={updateBilling} />
+        ) : null}
+        <div className="tip-card tip-card--inline">
+          <div className="tip-card__content">
+            <strong>Keep EXP updated <AlertCircle size={14} /></strong>
+            <div className="tip-card__rows">
+              <span><b>Seller refresh</b><em>Reinvite your HS mule or another party member.</em></span>
+              <span><b>Buyer refresh</b><em>Change maps/channels or enter and exit the Cash Shop.</em></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="buyers-header buyers-toolbar">
+        <div>
+          <h3>Buyers</h3>
+          <p>Add buyers before the run, then refresh current EXP as the run goes.</p>
+        </div>
+        <div className="button-row wrap">
+          <button type="button" className="secondary-button refresh-exp-button" onClick={refreshRunCurrentExp} disabled={refreshingRun || refreshableBuyers.length === 0}>
+            <RefreshCw size={16} className={refreshingRun ? 'spin' : ''} /> {refreshingRun ? 'Refreshing...' : 'Refresh EXP'}
+          </button>
+        </div>
+      </div>
+
+      <form
+        className="add-buyer-form"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void addBuyerFromInput();
+        }}
+      >
+        <label>
+          Buyer IGN
+          <input value={newBuyerIgn} onChange={(event) => setNewBuyerIgn(event.target.value)} placeholder="BuyerName" />
+        </label>
+        <button type="submit" disabled={addingBuyer || !newBuyerIgn.trim()}>
+          <Plus size={16} /> {addingBuyer ? 'Adding...' : 'Add buyer'}
+        </button>
+      </form>
+
+      <div className="refresh-status-row">
+        {instance.lastCurrentRefreshedAt ? <small>Last refreshed: {formatLocalDateTime(instance.lastCurrentRefreshedAt)}</small> : <small>Start EXP is fetched once when a buyer is added.</small>}
+        {refreshResult ? <small>{refreshResult}</small> : null}
+      </div>
+
+      {instance.buyers.length > 0 ? (
+        <div className="buyer-list">
+          {instance.buyers.map((buyer) => (
+            <BuyerRow
+              key={buyer.id}
+              instance={instance}
+              buyer={buyer}
+              now={now}
+              busy={busyKey === `character:${buyerLookupIgn(buyer)}` || refreshingRun}
+              onFetchSnapshot={onFetchSnapshot}
+              onUpdate={(nextBuyer) => onUpdate(updateBuyer(instance, buyer.id, () => nextBuyer))}
+              onDelete={() => {
+                const name = buyerLookupIgn(buyer) || 'this character';
+                if (!isEmptyBuyer(buyer) && !confirmDeletion(`Delete ${name} from ${instance.name}?`)) return;
+                onUpdate({ ...instance, buyers: instance.buyers.filter((item) => item.id !== buyer.id) });
+              }}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="empty-buyers-state">
+          <UserPlus size={24} />
+          <strong>No buyers yet</strong>
+          <span>Add the buyer’s IGN to fetch their start EXP.</span>
+        </div>
+      )}
+
+      <div className="instance-summary">
+        <div>
+          <span>Buyers</span>
+          <strong>{summary.buyerCount}</strong>
+          <small>{summary.completedBuyerCount} refreshed</small>
+        </div>
+        <div>
+          <span>Total EXP</span>
+          <strong>{formatCompact(summary.totalExpGained)}</strong>
+          <small>{formatExp(summary.totalExpGained)}</small>
+        </div>
+        {instance.billing.type === 'hourly' ? (
+          <>
+            <div>
+              <span>Run time</span>
+              <strong>{formatDuration(summary.billableMs)}</strong>
+              <small>{formatMesosShort(summary.mesosPerBuyer)}/buyer</small>
+            </div>
+            <div>
+              <span>Total due</span>
+              <strong>{formatMesosShort(summary.totalMesosDue)}</strong>
+              <small>{billingLabel(instance.billing)}</small>
+            </div>
+          </>
+        ) : (
+          <div>
+            <span>Total due</span>
+            <strong>{formatMesosShort(summary.totalMesosDue)}</strong>
+            <small>{billingLabel(instance.billing)}</small>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+export default function App() {
+  const [instances, setInstances] = useLocalStorage<LeechInstance[]>(INSTANCES_STORAGE_KEY, initialInstances());
+  const [estimate, setEstimate] = useLocalStorage<QuickEstimateState>(ESTIMATE_STORAGE_KEY, DEFAULT_ESTIMATE);
+  const [notice, setNotice] = useState<Notice>(null);
+  const [busyKey, setBusyKey] = useState<string | null>(null);
+  const [highlightedRunId, setHighlightedRunId] = useState<string | null>(null);
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const hasRunningTimer = instances.some((instance) => instance.billing.type === 'hourly' && instance.billing.timer.status === 'running');
+    if (!hasRunningTimer) return;
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [instances]);
+
+  useEffect(() => {
+    if (!highlightedRunId) return;
+    const id = window.setTimeout(() => setHighlightedRunId(null), 2400);
+    return () => window.clearTimeout(id);
+  }, [highlightedRunId]);
+
+  function upsertInstance(nextInstance: LeechInstance) {
+    setInstances((current) => current.map((instance) => (instance.id === nextInstance.id ? nextInstance : instance)));
+  }
+
+  function addInstance() {
+    const id = createId('leech');
+    setHighlightedRunId(id);
+    setInstances((current) => [...current, emptyInstance(current.length + 1, DEFAULT_RATIO_BILLING, id)]);
+  }
+
+  async function loadCharacter(ign: string): Promise<CharacterSnapshot> {
+    const cleanIgn = ign.trim();
+    setNotice(null);
+    setBusyKey(`character:${cleanIgn}`);
+    try {
+      return await fetchCharacter(cleanIgn);
+    } catch (error) {
+      const text = error instanceof Error ? error.message : 'Could not refresh character.';
+      setNotice({ type: 'error', text });
+      throw error;
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  const displayedInstances = useMemo(() => [...instances].sort((a, b) => createdAtMs(b) - createdAtMs(a)), [instances]);
+
+  return (
+    <main className="app-shell">
+      <section className="hero">
+        <div>
+          <span className="eyebrow">MapleLegends Leech Calculator</span>
+          <h1>Holy Symbol</h1>
+          <p>Track leech runs, buyer EXP, and mesos due.</p>
+        </div>
+        <div className="hero-card">
+          <BarChart3 size={24} />
+          <strong>{instances.length}</strong>
+          <span>active run{instances.length === 1 ? '' : 's'}</span>
+        </div>
+      </section>
+
+      {notice ? (
+        <div className={`notice notice--${notice.type}`}>
+          <AlertCircle size={18} />
+          <span>{notice.text}</span>
+        </div>
+      ) : null}
+
+      <div className="main-layout">
+        <section className="runs-column instances-section">
+          <div className="section-heading">
+            <div>
+              <h2>Active runs</h2>
+            </div>
+            <div className="button-row wrap">
+              <button type="button" onClick={addInstance}>
+                <Plus size={16} /> New run
+              </button>
+              <button type="button" className="secondary-button" onClick={() => exportInstances(instances, now)} disabled={instances.length === 0}>
+                <Download size={16} /> Export
+              </button>
+            </div>
+          </div>
+
+          <div className="instances-stack">
+            {displayedInstances.map((instance, index) => (
+              <LeechInstanceCard
+                key={instance.id}
+                instance={instance}
+                index={index}
+                highlighted={instance.id === highlightedRunId}
+                busyKey={busyKey}
+                now={now}
+                onFetchSnapshot={loadCharacter}
+                onUpdate={upsertInstance}
+                onDelete={() => {
+                  if (!isEmptyInstance(instance) && !confirmDeletion(`Delete ${instance.name}?`)) return;
+                  setInstances((current) => (current.length <= 1 ? [emptyInstance(1)] : current.filter((item) => item.id !== instance.id)));
+                }}
+              />
+            ))}
+          </div>
+        </section>
+
+        <aside className="calculator-column">
+          <QuickEstimate estimate={estimate} onChange={setEstimate} />
+        </aside>
+      </div>
+    </main>
+  );
+}
