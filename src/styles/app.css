@@ -331,7 +331,6 @@ h3 {
 .timer-card span,
 .tool-stat span,
 .buyer-row-stat span,
-.instance-summary span,
 .snapshot-summary span {
   display: block;
   color: var(--muted);
@@ -463,24 +462,46 @@ h3 {
 .estimate-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
-.estimate-fields {
+.estimate-pricing-inputs {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-2);
   align-content: start;
 }
 
-.estimate-fields--compact {
+.estimate-pricing-inputs,
+.estimate-label-row--pricing {
   grid-template-columns: minmax(4.5rem, 0.8fr) minmax(5.5rem, 1fr);
 }
 
-.level-exp-grid {
+.level-exp-grid,
+.estimate-level-inputs,
+.estimate-label-row--level-exp {
   display: grid;
   grid-template-columns: minmax(4.5rem, 0.85fr) minmax(5.5rem, 1fr);
   gap: var(--space-2);
+}
+
+.estimate-label-row {
+  align-items: end;
+  align-self: end;
+  color: var(--ink-soft);
+  display: grid;
+  font-size: 0.78rem;
+  font-weight: 760;
+  line-height: 1.2;
+  text-align: right;
+}
+
+.estimate-label-row span {
+  align-self: end;
+}
+
+.estimate-label-row--single {
+  grid-template-columns: 1fr;
 }
 
 .ratio-input,
@@ -542,46 +563,69 @@ h3 {
 
 .flow-card {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
   align-content: start;
   background: var(--surface-2);
 }
 
+.flow-card__top {
+  align-items: end;
+  display: grid;
+}
+
 .flow-card__heading {
   display: flex;
+  grid-area: 1 / 1;
   align-items: center;
-  gap: var(--space-2);
+  gap: 0.38rem;
+  justify-self: start;
+  min-width: max-content;
+  z-index: 1;
+}
+
+.flow-card__top > .estimate-label-row {
+  grid-area: 1 / 1;
+  width: 100%;
 }
 
 .flow-card__heading span {
-  width: 1.45rem;
-  height: 1.45rem;
+  width: 1.24rem;
+  height: 1.24rem;
   border-radius: 999px;
   display: inline-grid;
   place-items: center;
   color: var(--primary-strong);
   background: var(--primary-soft);
-  font-size: 0.76rem;
+  font-size: 0.68rem;
   font-weight: 820;
   font-variant-numeric: tabular-nums;
 }
 
 .flow-card__heading strong {
   color: var(--ink);
-  font-size: 0.92rem;
+  font-size: 0.84rem;
+  line-height: 1.15;
 }
 
 .estimate-result {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
   background: var(--primary-softer);
+}
+
+.estimate-result .flow-card__heading {
+  grid-column: 1 / -1;
+  position: static;
+}
+
+.estimate-result > div:not(.flow-card__heading) {
+  min-width: 0;
 }
 
 .estimate-result > div:not(.flow-card__heading) strong,
 .timer-card strong,
 .tool-stat strong,
-.instance-summary strong,
 .snapshot-summary strong {
   display: block;
   margin-top: 0.14rem;
@@ -589,6 +633,11 @@ h3 {
   font-size: 1.2rem;
   line-height: 1.2;
   font-variant-numeric: tabular-nums;
+}
+
+.estimate-result > div:not(.flow-card__heading) small,
+.estimate-result > div:not(.flow-card__heading) strong {
+  overflow-wrap: anywhere;
 }
 
 .segmented-control {
@@ -1142,15 +1191,6 @@ h3 {
   min-width: 10rem;
 }
 
-.instance-summary {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--space-2);
-  border-top: 1px solid var(--border);
-  padding-top: var(--space-3);
-}
-
-.instance-summary > div,
 .tool-stat {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -1238,8 +1278,24 @@ h3 {
 
   .tools-column {
     position: static;
+    grid-column: 2;
+    grid-template-columns: 1fr;
+  }
+
+  .run-tools {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .run-tools .panel-heading {
     grid-column: 1 / -1;
-    grid-template-columns: minmax(0, 1fr) minmax(20rem, 24rem);
+  }
+
+  .run-tools .tools-grid {
+    display: contents;
+  }
+
+  .estimate-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .instance-billing {
@@ -1272,20 +1328,21 @@ h3 {
     position: static;
   }
 
-  .run-tabs {
-    display: flex;
-    overflow-x: auto;
-    padding-bottom: var(--space-1);
-    scroll-snap-type: x proximity;
-  }
-
-  .run-tab {
-    flex: 0 0 min(18rem, 82vw);
-    scroll-snap-align: start;
-  }
-
   .tools-column {
     grid-template-columns: 1fr;
+  }
+
+  .run-tools,
+  .estimate-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .run-tools .panel-heading {
+    grid-column: auto;
+  }
+
+  .run-tools .tools-grid {
+    display: grid;
   }
 
   .instance-billing,
@@ -1325,10 +1382,7 @@ h3 {
   .timer-card,
   .timer-card__body,
   .tip-card span,
-  .estimate-fields,
-  .estimate-fields--compact,
   .level-exp-grid,
-  .instance-summary,
   .tools-grid {
     grid-template-columns: 1fr;
   }

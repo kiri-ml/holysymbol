@@ -287,12 +287,15 @@ function SnapshotSummary({
   );
 }
 
-function FlowCard({ step, title, children }: { step: string; title: string; children: ReactNode }) {
+function FlowCard({ step, title, labels, children }: { step: string; title: string; labels: ReactNode; children: ReactNode }) {
   return (
     <div className="flow-card">
-      <div className="flow-card__heading">
-        <span>{step}</span>
-        <strong>{title}</strong>
+      <div className="flow-card__top">
+        <div className="flow-card__heading">
+          <span>{step}</span>
+          <strong>{title}</strong>
+        </div>
+        {labels}
       </div>
       {children}
     </div>
@@ -475,6 +478,67 @@ function LevelExpInputs({
   );
 }
 
+function EstimateLevelExpInputs({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: DraftSnapshotState;
+  onChange: (value: DraftSnapshotState) => void;
+}) {
+  function updateValue(nextValue: DraftSnapshotState) {
+    onChange(nextValue);
+  }
+
+  function handleBlur(event: FocusEvent<HTMLDivElement>) {
+    const nextTarget = event.relatedTarget;
+    if (nextTarget instanceof Node && event.currentTarget.contains(nextTarget)) return;
+
+    const inputs = event.currentTarget.querySelectorAll('input');
+    const normalized = {
+      level: clampLevel(Number(inputs[0].value)),
+      expPercent: normalizePercent(Number(inputs[1].value)),
+    };
+
+    inputs[0].value = String(normalized.level);
+    inputs[1].value = String(normalized.expPercent);
+    onChange(normalized);
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== 'Enter') return;
+    event.currentTarget.blur();
+  }
+
+  return (
+    <div className="estimate-level-inputs" onBlur={handleBlur}>
+      <EditableNumberInput
+        type="number"
+        min={1}
+        max={200}
+        value={value.level}
+        emptyValue={1}
+        normalize={clampLevel}
+        aria-label={`${label} level`}
+        onKeyDown={handleKeyDown}
+        onValueChange={(level) => updateValue({ ...value, level })}
+      />
+      <EditableNumberInput
+        type="number"
+        min={0}
+        max={99.999}
+        step={0.01}
+        value={value.expPercent}
+        normalize={normalizePercent}
+        aria-label={`${label} EXP percent`}
+        onKeyDown={handleKeyDown}
+        onValueChange={(expPercent) => updateValue({ ...value, expPercent })}
+      />
+    </div>
+  );
+}
+
 function QuickEstimate({
   estimate,
   onChange,
@@ -501,8 +565,7 @@ function QuickEstimate({
     <section className="panel estimate-panel">
       <div className="panel-heading">
         <div>
-          <h2>Quote calculator</h2>
-          <p>Calculate a leech quote without starting a run.</p>
+          <h2>Calculator</h2>
         </div>
         <div className="segmented-control" role="group" aria-label="Estimate pricing type">
           <button type="button" className={estimate.billingType === 'ratio' ? 'active' : ''} onClick={() => onChange({ ...estimate, billingType: 'ratio' })}>
@@ -515,40 +578,71 @@ function QuickEstimate({
       </div>
 
       <div className="estimate-grid">
-        <FlowCard step="1" title="From">
-          <LevelExpInputs
+        <FlowCard
+          step="1"
+          title="From"
+          labels={
+            <div className="estimate-label-row estimate-label-row--level-exp">
+              <span>Level</span>
+              <span>EXP %</span>
+            </div>
+          }
+        >
+          <EstimateLevelExpInputs
+            label="From"
             value={{ level: estimate.fromLevel, expPercent: estimate.fromExpPercent }}
             onChange={(value) => onChange({ ...estimate, fromLevel: clampLevel(value.level), fromExpPercent: clampPercent(value.expPercent) })}
           />
         </FlowCard>
 
-        <FlowCard step="2" title="To">
-          <LevelExpInputs
+        <FlowCard
+          step="2"
+          title="To"
+          labels={
+            <div className="estimate-label-row estimate-label-row--level-exp">
+              <span>Level</span>
+              <span>EXP %</span>
+            </div>
+          }
+        >
+          <EstimateLevelExpInputs
+            label="To"
             value={{ level: estimate.toLevel, expPercent: estimate.toExpPercent }}
             onChange={(value) => onChange({ ...estimate, toLevel: clampLevel(value.level), toExpPercent: clampPercent(value.expPercent) })}
           />
         </FlowCard>
 
-        <FlowCard step="3" title="Pricing">
+        <FlowCard
+          step="3"
+          title="Pricing"
+          labels={
+            estimate.billingType === 'ratio' ? (
+              <div className="estimate-label-row estimate-label-row--single">
+                <span>Ratio</span>
+              </div>
+            ) : (
+              <div className="estimate-label-row estimate-label-row--pricing">
+                <span>Price</span>
+                <span>EPH</span>
+              </div>
+            )
+          }
+        >
           {estimate.billingType === 'ratio' ? (
-            <label>
-              Ratio
-              <span className="ratio-input">
-                <span>1 :</span>
-                <EditableNumberInput
-                  type="number"
-                  min={0.1}
-                  step={0.1}
-                  value={estimate.expPerMesoRatio}
-                  aria-label="EXP per meso ratio"
-                  onValueChange={(expPerMesoRatio) => onChange({ ...estimate, expPerMesoRatio })}
-                />
-              </span>
-            </label>
+            <span className="ratio-input">
+              <span>1 :</span>
+              <EditableNumberInput
+                type="number"
+                min={0.1}
+                step={0.1}
+                value={estimate.expPerMesoRatio}
+                aria-label="EXP per meso ratio"
+                onValueChange={(expPerMesoRatio) => onChange({ ...estimate, expPerMesoRatio })}
+              />
+            </span>
           ) : (
-            <div className="estimate-fields estimate-fields--compact">
-              <label>
-                Price
+            <div className="estimate-pricing-inputs">
+              <div>
                 <span className="unit-input">
                   <EditableNumberInput
                     type="number"
@@ -560,9 +654,8 @@ function QuickEstimate({
                   />
                   <span>m/h</span>
                 </span>
-              </label>
-              <label>
-                EPH
+              </div>
+              <div>
                 <span className="unit-input">
                   <EditableNumberInput
                     type="number"
@@ -575,7 +668,7 @@ function QuickEstimate({
                   />
                   <span>m EXP/h</span>
                 </span>
-              </label>
+              </div>
             </div>
           )}
         </FlowCard>
@@ -818,7 +911,6 @@ function LeechInstanceCard({
   const [addingBuyer, setAddingBuyer] = useState(false);
   const [refreshingRun, setRefreshingRun] = useState(false);
   const [refreshResult, setRefreshResult] = useState<string | null>(null);
-  const summary = calculateInstance(instance, now);
   const ratioBilling = instance.billing.type === 'ratio' ? instance.billing : undefined;
   const hourlyBilling = instance.billing.type === 'hourly' ? instance.billing : undefined;
   const refreshableBuyers = instance.buyers.filter((buyer) => !buyer.locked && buyerLookupIgn(buyer));
@@ -1036,39 +1128,6 @@ function LeechInstanceCard({
           <span>Add the buyer’s IGN to fetch their start EXP.</span>
         </div>
       )}
-
-      <div className="instance-summary">
-        <div>
-          <span>Buyers</span>
-          <strong>{summary.buyerCount}</strong>
-          <small>{summary.completedBuyerCount} refreshed</small>
-        </div>
-        <div>
-          <span>Total EXP</span>
-          <strong>{formatCompact(summary.totalExpGained)}</strong>
-          <small>{formatExp(summary.totalExpGained)}</small>
-        </div>
-        {instance.billing.type === 'hourly' ? (
-          <>
-            <div>
-              <span>Run time</span>
-              <strong>{formatDuration(summary.billableMs)}</strong>
-              <small>{formatMesosShort(summary.mesosPerBuyer)}/buyer</small>
-            </div>
-            <div>
-              <span>Total due</span>
-              <strong>{formatMesosShort(summary.totalMesosDue)}</strong>
-              <small>{billingLabel(instance.billing)}</small>
-            </div>
-          </>
-        ) : (
-          <div>
-            <span>Total due</span>
-            <strong>{formatMesosShort(summary.totalMesosDue)}</strong>
-            <small>{billingLabel(instance.billing)}</small>
-          </div>
-        )}
-      </div>
     </section>
   );
 }
@@ -1132,8 +1191,7 @@ function RunTools({ instance, now }: { instance?: LeechInstance; now: number }) 
       <section className="panel run-tools">
         <div className="panel-heading">
           <div>
-            <h2>Run status</h2>
-            <p>Select or create a run to see live totals.</p>
+            <h2>Status</h2>
           </div>
         </div>
       </section>
@@ -1145,8 +1203,7 @@ function RunTools({ instance, now }: { instance?: LeechInstance; now: number }) 
     <section className="panel run-tools">
       <div className="panel-heading">
         <div>
-          <h2>Run status</h2>
-          <p>{instance.billing.type === 'ratio' ? `Ratio ${billingLabel(instance.billing)}` : `Hourly ${billingLabel(instance.billing)}`}</p>
+          <h2>Status</h2>
         </div>
       </div>
       <div className="tool-stat tool-stat--due">
@@ -1165,13 +1222,6 @@ function RunTools({ instance, now }: { instance?: LeechInstance; now: number }) 
           <strong>{formatCompact(summary.totalExpGained)}</strong>
           <small>{formatExp(summary.totalExpGained)}</small>
         </div>
-        {instance.billing.type === 'hourly' ? (
-          <div className="tool-stat">
-            <span>Run time</span>
-            <strong>{formatDuration(summary.billableMs)}</strong>
-            <small>{timerStatusLabel(instance.billing.timer.status)}</small>
-          </div>
-        ) : null}
       </div>
     </section>
   );
