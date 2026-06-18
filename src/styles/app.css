@@ -926,6 +926,7 @@ h3 {
   width: 2.5rem;
   min-width: 2.5rem;
   height: 2.5rem;
+  min-height: 2.5rem;
   padding: 0;
 }
 
@@ -1201,6 +1202,7 @@ h3 {
   width: 2rem;
   min-width: 2rem;
   height: 2rem;
+  min-height: 2rem;
   background: var(--snapshot-action-bg);
   color: var(--snapshot-action-fg);
 }
