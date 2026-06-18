@@ -1174,6 +1174,19 @@ function RunRail({
         </button>
       </div>
 
+      <label className="run-picker">
+        <select value={selectedRunId ?? ''} onChange={(event) => onSelect(event.target.value)} aria-label="Selected run">
+          {instances.map((instance) => {
+            const summary = calculateInstance(instance, now);
+            return (
+              <option key={instance.id} value={instance.id}>
+                {instance.name || 'Untitled run'} · {billingLabel(instance.billing)} · {formatMesosShort(summary.totalMesosDue)}
+              </option>
+            );
+          })}
+        </select>
+      </label>
+
       <div className="run-tabs">
         {instances.map((instance) => {
           const summary = calculateInstance(instance, now);
