@@ -321,8 +321,8 @@ function FlowCard({ step, title, labels, children }: { step: string; title: stri
 
 function ThemeSwitch({ theme, onChange }: { theme: ThemeMode; onChange: (theme: ThemeMode) => void }) {
   const options: Array<{ value: ThemeMode; label: string; icon: ReactNode }> = [
-    { value: 'system', label: 'System', icon: <Monitor size={15} /> },
     { value: 'light', label: 'Light', icon: <Sun size={15} /> },
+    { value: 'system', label: 'System', icon: <Monitor size={15} /> },
     { value: 'dark', label: 'Dark', icon: <Moon size={15} /> },
   ];
 
