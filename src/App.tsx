@@ -1078,8 +1078,8 @@ function LeechInstanceCard({
             <div className="tip-card__content">
               <strong>Keep EXP updated <AlertCircle size={14} /></strong>
               <div className="tip-card__rows">
-                <span><b>Seller refresh</b><em>Reinvite your HS mule or another party member.</em></span>
-                <span><b>Buyer refresh</b><em>Change maps/channels or enter and exit the Cash Shop.</em></span>
+                <span><b>Party refresh</b><em>Invite any character to the party, such as the HS mule.</em></span>
+                <span><b>Self refresh</b><em>Enter a map, change channels, or exit the Cash Shop.</em></span>
               </div>
             </div>
           </div>
