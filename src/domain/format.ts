@@ -38,18 +38,18 @@ export function formatMesosValue(value: number | undefined) {
 export function formatMesosShort(value: number | undefined) {
   if (value === undefined || !Number.isFinite(value)) return '—';
   const mesos = Math.max(0, value);
-  if (mesos >= 1_000_000_000) return `${DECIMAL_FORMAT.format(mesos / 1_000_000_000)}b`;
-  if (mesos >= 1_000_000) return `${DECIMAL_FORMAT.format(mesos / 1_000_000)}m`;
-  if (mesos >= 1_000) return `${DECIMAL_FORMAT.format(mesos / 1_000)}k`;
+  if (mesos >= 1_000_000_000) return `${DECIMAL_FORMAT.format(mesos / 1_000_000_000)}B`;
+  if (mesos >= 1_000_000) return `${DECIMAL_FORMAT.format(mesos / 1_000_000)}M`;
+  if (mesos >= 1_000) return `${DECIMAL_FORMAT.format(mesos / 1_000)}K`;
   return MESO_FORMAT.format(mesos);
 }
 
 export function formatMesosShortPrecise(value: number | undefined) {
   if (value === undefined || !Number.isFinite(value)) return '—';
   const mesos = Math.max(0, value);
-  if (mesos >= 1_000_000_000) return `${FIXED_DECIMAL_FORMAT.format(mesos / 1_000_000_000)}b`;
-  if (mesos >= 1_000_000) return `${FIXED_DECIMAL_FORMAT.format(mesos / 1_000_000)}m`;
-  if (mesos >= 1_000) return `${FIXED_DECIMAL_FORMAT.format(mesos / 1_000)}k`;
+  if (mesos >= 1_000_000_000) return `${FIXED_DECIMAL_FORMAT.format(mesos / 1_000_000_000)}B`;
+  if (mesos >= 1_000_000) return `${FIXED_DECIMAL_FORMAT.format(mesos / 1_000_000)}M`;
+  if (mesos >= 1_000) return `${FIXED_DECIMAL_FORMAT.format(mesos / 1_000)}K`;
   return FIXED_DECIMAL_FORMAT.format(mesos);
 }
 

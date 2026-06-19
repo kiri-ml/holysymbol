@@ -669,7 +669,7 @@ function QuickEstimate({
                     aria-label="Hourly price in millions of mesos"
                     onValueChange={(hourlyRateMillions) => onChange({ ...estimate, hourlyRateMillions })}
                   />
-                  <span>m/h</span>
+                  <span>M/h</span>
                 </span>
               </div>
               <div>
@@ -683,7 +683,7 @@ function QuickEstimate({
                     aria-label="EXP rate in millions per hour"
                     onValueChange={(expPerHourMillions) => onChange({ ...estimate, expPerHourMillions })}
                   />
-                  <span>m EXP/h</span>
+                  <span>M EXP/h</span>
                 </span>
               </div>
             </div>

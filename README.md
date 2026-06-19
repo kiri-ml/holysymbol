@@ -6,7 +6,7 @@ Holy Symbol is a Vite + React + TypeScript calculator for MapleLegends leech buy
 
 - Quick Estimate card for quote calculation before a leech run.
 - Ratio pricing, such as `1:3.3` EXP per meso, with `0.1` step increments.
-- Hourly estimate mode using price in `m/hr` plus EPH in `m EXP/hr`.
+- Hourly estimate mode using price in `M/hr` plus EPH in `M EXP/hr`.
 - Multiple vertical leech instances, each with independent billing settings.
 - Ratio instances show only ratio price; hourly instances show only hourly price and timer controls.
 - Hourly instances use explicit Start / Pause / End timer controls for actual billing.

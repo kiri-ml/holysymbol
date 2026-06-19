@@ -44,7 +44,7 @@ export type RatioBilling = {
 
 export type HourlyBilling = {
   type: 'hourly';
-  /** Mesos per hour, e.g. 12_000_000 for 12m/hr. */
+  /** Mesos per hour, e.g. 12_000_000 for 12M/hr. */
   hourlyRateMesos: number;
   /** Expected EXP per hour in millions, used only by Quick Estimate. */
   expPerHourMillions: number;
