@@ -80,6 +80,11 @@ export function formatDuration(ms: number | undefined) {
   return `${seconds}s`;
 }
 
+export function formatHours(ms: number | undefined) {
+  if (ms === undefined || !Number.isFinite(ms) || ms < 0) return '—';
+  return `${DECIMAL_FORMAT.format(ms / 3_600_000)} h`;
+}
+
 export function formatLocalDateTime(iso: string | undefined) {
   if (!iso) return '—';
   const date = new Date(iso);

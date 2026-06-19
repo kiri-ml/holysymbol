@@ -27,7 +27,7 @@ import {
   resetTimer,
   startTimer,
 } from './domain/calculator';
-import { formatCompact, formatDuration, formatExp, formatLocalDateTime, formatMesosShort, formatMesosShortPrecise, formatMesosValue, formatPercent, formatRatio } from './domain/format';
+import { formatCompact, formatDuration, formatExp, formatHours, formatLocalDateTime, formatMesosShort, formatMesosShortPrecise, formatMesosValue, formatPercent, formatRatio } from './domain/format';
 import { createId } from './domain/id';
 import type {
   BillingType,
@@ -704,13 +704,13 @@ function QuickEstimate({
             <div>
               <span>Expected time</span>
               <strong>{formatDuration(result.expectedDurationMs)}</strong>
-              <small>{estimate.expPerHourMillions || 0}m EXP/h</small>
+              <small>{formatHours(result.expectedDurationMs)}</small>
             </div>
           ) : null}
           <div>
             <span>Estimated cost</span>
             <strong>{formatMesosShort(estimate.billingType === 'ratio' ? result.ratioMesosDue : result.hourlyMesosDue)}</strong>
-            <small>{estimate.billingType === 'ratio' ? formatRatio(estimate.expPerMesoRatio) : `${estimate.hourlyRateMillions || 0}m/h`}</small>
+            <small>{formatMesosValue(estimate.billingType === 'ratio' ? result.ratioMesosDue : result.hourlyMesosDue)}</small>
           </div>
         </div>
       </div>
