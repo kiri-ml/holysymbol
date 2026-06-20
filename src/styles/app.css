@@ -1143,6 +1143,44 @@ h3 {
 .buyer-row-stat--due {
   background: var(--primary-softer);
   border-color: var(--primary);
+  cursor: pointer;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.buyer-row-stat--due:hover {
+  background: var(--primary-soft);
+  border-color: var(--primary-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.buyer-row-stat--due:active {
+  box-shadow: none;
+}
+
+.buyer-row-stat--due:focus-visible {
+  outline-color: var(--focus);
+}
+
+.buyer-row-stat--due .buyer-row-stat__copy-label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--primary-strong);
+}
+
+.buyer-row-stat--due.buyer-row-stat--copied {
+  background: var(--success-soft);
+  border-color: var(--success);
+}
+
+.buyer-row-stat--due.buyer-row-stat--copied .buyer-row-stat__copy-label,
+.buyer-row-stat--due.buyer-row-stat--copied strong {
+  color: var(--success);
 }
 
 .buyer-row-stat--due strong {

@@ -1,5 +1,7 @@
 import {
   AlertCircle,
+  Check,
+  Copy,
   Download,
   Lock,
   Monitor,
@@ -754,6 +756,8 @@ function BuyerRow({
   onUpdate,
   onDelete,
   onFetchSnapshot,
+  dueCopied,
+  onDueCopied,
 }: {
   instance: LeechInstance;
   buyer: LeechBuyer;
@@ -762,6 +766,8 @@ function BuyerRow({
   onUpdate: (buyer: LeechBuyer) => void;
   onDelete: () => void;
   onFetchSnapshot: (ign: string) => Promise<CharacterSnapshot>;
+  dueCopied: boolean;
+  onDueCopied: () => void;
 }) {
   const [startDraft, setStartDraft] = useState<DraftSnapshotState>({ level: buyer.start?.level ?? 120, expPercent: buyer.start?.expPercent ?? 0 });
   const [currentDraft, setCurrentDraft] = useState<DraftSnapshotState>({ level: buyer.current?.level ?? buyer.start?.level ?? 120, expPercent: buyer.current?.expPercent ?? 0 });
@@ -818,6 +824,20 @@ function BuyerRow({
     onUpdate({ ...buyer, ign: buyer.ign || buyer.start?.ign || snapshot.ign, current: snapshot });
   }
 
+  async function copyDue() {
+    if (due === undefined || !Number.isFinite(due)) return;
+    try {
+      await navigator.clipboard.writeText(String(Math.max(0, Math.round(due))));
+      onDueCopied();
+    } catch {}
+  }
+
+  function handleDueKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    void copyDue();
+  }
+
   return (
     <article className="buyer-row-card">
       <div className={`buyer-row-main${locked ? ' buyer-row-main--locked' : ''}`}>
@@ -855,8 +875,18 @@ function BuyerRow({
             <strong>{formatCompact(calc.expGained)}</strong>
             <small>{formatExp(calc.expGained)}</small>
           </div>
-          <div className="buyer-row-stat buyer-row-stat--due">
-            <span>Due</span>
+          <div
+            className={`buyer-row-stat buyer-row-stat--due${dueCopied ? ' buyer-row-stat--copied' : ''}`}
+            role="button"
+            tabIndex={0}
+            aria-label={dueCopied ? `${displayIgn} due amount copied` : `Copy ${displayIgn} due amount`}
+            onClick={() => void copyDue()}
+            onKeyDown={handleDueKeyDown}
+          >
+            <span className="buyer-row-stat__copy-label" aria-live="polite">
+              {dueCopied ? 'Copied' : 'Due'}
+              {dueCopied ? <Check size={13} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
+            </span>
             <strong>{formatMesosShortPrecise(due)}</strong>
             <small>{formatMesosValue(due)}</small>
           </div>
@@ -922,6 +952,8 @@ function LeechInstanceCard({
   onUpdate,
   onDelete,
   onFetchSnapshot,
+  copiedBuyerId,
+  onDueCopied,
 }: {
   instance: LeechInstance;
   index: number;
@@ -931,6 +963,8 @@ function LeechInstanceCard({
   onUpdate: (instance: LeechInstance) => void;
   onDelete: () => void;
   onFetchSnapshot: (ign: string) => Promise<CharacterSnapshot>;
+  copiedBuyerId: string | null;
+  onDueCopied: (buyerId: string) => void;
 }) {
   const [newBuyerIgn, setNewBuyerIgn] = useState('');
   const [addingBuyer, setAddingBuyer] = useState(false);
@@ -1137,6 +1171,8 @@ function LeechInstanceCard({
               now={now}
               busy={busyKey === `character:${buyerLookupIgn(buyer)}` || refreshingRun}
               onFetchSnapshot={onFetchSnapshot}
+              dueCopied={copiedBuyerId === buyer.id}
+              onDueCopied={() => onDueCopied(buyer.id)}
               onUpdate={(nextBuyer) => onUpdate(updateBuyer(instance, buyer.id, () => nextBuyer))}
               onDelete={() => {
                 const name = buyerLookupIgn(buyer) || 'this character';
@@ -1273,6 +1309,8 @@ export default function App() {
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [highlightedRunId, setHighlightedRunId] = useState<string | null>(null);
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
+  const [copiedBuyerId, setCopiedBuyerId] = useState<string | null>(null);
+  const copyFeedbackTimerRef = useRef<number | null>(null);
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
@@ -1292,6 +1330,10 @@ export default function App() {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 
+  useEffect(() => () => {
+    if (copyFeedbackTimerRef.current !== null) window.clearTimeout(copyFeedbackTimerRef.current);
+  }, []);
+
   useEffect(() => {
     if (instances.length === 0) {
       setSelectedRunId(null);
@@ -1310,6 +1352,12 @@ export default function App() {
     setHighlightedRunId(id);
     setSelectedRunId(id);
     setInstances((current) => [...current, emptyInstance(DEFAULT_RATIO_BILLING, id)]);
+  }
+
+  function showCopiedBuyer(buyerId: string) {
+    setCopiedBuyerId(buyerId);
+    if (copyFeedbackTimerRef.current !== null) window.clearTimeout(copyFeedbackTimerRef.current);
+    copyFeedbackTimerRef.current = window.setTimeout(() => setCopiedBuyerId(null), 1600);
   }
 
   async function loadCharacter(ign: string): Promise<CharacterSnapshot> {
@@ -1372,6 +1420,8 @@ export default function App() {
                 busyKey={busyKey}
                 now={now}
                 onFetchSnapshot={loadCharacter}
+                copiedBuyerId={copiedBuyerId}
+                onDueCopied={showCopiedBuyer}
                 onUpdate={upsertInstance}
                 onDelete={() => {
                   if (!isEmptyInstance(selectedInstance) && !confirmDeletion(`Delete ${selectedInstance.name}?`)) return;
