@@ -772,6 +772,8 @@ function BuyerRow({
   const lookupIgn = buyerLookupIgn(buyer);
   const displayIgn = lookupIgn || 'Buyer';
   const locked = buyer.locked ?? false;
+  const job = buyer.current?.job ?? buyer.start?.job;
+  const guild = buyer.current?.guild ?? buyer.start?.guild;
 
   useEffect(() => {
     if (!buyer.start) return;
@@ -829,6 +831,12 @@ function BuyerRow({
           )}
           <div className="buyer-name-display">
             <strong>{buyer.ign || 'BuyerName'}</strong>
+            {job || guild ? (
+              <div className="buyer-character-meta">
+                {job ? <span aria-label={`Job: ${job}`} title={job}>{job}</span> : null}
+                {guild ? <span aria-label={`Guild: ${guild}`} title={guild}>{guild}</span> : null}
+              </div>
+            ) : null}
           </div>
         </div>
         <div className="buyer-row-metrics">

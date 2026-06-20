@@ -1045,6 +1045,8 @@ h3 {
 
 .buyer-name-display {
   display: grid;
+  align-content: center;
+  gap: 0.22rem;
   min-width: 0;
 }
 
@@ -1053,6 +1055,23 @@ h3 {
   font-size: 1rem;
   line-height: 1.25;
   overflow-wrap: anywhere;
+}
+
+.buyer-character-meta {
+  display: grid;
+  gap: 0.08rem;
+  min-width: 0;
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  line-height: 1.25;
+}
+
+.buyer-character-meta span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .avatar-frame {
