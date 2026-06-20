@@ -4,6 +4,7 @@ import {
   Copy,
   Download,
   Lock,
+  LoaderCircle,
   Monitor,
   Moon,
   Pause,
@@ -969,7 +970,6 @@ function LeechInstanceCard({
   const [newBuyerIgn, setNewBuyerIgn] = useState('');
   const [addingBuyer, setAddingBuyer] = useState(false);
   const [refreshingRun, setRefreshingRun] = useState(false);
-  const [refreshResult, setRefreshResult] = useState<string | null>(null);
   const ratioBilling = instance.billing.type === 'ratio' ? instance.billing : undefined;
   const hourlyBilling = instance.billing.type === 'hourly' ? instance.billing : undefined;
   const refreshableBuyers = instance.buyers.filter((buyer) => !buyer.locked && buyerLookupIgn(buyer));
@@ -992,7 +992,6 @@ function LeechInstanceCard({
     if (!ign) return;
 
     setAddingBuyer(true);
-    setRefreshResult(null);
     try {
       const snapshot = await onFetchSnapshot(ign);
       const buyer: LeechBuyer = {
@@ -1019,18 +1018,14 @@ function LeechInstanceCard({
     if (refreshableBuyers.length === 0) return;
 
     setRefreshingRun(true);
-    setRefreshResult(null);
     const snapshots = new Map<string, CharacterSnapshot>();
-    const failures: string[] = [];
 
     for (const buyer of refreshableBuyers) {
       const ign = buyerLookupIgn(buyer);
       try {
         const snapshot = await onFetchSnapshot(ign);
         snapshots.set(buyer.id, snapshot);
-      } catch {
-        failures.push(ign);
-      }
+      } catch {}
     }
 
     const refreshedAt = snapshots.size > 0 ? new Date().toISOString() : instance.lastCurrentRefreshedAt;
@@ -1043,11 +1038,6 @@ function LeechInstanceCard({
       }),
     });
 
-    setRefreshResult(
-      failures.length > 0
-        ? `Updated ${snapshots.size}/${refreshableBuyers.length}. Failed: ${failures.join(', ')}`
-        : `Updated ${snapshots.size} buyer${snapshots.size === 1 ? '' : 's'}`,
-    );
     setRefreshingRun(false);
   }
 
@@ -1129,36 +1119,39 @@ function LeechInstanceCard({
       </div>
 
       <div className="buyers-header buyers-toolbar">
-        <div>
+        <div className="buyers-heading">
           <h3>Buyers</h3>
-          <p>Add buyers before the run, then refresh current EXP as the run goes.</p>
+          {instance.lastCurrentRefreshedAt ? (
+            <small>Refreshed <time dateTime={instance.lastCurrentRefreshedAt}>{formatLocalDateTime(instance.lastCurrentRefreshedAt)}</time></small>
+          ) : null}
         </div>
-        <div className="button-row wrap">
+        <div className="buyers-toolbar__actions">
+          <form
+            className="add-buyer-form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void addBuyerFromInput();
+            }}
+          >
+            <input
+              aria-label="Buyer IGN"
+              value={newBuyerIgn}
+              onChange={(event) => setNewBuyerIgn(event.target.value)}
+              placeholder="Buyer IGN"
+            />
+            <button
+              type="submit"
+              aria-label={addingBuyer ? 'Adding buyer' : 'Add buyer'}
+              aria-busy={addingBuyer}
+              disabled={addingBuyer || !newBuyerIgn.trim()}
+            >
+              {addingBuyer ? <LoaderCircle size={16} className="spin" /> : <Plus size={16} />} Add
+            </button>
+          </form>
           <button type="button" className="secondary-button refresh-exp-button" onClick={refreshRunCurrentExp} disabled={refreshingRun || refreshableBuyers.length === 0}>
             <RefreshCw size={16} className={refreshingRun ? 'spin' : ''} /> {refreshingRun ? 'Refreshing...' : 'Refresh EXP'}
           </button>
         </div>
-      </div>
-
-      <form
-        className="add-buyer-form"
-        onSubmit={(event) => {
-          event.preventDefault();
-          void addBuyerFromInput();
-        }}
-      >
-        <label>
-          Buyer IGN
-          <input value={newBuyerIgn} onChange={(event) => setNewBuyerIgn(event.target.value)} placeholder="BuyerName" />
-        </label>
-        <button type="submit" disabled={addingBuyer || !newBuyerIgn.trim()}>
-          <Plus size={16} /> {addingBuyer ? 'Adding...' : 'Add buyer'}
-        </button>
-      </form>
-
-      <div className="refresh-status-row">
-        {instance.lastCurrentRefreshedAt ? <small>Last refreshed: {formatLocalDateTime(instance.lastCurrentRefreshedAt)}</small> : <small>Start EXP is fetched once when a buyer is added.</small>}
-        {refreshResult ? <small>{refreshResult}</small> : null}
       </div>
 
       {instance.buyers.length > 0 ? (

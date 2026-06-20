@@ -441,7 +441,6 @@ h3 {
 .snapshot-summary,
 .billing-settings,
 .buyer-row-card,
-.add-buyer-form,
 .empty-buyers-state,
 .run-tools {
   border: 1px solid var(--border);
@@ -990,24 +989,60 @@ h3 {
   font-size: 1rem;
 }
 
-.refresh-exp-button {
-  width: 10.5rem;
+.buyers-heading {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 0.15rem;
+}
+
+.buyers-heading small {
+  font-variant-numeric: tabular-nums;
+}
+
+.buyers-toolbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  min-width: 0;
 }
 
 .add-buyer-form {
-  display: grid;
-  grid-template-columns: minmax(12rem, 1fr) auto;
-  gap: var(--space-3);
-  align-items: end;
-  padding: var(--space-3);
-  background: var(--surface-2);
+  display: flex;
+  align-items: center;
+  align-self: center;
+  gap: 0;
+  min-width: 0;
 }
 
-.refresh-status-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-4);
-  justify-content: space-between;
+.add-buyer-form input {
+  width: 10.5rem;
+  min-width: 9rem;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+.add-buyer-form button {
+  min-height: 2.6rem;
+  margin-left: -1px;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.add-buyer-form input:focus,
+.add-buyer-form input:focus-visible {
+  position: relative;
+  z-index: 1;
+}
+
+.add-buyer-form button,
+.refresh-exp-button {
+  min-height: 2.6rem;
+  padding-inline: var(--space-3);
+  white-space: nowrap;
+}
+
+.refresh-exp-button {
+  border-radius: var(--radius-md);
 }
 
 .buyer-list {
@@ -1395,10 +1430,25 @@ h3 {
 
   .app-topbar,
   .panel-heading,
-  .instance-header,
-  .buyers-toolbar {
+  .instance-header {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .buyers-toolbar {
+    align-items: center;
+  }
+
+  .buyers-toolbar__actions {
+    flex: 1 1 auto;
+  }
+
+  .add-buyer-form {
+    flex: 0 1 auto;
+  }
+
+  .add-buyer-form input {
+    width: 10.5rem;
   }
 
   .topbar-actions {
@@ -1491,7 +1541,6 @@ h3 {
 
   .topbar-actions,
   .topbar-actions > button,
-  .add-buyer-form,
   .timer-card,
   .timer-card__body,
   .tip-card span,
@@ -1505,9 +1554,37 @@ h3 {
     width: 100%;
   }
 
-  .add-buyer-form,
   .timer-card {
     display: grid;
+  }
+
+  .buyers-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .buyers-toolbar__actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .add-buyer-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .refresh-exp-button {
+    min-height: 2.75rem;
+  }
+
+  .add-buyer-form input,
+  .refresh-exp-button {
+    width: 100%;
+  }
+
+  .add-buyer-form input,
+  .add-buyer-form button {
+    min-height: 2.75rem;
   }
 
   .timer-card__actions,
