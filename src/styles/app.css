@@ -45,6 +45,7 @@
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
+  --radius-pill: 999px;
 }
 
 html[data-theme="dark"] {
@@ -137,7 +138,7 @@ select {
 button {
   min-height: 2.5rem;
   border: 1px solid transparent;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--primary);
   color: var(--on-primary);
   padding: 0.58rem 0.88rem;
@@ -1103,13 +1104,13 @@ h3 {
 .add-buyer-form input {
   width: 10.5rem;
   min-width: 9rem;
-  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  border-radius: var(--radius-pill) 0 0 var(--radius-pill);
 }
 
 .add-buyer-form button {
   min-height: 2.6rem;
   margin-left: -1px;
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
 }
 
 .add-buyer-form input:focus,
@@ -1123,10 +1124,6 @@ h3 {
   min-height: 2.6rem;
   padding-inline: var(--space-3);
   white-space: nowrap;
-}
-
-.refresh-exp-button {
-  border-radius: var(--radius-md);
 }
 
 .buyer-list {
