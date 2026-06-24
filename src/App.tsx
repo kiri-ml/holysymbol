@@ -103,7 +103,7 @@ function defaultRunName(createdAt: string) {
     day: 'numeric',
   });
 
-  return `${day} · ${time}`;
+  return `${day} ${time}`;
 }
 
 function emptyInstance(billing: LeechBilling = DEFAULT_RATIO_BILLING, id = createId('leech')): LeechInstance {
