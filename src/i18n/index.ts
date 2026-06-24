@@ -1,6 +1,7 @@
 import i18n from 'i18next';
+import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
-import { SUPPORTED_LOCALES, type SupportedLocale } from './locales';
+import { DEFAULT_LOCALE, SUPPORTED_LOCALE_CODES, type SupportedLocale } from './locales';
 import { en } from './resources/en';
 import { zh } from './resources/zh';
 
@@ -19,32 +20,31 @@ const resources = {
   },
 } satisfies Record<SupportedLocale, { translation: TranslationShape<typeof en> }>;
 
-function storedLanguage() {
-  try {
-    const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    if (SUPPORTED_LOCALES.some((locale) => locale.code === stored)) return stored as SupportedLocale;
-  } catch {
-    // Local storage can fail in private windows or quota-limited contexts.
-  }
+void i18n
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    resources,
+    supportedLngs: SUPPORTED_LOCALE_CODES,
+    fallbackLng: DEFAULT_LOCALE,
+    detection: {
+      order: ['localStorage', 'navigator'],
+      lookupLocalStorage: LANGUAGE_STORAGE_KEY,
+      caches: [],
+    },
+    interpolation: {
+      escapeValue: false,
+    },
+  });
 
-  return 'en';
-}
-
-void i18n.use(initReactI18next).init({
-  resources,
-  lng: storedLanguage(),
-  fallbackLng: 'en',
-  interpolation: {
-    escapeValue: false,
-  },
-});
-
-i18n.on('languageChanged', (language) => {
+function setLanguagePreference(language: SupportedLocale) {
   try {
     window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
   } catch {
     // Local storage can fail in private windows or quota-limited contexts.
   }
-});
 
-export { i18n };
+  return i18n.changeLanguage(language);
+}
+
+export { i18n, setLanguagePreference };

@@ -45,8 +45,8 @@ import type {
   TimerStatus,
 } from './domain/types';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import { i18n } from './i18n';
-import { SUPPORTED_LOCALES } from './i18n/locales';
+import { i18n, setLanguagePreference } from './i18n';
+import { DEFAULT_LOCALE, isSupportedLocale, SUPPORTED_LOCALES } from './i18n/locales';
 import './styles/app.css';
 
 type Notice = { type: 'error' | 'info'; text: string } | null;
@@ -357,12 +357,23 @@ function ThemeSwitch({ theme, onChange }: { theme: ThemeMode; onChange: (theme: 
 
 function LanguageSelect() {
   const { t, i18n } = useTranslation();
+  const selectedLanguage = isSupportedLocale(i18n.resolvedLanguage ?? '')
+    ? i18n.resolvedLanguage
+    : isSupportedLocale(i18n.language)
+      ? i18n.language
+      : DEFAULT_LOCALE;
 
   return (
     <label className="language-select">
       <Languages size={15} aria-hidden="true" />
       <span>{t('language.label')}</span>
-      <select value={i18n.resolvedLanguage ?? i18n.language} onChange={(event) => void i18n.changeLanguage(event.target.value)} aria-label={t('language.label')}>
+      <select
+        value={selectedLanguage}
+        onChange={(event) => {
+          if (isSupportedLocale(event.target.value)) void setLanguagePreference(event.target.value);
+        }}
+        aria-label={t('language.label')}
+      >
         {SUPPORTED_LOCALES.map((locale) => (
           <option key={locale.code} value={locale.code}>
             {locale.label}
