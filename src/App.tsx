@@ -3,6 +3,7 @@ import {
   Check,
   Copy,
   Download,
+  Languages,
   Lock,
   LoaderCircle,
   Monitor,
@@ -17,8 +18,10 @@ import {
   Unlock,
   UserPlus,
 } from 'lucide-react';
+import type { TFunction } from 'i18next';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ComponentPropsWithoutRef, FocusEvent, KeyboardEvent, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { avatarUrl, fetchCharacter } from './api/legends';
 import { createManualSnapshot } from './domain/character';
 import {
@@ -42,6 +45,8 @@ import type {
   TimerStatus,
 } from './domain/types';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import { i18n } from './i18n';
+import { SUPPORTED_LOCALES } from './i18n/locales';
 import './styles/app.css';
 
 type Notice = { type: 'error' | 'info'; text: string } | null;
@@ -85,8 +90,9 @@ const DEFAULT_RATIO_BILLING: RatioBilling = {
 };
 
 function defaultRunName(createdAt: string) {
+  const name = i18n.t('run.defaultName');
   const date = new Date(createdAt);
-  if (Number.isNaN(date.getTime())) return 'Run';
+  if (Number.isNaN(date.getTime())) return name;
 
   const time = date.toLocaleTimeString(undefined, {
     hour: '2-digit',
@@ -119,8 +125,8 @@ function confirmDeletion(message: string) {
   return window.confirm(message);
 }
 
-function confirmSnapshotOverwrite(label: 'start') {
-  return window.confirm(`Refresh ${label} EXP? This will overwrite the current level and EXP data.`);
+function confirmSnapshotOverwrite(message: string) {
+  return window.confirm(message);
 }
 
 function isEmptyBuyer(buyer: LeechBuyer) {
@@ -164,26 +170,26 @@ function csvEscape(value: unknown) {
   return `"${String(value ?? '').replaceAll('"', '""')}"`;
 }
 
-function billingLabel(billing: LeechBilling) {
+function billingLabel(billing: LeechBilling, t: TFunction) {
   if (billing.type === 'ratio') return formatRatio(billing.expPerMesoRatio);
-  return `${formatMesosShort(billing.hourlyRateMesos)}/hr`;
+  return t('billing.hourlyRateShort', { rate: formatMesosShort(billing.hourlyRateMesos) });
 }
 
-function timerStatusLabel(status: TimerStatus) {
+function timerStatusLabel(status: TimerStatus, t: TFunction) {
   switch (status) {
     case 'running':
-      return 'running';
+      return t('timer.running');
     case 'paused':
-      return 'paused';
+      return t('timer.paused');
     case 'idle':
     default:
-      return 'idle';
+      return t('timer.idle');
   }
 }
 
-function makeManualSnapshot(ign: string, draft: DraftSnapshotState): CharacterSnapshot {
+function makeManualSnapshot(ign: string, draft: DraftSnapshotState, fallbackIgn: string): CharacterSnapshot {
   return createManualSnapshot({
-    ign: ign || 'Entered buyer',
+    ign: ign || fallbackIgn,
     level: clampLevel(draft.level),
     expPercent: clampPercent(draft.expPercent),
   });
@@ -202,25 +208,25 @@ function buyerLookupIgn(buyer: LeechBuyer) {
   return (buyer.ign || buyer.start?.ign || buyer.current?.ign || '').trim();
 }
 
-function snapshotShort(snapshot?: CharacterSnapshot) {
-  return snapshot ? `Lv.${snapshot.level} · ${formatPercent(snapshot.expPercent)}` : '—';
+function snapshotShort(snapshot: CharacterSnapshot | undefined, t: TFunction) {
+  return snapshot ? t('snapshot.short', { level: snapshot.level, expPercent: formatPercent(snapshot.expPercent) }) : '—';
 }
 
-function exportInstances(instances: LeechInstance[], now = Date.now()) {
+function exportInstances(instances: LeechInstance[], t: TFunction, now = Date.now()) {
   const columns = [
-    'instance',
-    'created_at',
-    'billing',
-    'buyer',
-    'start_level',
-    'start_exp_percent',
-    'start_time',
-    'current_level',
-    'current_exp_percent',
-    'current_time',
-    'exp_gained',
-    'mesos_due',
-    'billable_ms',
+    t('csv.instance'),
+    t('csv.createdAt'),
+    t('csv.billing'),
+    t('csv.buyer'),
+    t('csv.startLevel'),
+    t('csv.startExpPercent'),
+    t('csv.startTime'),
+    t('csv.currentLevel'),
+    t('csv.currentExpPercent'),
+    t('csv.currentTime'),
+    t('csv.expGained'),
+    t('csv.mesosDue'),
+    t('csv.billableMs'),
   ];
 
   const rows = instances.flatMap((instance) => {
@@ -232,7 +238,7 @@ function exportInstances(instances: LeechInstance[], now = Date.now()) {
       return [
         instance.name,
         instance.createdAt,
-        billingLabel(instance.billing),
+        billingLabel(instance.billing, t),
         buyerLookupIgn(buyer),
         buyer.start?.level,
         buyer.start?.expPercent,
@@ -286,20 +292,21 @@ function SnapshotSummary({
   onCommitDraft: (value: DraftSnapshotState) => void;
   onRefresh: () => void;
 }) {
-  const sourceLabel = snapshot?.source === 'manual' ? 'entered' : 'refreshed';
+  const { t } = useTranslation();
+  const sourceLabel = snapshot?.source === 'manual' ? t('snapshot.entered') : t('snapshot.refreshed');
 
   return (
     <div className={`snapshot-summary snapshot-summary--${tone}`}>
       <div className="snapshot-summary__head">
         <div>
           <span>{title}</span>
-          <strong>{snapshotShort(snapshot)}</strong>
+          <strong>{snapshotShort(snapshot, t)}</strong>
         </div>
         <button type="button" className="icon-button snapshot-refresh-button" onClick={onRefresh} disabled={refreshDisabled} aria-label={refreshLabel}>
           <RefreshCw size={15} className={refreshing ? 'spin' : ''} />
         </button>
       </div>
-      <small>{snapshot ? `${formatLocalDateTime(snapshot.capturedAt)} · ${sourceLabel}` : 'Fetch or enter EXP'}</small>
+      <small>{snapshot ? `${formatLocalDateTime(snapshot.capturedAt)} · ${sourceLabel}` : t('snapshot.emptyPrompt')}</small>
       <div className="manual-snapshot">
         <LevelExpInputs value={draft} onChange={onDraftChange} onCommit={onCommitDraft} />
       </div>
@@ -323,14 +330,15 @@ function FlowCard({ step, title, labels, children }: { step: string; title: stri
 }
 
 function ThemeSwitch({ theme, onChange }: { theme: ThemeMode; onChange: (theme: ThemeMode) => void }) {
+  const { t } = useTranslation();
   const options: Array<{ value: ThemeMode; label: string; icon: ReactNode }> = [
-    { value: 'light', label: 'Light', icon: <Sun size={15} /> },
-    { value: 'system', label: 'System', icon: <Monitor size={15} /> },
-    { value: 'dark', label: 'Dark', icon: <Moon size={15} /> },
+    { value: 'light', label: t('theme.light'), icon: <Sun size={15} /> },
+    { value: 'system', label: t('theme.system'), icon: <Monitor size={15} /> },
+    { value: 'dark', label: t('theme.dark'), icon: <Moon size={15} /> },
   ];
 
   return (
-    <div className="theme-switch segmented-control" role="group" aria-label="Theme">
+    <div className="theme-switch segmented-control topbar-control" role="group" aria-label={t('theme.label')}>
       {options.map((option) => (
         <button
           key={option.value}
@@ -344,6 +352,24 @@ function ThemeSwitch({ theme, onChange }: { theme: ThemeMode; onChange: (theme: 
         </button>
       ))}
     </div>
+  );
+}
+
+function LanguageSelect() {
+  const { t, i18n } = useTranslation();
+
+  return (
+    <label className="language-select">
+      <Languages size={15} aria-hidden="true" />
+      <span>{t('language.label')}</span>
+      <select value={i18n.resolvedLanguage ?? i18n.language} onChange={(event) => void i18n.changeLanguage(event.target.value)} aria-label={t('language.label')}>
+        {SUPPORTED_LOCALES.map((locale) => (
+          <option key={locale.code} value={locale.code}>
+            {locale.label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
@@ -415,6 +441,7 @@ function LevelExpInputs({
   onCommit?: (value: DraftSnapshotState) => void;
   prefix?: string;
 }) {
+  const { t } = useTranslation();
   const commitTimerRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
@@ -469,7 +496,7 @@ function LevelExpInputs({
   return (
     <div className="level-exp-grid" onBlur={handleBlur}>
       <label>
-        {prefix}Level
+        {prefix}{t('common.level')}
         <EditableNumberInput
           type="number"
           min={1}
@@ -482,7 +509,7 @@ function LevelExpInputs({
         />
       </label>
       <label>
-        {prefix}EXP %
+        {prefix}{t('common.expPercent')}
         <EditableNumberInput
           type="number"
           min={0}
@@ -507,6 +534,7 @@ function EstimateLevelExpInputs({
   value: DraftSnapshotState;
   onChange: (value: DraftSnapshotState) => void;
 }) {
+  const { t } = useTranslation();
   function updateValue(nextValue: DraftSnapshotState) {
     onChange(nextValue);
   }
@@ -540,7 +568,7 @@ function EstimateLevelExpInputs({
         value={value.level}
         emptyValue={1}
         normalize={clampLevel}
-        aria-label={`${label} level`}
+        aria-label={t('aria.estimateLevel', { label })}
         onKeyDown={handleKeyDown}
         onValueChange={(level) => updateValue({ ...value, level })}
       />
@@ -551,7 +579,7 @@ function EstimateLevelExpInputs({
         step={0.01}
         value={value.expPercent}
         normalize={normalizePercent}
-        aria-label={`${label} EXP percent`}
+        aria-label={t('aria.estimateExpPercent', { label })}
         onKeyDown={handleKeyDown}
         onValueChange={(expPercent) => updateValue({ ...value, expPercent })}
       />
@@ -566,6 +594,7 @@ function QuickEstimate({
   estimate: QuickEstimateState;
   onChange: (next: QuickEstimateState) => void;
 }) {
+  const { t } = useTranslation();
   const result = useMemo(
     () =>
       calculateEstimate({
@@ -585,14 +614,14 @@ function QuickEstimate({
     <section className="panel estimate-panel">
       <div className="panel-heading">
         <div>
-          <h2>Calculator</h2>
+          <h2>{t('calculator.heading')}</h2>
         </div>
-        <div className="segmented-control" role="group" aria-label="Estimate pricing type">
+        <div className="segmented-control" role="group" aria-label={t('billing.estimateType')}>
           <button type="button" className={estimate.billingType === 'ratio' ? 'active' : ''} onClick={() => onChange({ ...estimate, billingType: 'ratio' })}>
-            Ratio
+            {t('billing.ratio')}
           </button>
           <button type="button" className={estimate.billingType === 'hourly' ? 'active' : ''} onClick={() => onChange({ ...estimate, billingType: 'hourly' })}>
-            Hourly
+            {t('billing.hourly')}
           </button>
         </div>
       </div>
@@ -600,16 +629,16 @@ function QuickEstimate({
       <div className="estimate-grid">
         <FlowCard
           step="1"
-          title="From"
+          title={t('calculator.from')}
           labels={
             <div className="estimate-label-row estimate-label-row--level-exp">
-              <span>Level</span>
-              <span>EXP %</span>
+              <span>{t('common.level')}</span>
+              <span>{t('common.expPercent')}</span>
             </div>
           }
         >
           <EstimateLevelExpInputs
-            label="From"
+            label={t('calculator.from')}
             value={{ level: estimate.fromLevel, expPercent: estimate.fromExpPercent }}
             onChange={(value) => onChange({ ...estimate, fromLevel: clampLevel(value.level), fromExpPercent: clampPercent(value.expPercent) })}
           />
@@ -617,16 +646,16 @@ function QuickEstimate({
 
         <FlowCard
           step="2"
-          title="To"
+          title={t('calculator.to')}
           labels={
             <div className="estimate-label-row estimate-label-row--level-exp">
-              <span>Level</span>
-              <span>EXP %</span>
+              <span>{t('common.level')}</span>
+              <span>{t('common.expPercent')}</span>
             </div>
           }
         >
           <EstimateLevelExpInputs
-            label="To"
+            label={t('calculator.to')}
             value={{ level: estimate.toLevel, expPercent: estimate.toExpPercent }}
             onChange={(value) => onChange({ ...estimate, toLevel: clampLevel(value.level), toExpPercent: clampPercent(value.expPercent) })}
           />
@@ -634,29 +663,29 @@ function QuickEstimate({
 
         <FlowCard
           step="3"
-          title="Pricing"
+          title={t('billing.pricing')}
           labels={
             estimate.billingType === 'ratio' ? (
               <div className="estimate-label-row estimate-label-row--single">
-                <span>Ratio</span>
+                <span>{t('billing.ratio')}</span>
               </div>
             ) : (
               <div className="estimate-label-row estimate-label-row--pricing">
-                <span>Price</span>
-                <span>EPH</span>
+                <span>{t('calculator.price')}</span>
+                <span>{t('calculator.eph')}</span>
               </div>
             )
           }
         >
           {estimate.billingType === 'ratio' ? (
             <span className="ratio-input">
-              <span>1 :</span>
+              <span>{t('common.ratioPrefix')}</span>
               <EditableNumberInput
                 type="number"
                 min={0.1}
                 step={0.1}
                 value={estimate.expPerMesoRatio}
-                aria-label="EXP per meso ratio"
+                aria-label={t('aria.expPerMesoRatio')}
                 onValueChange={(expPerMesoRatio) => onChange({ ...estimate, expPerMesoRatio })}
               />
             </span>
@@ -669,10 +698,10 @@ function QuickEstimate({
                     min={0}
                     step={0.5}
                     value={estimate.hourlyRateMillions}
-                    aria-label="Hourly price in millions of mesos"
+                    aria-label={t('aria.hourlyPriceMillions')}
                     onValueChange={(hourlyRateMillions) => onChange({ ...estimate, hourlyRateMillions })}
                   />
-                  <span>M/h</span>
+                  <span>{t('common.millionPerHour')}</span>
                 </span>
               </div>
               <div>
@@ -683,10 +712,10 @@ function QuickEstimate({
                     step={0.01}
                     value={estimate.expPerHourMillions}
                     normalize={normalizeNonNegativeHundredth}
-                    aria-label="EXP rate in millions per hour"
+                    aria-label={t('aria.expRateMillions')}
                     onValueChange={(expPerHourMillions) => onChange({ ...estimate, expPerHourMillions })}
                   />
-                  <span>M EXP/h</span>
+                  <span>{t('common.millionExpPerHour')}</span>
                 </span>
               </div>
             </div>
@@ -696,22 +725,22 @@ function QuickEstimate({
         <div className="estimate-result flow-card">
           <div className="flow-card__heading">
             <span>4</span>
-            <strong>Result</strong>
+            <strong>{t('calculator.result')}</strong>
           </div>
           <div>
-            <span>EXP needed</span>
+            <span>{t('calculator.expNeeded')}</span>
             <strong>{formatCompact(result.expNeeded)}</strong>
             <small>{formatExp(result.expNeeded)}</small>
           </div>
           {estimate.billingType === 'hourly' ? (
             <div>
-              <span>Expected time</span>
+              <span>{t('calculator.expectedTime')}</span>
               <strong>{formatDuration(result.expectedDurationMs)}</strong>
               <small>{formatHours(result.expectedDurationMs)}</small>
             </div>
           ) : null}
           <div>
-            <span>Estimated cost</span>
+            <span>{t('calculator.estimatedCost')}</span>
             <strong>{formatMesosShort(estimate.billingType === 'ratio' ? result.ratioMesosDue : result.hourlyMesosDue)}</strong>
             <small>{formatMesosValue(estimate.billingType === 'ratio' ? result.ratioMesosDue : result.hourlyMesosDue)}</small>
           </div>
@@ -722,26 +751,27 @@ function QuickEstimate({
 }
 
 function TimerControls({ billing, onChange, now }: { billing: Extract<LeechBilling, { type: 'hourly' }>; onChange: (billing: LeechBilling) => void; now: number }) {
+  const { t } = useTranslation();
   const billableMs = getBillableMs(billing.timer, now);
   const isRunning = billing.timer.status === 'running';
 
   return (
     <div className={`timer-card timer-card--${billing.timer.status}`}>
       <div className="timer-card__header">
-        <span>Run time</span>
-        <small className="timer-status">{timerStatusLabel(billing.timer.status)}</small>
+        <span>{t('timer.runTime')}</span>
+        <small className="timer-status">{timerStatusLabel(billing.timer.status, t)}</small>
       </div>
       <div className="timer-card__body">
         <div className="timer-card__main">
           <strong>{formatDuration(billableMs)}</strong>
         </div>
         <div className="timer-card__actions">
-          <button type="button" className="timer-card__toggle" onClick={() => onChange({ ...billing, timer: isRunning ? pauseTimer(billing.timer) : startTimer(billing.timer) })} aria-label={isRunning ? 'Pause run timer' : 'Start run timer'}>
+          <button type="button" className="timer-card__toggle" onClick={() => onChange({ ...billing, timer: isRunning ? pauseTimer(billing.timer) : startTimer(billing.timer) })} aria-label={isRunning ? t('aria.pauseTimer') : t('aria.startTimer')}>
             {isRunning ? <Pause size={16} /> : <Play size={16} />}
-            {isRunning ? 'Pause' : 'Start'}
+            {isRunning ? t('timer.pause') : t('timer.start')}
           </button>
           <button type="button" className="secondary-button timer-card__reset" onClick={() => onChange({ ...billing, timer: resetTimer() })} disabled={isRunning}>
-            <RotateCcw size={16} /> Reset
+            <RotateCcw size={16} /> {t('common.reset')}
           </button>
         </div>
       </div>
@@ -770,6 +800,7 @@ function BuyerRow({
   dueCopied: boolean;
   onDueCopied: () => void;
 }) {
+  const { t } = useTranslation();
   const [startDraft, setStartDraft] = useState<DraftSnapshotState>({ level: buyer.start?.level ?? 120, expPercent: buyer.start?.expPercent ?? 0 });
   const [currentDraft, setCurrentDraft] = useState<DraftSnapshotState>({ level: buyer.current?.level ?? buyer.start?.level ?? 120, expPercent: buyer.current?.expPercent ?? 0 });
   const [refreshingSnapshot, setRefreshingSnapshot] = useState<'start' | 'current' | null>(null);
@@ -777,7 +808,7 @@ function BuyerRow({
   const calc = calculateBuyer(buyer, instance.billing, now, chargedBuyerCount);
   const due = instance.billing.type === 'ratio' ? calc.ratioMesosDue : calc.hourlyMesosDue;
   const lookupIgn = buyerLookupIgn(buyer);
-  const displayIgn = lookupIgn || 'Buyer';
+  const displayIgn = lookupIgn || t('buyer.fallback');
   const locked = buyer.locked ?? false;
   const job = buyer.current?.job ?? buyer.start?.job;
   const guild = buyer.current?.guild ?? buyer.start?.guild;
@@ -793,7 +824,7 @@ function BuyerRow({
   }, [buyer.current?.id, buyer.current?.level, buyer.current?.expPercent]);
 
   async function fetchStart() {
-    if (buyer.start && !confirmSnapshotOverwrite('start')) return;
+    if (buyer.start && !confirmSnapshotOverwrite(t('confirm.refreshSnapshot', { label: t('common.start').toLowerCase() }))) return;
     setRefreshingSnapshot('start');
     try {
       const snapshot = await onFetchSnapshot(lookupIgn);
@@ -815,13 +846,13 @@ function BuyerRow({
 
   function commitStartDraft(nextDraft = startDraft) {
     if (!draftDiffersFromSnapshot(nextDraft, buyer.start)) return;
-    const snapshot = makeManualSnapshot(lookupIgn, nextDraft);
+    const snapshot = makeManualSnapshot(lookupIgn, nextDraft, t('buyer.entered'));
     onUpdate({ ...buyer, ign: buyer.ign || snapshot.ign, start: snapshot, current: buyer.current ?? snapshot });
   }
 
   function commitCurrentDraft(nextDraft = currentDraft) {
     if (!draftDiffersFromSnapshot(nextDraft, buyer.current)) return;
-    const snapshot = makeManualSnapshot(lookupIgn, nextDraft);
+    const snapshot = makeManualSnapshot(lookupIgn, nextDraft, t('buyer.entered'));
     onUpdate({ ...buyer, ign: buyer.ign || buyer.start?.ign || snapshot.ign, current: snapshot });
   }
 
@@ -851,28 +882,28 @@ function BuyerRow({
             <div className="avatar-frame avatar-frame--small avatar-frame--empty"><UserPlus size={18} /></div>
           )}
           <div className="buyer-name-display">
-            <strong>{buyer.ign || 'BuyerName'}</strong>
+            <strong>{buyer.ign || t('buyer.placeholderName')}</strong>
             {job || guild ? (
               <div className="buyer-character-meta">
-                {job ? <span aria-label={`Job: ${job}`} title={job}>{job}</span> : null}
-                {guild ? <span aria-label={`Guild: ${guild}`} title={guild}>{guild}</span> : null}
+                {job ? <span aria-label={t('aria.job', { job })} title={job}>{job}</span> : null}
+                {guild ? <span aria-label={t('aria.guild', { guild })} title={guild}>{guild}</span> : null}
               </div>
             ) : null}
           </div>
         </div>
         <div className="buyer-row-metrics">
           <div className="buyer-row-stat">
-            <span>Start</span>
-            <strong>{snapshotShort(buyer.start)}</strong>
+            <span>{t('common.start')}</span>
+            <strong>{snapshotShort(buyer.start, t)}</strong>
             {buyer.start ? <small>{formatLocalDateTime(buyer.start.capturedAt)}</small> : null}
           </div>
           <div className="buyer-row-stat">
-            <span>Current</span>
-            <strong>{snapshotShort(buyer.current)}</strong>
+            <span>{t('common.current')}</span>
+            <strong>{snapshotShort(buyer.current, t)}</strong>
             {buyer.current ? <small>{formatLocalDateTime(buyer.current.capturedAt)}</small> : null}
           </div>
           <div className="buyer-row-stat">
-            <span>EXP gained</span>
+            <span>{t('buyer.expGained')}</span>
             <strong>{formatCompact(calc.expGained)}</strong>
             <small>{formatExp(calc.expGained)}</small>
           </div>
@@ -880,12 +911,12 @@ function BuyerRow({
             className={`buyer-row-stat buyer-row-stat--due${dueCopied ? ' buyer-row-stat--copied' : ''}`}
             role="button"
             tabIndex={0}
-            aria-label={dueCopied ? `${displayIgn} due amount copied` : `Copy ${displayIgn} due amount`}
+            aria-label={dueCopied ? t('aria.dueCopied', { name: displayIgn }) : t('aria.copyDue', { name: displayIgn })}
             onClick={() => void copyDue()}
             onKeyDown={handleDueKeyDown}
           >
             <span className="buyer-row-stat__copy-label" aria-live="polite">
-              {dueCopied ? 'Copied' : 'Due'}
+              {dueCopied ? t('common.copied') : t('common.due')}
               {dueCopied ? <Check size={13} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
             </span>
             <strong>{formatMesosShortPrecise(due)}</strong>
@@ -897,12 +928,12 @@ function BuyerRow({
             type="button"
             className={`icon-button lock-button${locked ? ' lock-button--locked' : ''}`}
             onClick={() => onUpdate({ ...buyer, locked: !locked })}
-            aria-label={`${locked ? 'Unlock' : 'Lock'} ${displayIgn}`}
+            aria-label={locked ? t('aria.unlockBuyer', { name: displayIgn }) : t('aria.lockBuyer', { name: displayIgn })}
             aria-pressed={locked}
           >
             {locked ? <Unlock size={16} /> : <Lock size={16} />}
           </button>
-          <button type="button" className="icon-button danger-button" onClick={onDelete} aria-label={`Remove ${displayIgn}`}>
+          <button type="button" className="icon-button danger-button" onClick={onDelete} aria-label={t('aria.removeBuyer', { name: displayIgn })}>
             <Trash2 size={16} />
           </button>
         </div>
@@ -910,14 +941,14 @@ function BuyerRow({
 
       {!locked ? (
         <details className="buyer-details">
-          <summary>Edit buyer</summary>
+          <summary>{t('buyer.edit')}</summary>
           <div className="snapshot-editor-grid">
             <SnapshotSummary
-              title="Start"
+              title={t('common.start')}
               tone="start"
               snapshot={buyer.start}
               draft={startDraft}
-              refreshLabel="Fetch start EXP"
+              refreshLabel={t('snapshot.fetchStartExp')}
               refreshDisabled={busy || !lookupIgn}
               refreshing={refreshingSnapshot === 'start'}
               onDraftChange={setStartDraft}
@@ -926,11 +957,11 @@ function BuyerRow({
             />
 
             <SnapshotSummary
-              title="Current"
+              title={t('common.current')}
               tone="current"
               snapshot={buyer.current}
               draft={currentDraft}
-              refreshLabel="Refresh EXP"
+              refreshLabel={t('snapshot.refreshExp')}
               refreshDisabled={busy || !lookupIgn}
               refreshing={refreshingSnapshot === 'current'}
               onDraftChange={setCurrentDraft}
@@ -967,6 +998,7 @@ function LeechInstanceCard({
   copiedBuyerId: string | null;
   onDueCopied: (buyerId: string) => void;
 }) {
+  const { t } = useTranslation();
   const [newBuyerIgn, setNewBuyerIgn] = useState('');
   const [addingBuyer, setAddingBuyer] = useState(false);
   const [refreshingRun, setRefreshingRun] = useState(false);
@@ -1049,18 +1081,20 @@ function LeechInstanceCard({
             className="instance-title-input"
             value={instance.name}
             onChange={(event) => onUpdate({ ...instance, name: event.target.value })}
-            aria-label={`Name for leech run ${index + 1}`}
+            aria-label={t('run.nameLabel', { number: index + 1 })}
           />
           <p className="run-created-at">
-            {instance.billing.type === 'ratio' ? `Ratio · ${billingLabel(instance.billing)}` : `Hourly · ${billingLabel(instance.billing)}`} · Created {formatLocalDateTime(instance.createdAt)}
+            {instance.billing.type === 'ratio'
+              ? t('billing.ratioModeSummary', { label: billingLabel(instance.billing, t) })
+              : t('billing.hourlyModeSummary', { label: billingLabel(instance.billing, t) })} · {t('run.created', { date: formatLocalDateTime(instance.createdAt) })}
           </p>
         </div>
         <div className="button-row wrap">
-          <div className="segmented-control" role="group" aria-label="Billing type">
-            <button type="button" className={instance.billing.type === 'ratio' ? 'active' : ''} onClick={() => setBillingType('ratio')}>Ratio</button>
-            <button type="button" className={instance.billing.type === 'hourly' ? 'active' : ''} onClick={() => setBillingType('hourly')}>Hourly</button>
+          <div className="segmented-control" role="group" aria-label={t('billing.type')}>
+            <button type="button" className={instance.billing.type === 'ratio' ? 'active' : ''} onClick={() => setBillingType('ratio')}>{t('billing.ratio')}</button>
+            <button type="button" className={instance.billing.type === 'hourly' ? 'active' : ''} onClick={() => setBillingType('hourly')}>{t('billing.hourly')}</button>
           </div>
-          <button type="button" className="icon-button danger-button" onClick={onDelete} aria-label="Delete run">
+          <button type="button" className="icon-button danger-button" onClick={onDelete} aria-label={t('run.delete')}>
             <Trash2 size={16} />
           </button>
         </div>
@@ -1068,18 +1102,18 @@ function LeechInstanceCard({
 
       <div className="instance-billing">
         <div className="billing-settings">
-          <span>Pricing</span>
+          <span>{t('billing.pricing')}</span>
           {ratioBilling ? (
             <label className="compact-label">
-              EXP ratio
+              {t('billing.expRatio')}
               <span className="ratio-input">
-                <span>1 :</span>
+                <span>{t('common.ratioPrefix')}</span>
                 <input
                   type="number"
                   min={0.1}
                   step={0.1}
                   value={ratioBilling.expPerMesoRatio}
-                  aria-label="Run EXP per meso ratio"
+                  aria-label={t('aria.runExpRatio')}
                   onChange={(event) => updateBilling({ type: 'ratio', expPerMesoRatio: Number(event.target.value) })}
                 />
               </span>
@@ -1087,17 +1121,17 @@ function LeechInstanceCard({
           ) : null}
           {hourlyBilling ? (
             <label className="compact-label">
-              Hourly rate
+              {t('billing.hourlyRate')}
               <span className="unit-input">
                 <input
                   type="number"
                   min={0}
                   step={0.5}
                   value={hourlyBilling.hourlyRateMesos / 1_000_000}
-                  aria-label="Run hourly price in millions of mesos"
+                  aria-label={t('aria.runHourlyPriceMillions')}
                   onChange={(event) => updateBilling({ ...hourlyBilling, hourlyRateMesos: Number(event.target.value) * 1_000_000 })}
                 />
-                <span>m / hr</span>
+                <span>{t('common.millionPerHourSpaced')}</span>
               </span>
             </label>
           ) : null}
@@ -1108,10 +1142,10 @@ function LeechInstanceCard({
         {ratioBilling ? (
           <div className="tip-card tip-card--inline">
             <div className="tip-card__content">
-              <strong>Keep EXP updated <AlertCircle size={14} /></strong>
+              <strong>{t('tip.keepExpUpdated')} <AlertCircle size={14} /></strong>
               <div className="tip-card__rows">
-                <span><b>Party refresh</b><em>Invite any character to the party, such as the HS mule.</em></span>
-                <span><b>Self refresh</b><em>Enter a map, change channels, or exit the Cash Shop.</em></span>
+                <span><b>{t('tip.partyRefreshTitle')}</b><em>{t('tip.partyRefreshBody')}</em></span>
+                <span><b>{t('tip.selfRefreshTitle')}</b><em>{t('tip.selfRefreshBody')}</em></span>
               </div>
             </div>
           </div>
@@ -1120,9 +1154,9 @@ function LeechInstanceCard({
 
       <div className="buyers-header buyers-toolbar">
         <div className="buyers-heading">
-          <h3>Buyers</h3>
+          <h3>{t('buyer.buyers')}</h3>
           {instance.lastCurrentRefreshedAt ? (
-            <small>Refreshed <time dateTime={instance.lastCurrentRefreshedAt}>{formatLocalDateTime(instance.lastCurrentRefreshedAt)}</time></small>
+            <small>{t('snapshot.refreshed')} <time dateTime={instance.lastCurrentRefreshedAt}>{formatLocalDateTime(instance.lastCurrentRefreshedAt)}</time></small>
           ) : null}
         </div>
         <div className="buyers-toolbar__actions">
@@ -1134,22 +1168,22 @@ function LeechInstanceCard({
             }}
           >
             <input
-              aria-label="Buyer IGN"
+              aria-label={t('buyer.ign')}
               value={newBuyerIgn}
               onChange={(event) => setNewBuyerIgn(event.target.value)}
-              placeholder="Buyer IGN"
+              placeholder={t('buyer.ign')}
             />
             <button
               type="submit"
-              aria-label={addingBuyer ? 'Adding buyer' : 'Add buyer'}
+              aria-label={addingBuyer ? t('buyer.adding') : t('buyer.add')}
               aria-busy={addingBuyer}
               disabled={addingBuyer || !newBuyerIgn.trim()}
             >
-              {addingBuyer ? <LoaderCircle size={16} className="spin" /> : <Plus size={16} />} Add
+              {addingBuyer ? <LoaderCircle size={16} className="spin" /> : <Plus size={16} />} {t('common.add')}
             </button>
           </form>
           <button type="button" className="secondary-button refresh-exp-button" onClick={refreshRunCurrentExp} disabled={refreshingRun || refreshableBuyers.length === 0}>
-            <RefreshCw size={16} className={refreshingRun ? 'spin' : ''} /> {refreshingRun ? 'Refreshing...' : 'Refresh EXP'}
+            <RefreshCw size={16} className={refreshingRun ? 'spin' : ''} /> {refreshingRun ? t('common.refreshing') : t('common.refreshExp')}
           </button>
         </div>
       </div>
@@ -1168,8 +1202,8 @@ function LeechInstanceCard({
               onDueCopied={() => onDueCopied(buyer.id)}
               onUpdate={(nextBuyer) => onUpdate(updateBuyer(instance, buyer.id, () => nextBuyer))}
               onDelete={() => {
-                const name = buyerLookupIgn(buyer) || 'this character';
-                if (!isEmptyBuyer(buyer) && !confirmDeletion(`Delete ${name} from ${instance.name}?`)) return;
+                const name = buyerLookupIgn(buyer) || t('buyer.thisCharacter');
+                if (!isEmptyBuyer(buyer) && !confirmDeletion(t('confirm.deleteBuyer', { name, run: instance.name }))) return;
                 onUpdate({ ...instance, buyers: instance.buyers.filter((item) => item.id !== buyer.id) });
               }}
             />
@@ -1178,8 +1212,8 @@ function LeechInstanceCard({
       ) : (
         <div className="empty-buyers-state">
           <UserPlus size={24} />
-          <strong>No buyers yet</strong>
-          <span>Add the buyer’s IGN to fetch their start EXP.</span>
+          <strong>{t('buyer.noBuyersTitle')}</strong>
+          <span>{t('buyer.noBuyersBody')}</span>
         </div>
       )}
     </section>
@@ -1199,25 +1233,26 @@ function RunRail({
   onSelect: (id: string) => void;
   onAdd: () => void;
 }) {
+  const { t } = useTranslation();
   return (
-    <aside className="run-rail" aria-label="Runs">
+    <aside className="run-rail" aria-label={t('run.railLabel')}>
       <div className="rail-header">
         <div>
-          <span className="rail-kicker">Runs</span>
-          <strong>{instances.length} active</strong>
+          <span className="rail-kicker">{t('run.railKicker')}</span>
+          <strong>{t('run.active', { count: instances.length })}</strong>
         </div>
-        <button type="button" className="icon-button" onClick={onAdd} aria-label="New run">
+        <button type="button" className="icon-button" onClick={onAdd} aria-label={t('run.new')}>
           <Plus size={17} />
         </button>
       </div>
 
       <label className="run-picker">
-        <select value={selectedRunId ?? ''} onChange={(event) => onSelect(event.target.value)} aria-label="Selected run">
+        <select value={selectedRunId ?? ''} onChange={(event) => onSelect(event.target.value)} aria-label={t('run.selected')}>
           {instances.map((instance) => {
             const summary = calculateInstance(instance, now);
             return (
               <option key={instance.id} value={instance.id}>
-                {instance.name || 'Untitled run'} · {billingLabel(instance.billing)} · {formatMesosShort(summary.totalMesosDue)}
+                {instance.name || t('common.untitledRun')} · {billingLabel(instance.billing, t)} · {formatMesosShort(summary.totalMesosDue)}
               </option>
             );
           })}
@@ -1237,12 +1272,12 @@ function RunRail({
               aria-current={selected ? 'true' : undefined}
             >
               <span>
-                <strong>{instance.name || 'Untitled run'}</strong>
-                <small>{billingLabel(instance.billing)}</small>
+                <strong>{instance.name || t('common.untitledRun')}</strong>
+                <small>{billingLabel(instance.billing, t)}</small>
               </span>
               <span>
                 <b>{formatMesosShort(summary.totalMesosDue)}</b>
-                <small>{summary.buyerCount} buyer{summary.buyerCount === 1 ? '' : 's'}</small>
+                <small>{t('buyer.count', { count: summary.buyerCount })}</small>
               </span>
             </button>
           );
@@ -1253,12 +1288,13 @@ function RunRail({
 }
 
 function RunTools({ instance, now }: { instance?: LeechInstance; now: number }) {
+  const { t } = useTranslation();
   if (!instance) {
     return (
       <section className="panel run-tools">
         <div className="panel-heading">
           <div>
-            <h2>Status</h2>
+            <h2>{t('status.heading')}</h2>
           </div>
         </div>
       </section>
@@ -1270,22 +1306,22 @@ function RunTools({ instance, now }: { instance?: LeechInstance; now: number }) 
     <section className="panel run-tools">
       <div className="panel-heading">
         <div>
-          <h2>Status</h2>
+          <h2>{t('status.heading')}</h2>
         </div>
       </div>
       <div className="tool-stat tool-stat--due">
-        <span>Total due</span>
+        <span>{t('status.totalDue')}</span>
         <strong>{formatMesosShort(summary.totalMesosDue)}</strong>
         <small>{formatMesosValue(summary.totalMesosDue)}</small>
       </div>
       <div className="tools-grid">
         <div className="tool-stat">
-          <span>Buyers</span>
+          <span>{t('status.buyers')}</span>
           <strong>{summary.buyerCount}</strong>
-          <small>{summary.completedBuyerCount} refreshed</small>
+          <small>{t('buyer.refreshed', { count: summary.completedBuyerCount })}</small>
         </div>
         <div className="tool-stat">
-          <span>Total EXP</span>
+          <span>{t('status.totalExp')}</span>
           <strong>{formatCompact(summary.totalExpGained)}</strong>
           <small>{formatExp(summary.totalExpGained)}</small>
         </div>
@@ -1295,6 +1331,7 @@ function RunTools({ instance, now }: { instance?: LeechInstance; now: number }) 
 }
 
 export default function App() {
+  const { t } = useTranslation();
   const [instances, setInstances] = useLocalStorage<LeechInstance[]>(INSTANCES_STORAGE_KEY, initialInstances());
   const [estimate, setEstimate] = useLocalStorage<QuickEstimateState>(ESTIMATE_STORAGE_KEY, DEFAULT_ESTIMATE);
   const [theme, setTheme] = useLocalStorage<ThemeMode>(THEME_STORAGE_KEY, 'system');
@@ -1360,7 +1397,7 @@ export default function App() {
     try {
       return await fetchCharacter(cleanIgn);
     } catch (error) {
-      const text = error instanceof Error ? error.message : 'Could not refresh character.';
+      const text = error instanceof Error ? error.message : t('notice.refreshCharacterFailed');
       setNotice({ type: 'error', text });
       throw error;
     } finally {
@@ -1380,14 +1417,15 @@ export default function App() {
         <div className="brand-lockup">
           <img src="/assets/icons/hs.png" alt="" className="brand-logo" />
           <div>
-            <span className="app-mark">Holy Symbol</span>
-            <p>Leech Calculator for MapleLegends</p>
+            <span className="app-mark">{t('app.name')}</span>
+            <p>{t('app.tagline')}</p>
           </div>
         </div>
         <div className="topbar-actions">
           <ThemeSwitch theme={theme} onChange={setTheme} />
-          <button type="button" className="secondary-button" onClick={() => exportInstances(instances, now)} disabled={instances.length === 0}>
-            <Download size={16} /> Export CSV
+          <LanguageSelect />
+          <button type="button" className="secondary-button topbar-control topbar-export-button" onClick={() => exportInstances(instances, t, now)} disabled={instances.length === 0}>
+            <Download size={16} /> {t('topbar.exportCsv')}
           </button>
         </div>
       </header>
@@ -1402,7 +1440,7 @@ export default function App() {
       <div className="workbench-layout">
         <RunRail instances={displayedInstances} selectedRunId={selectedInstance?.id ?? null} now={now} onSelect={setSelectedRunId} onAdd={addInstance} />
 
-        <section className="ledger-column instances-section" aria-label="Selected run ledger">
+        <section className="ledger-column instances-section" aria-label={t('run.selectedLedger')}>
           {selectedInstance ? (
             <div className="instances-stack">
               <LeechInstanceCard
@@ -1417,7 +1455,7 @@ export default function App() {
                 onDueCopied={showCopiedBuyer}
                 onUpdate={upsertInstance}
                 onDelete={() => {
-                  if (!isEmptyInstance(selectedInstance) && !confirmDeletion(`Delete ${selectedInstance.name}?`)) return;
+                  if (!isEmptyInstance(selectedInstance) && !confirmDeletion(t('confirm.deleteRun', { name: selectedInstance.name }))) return;
                   setInstances((current) => (current.length <= 1 ? [emptyInstance()] : current.filter((item) => item.id !== selectedInstance.id)));
                 }}
               />
