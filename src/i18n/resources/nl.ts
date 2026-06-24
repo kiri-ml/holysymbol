@@ -125,6 +125,8 @@ export const nl = {
     guild: 'Guild: {{guild}}',
     dueCopied: 'Te betalen bedrag van {{name}} gekopieerd',
     copyDue: 'Te betalen bedrag van {{name}} kopiëren',
+    estimatedCostCopied: 'Geschatte kosten gekopieerd',
+    copyEstimatedCost: 'Geschatte kosten kopiëren',
     lockBuyer: '{{name}} vergrendelen',
     unlockBuyer: '{{name}} ontgrendelen',
     removeBuyer: '{{name}} verwijderen',

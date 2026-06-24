@@ -125,6 +125,8 @@ export const en = {
     guild: 'Guild: {{guild}}',
     dueCopied: '{{name}} due amount copied',
     copyDue: 'Copy {{name}} due amount',
+    estimatedCostCopied: 'Estimated cost copied',
+    copyEstimatedCost: 'Copy estimated cost',
     lockBuyer: 'Lock {{name}}',
     unlockBuyer: 'Unlock {{name}}',
     removeBuyer: 'Remove {{name}}',

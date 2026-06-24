@@ -125,6 +125,8 @@ export const ko = {
     guild: '길드: {{guild}}',
     dueCopied: '{{name}}의 받을 금액이 복사되었습니다',
     copyDue: '{{name}}의 받을 금액 복사',
+    estimatedCostCopied: '예상 비용이 복사되었습니다',
+    copyEstimatedCost: '예상 비용 복사',
     lockBuyer: '{{name}} 잠금',
     unlockBuyer: '{{name}} 잠금 해제',
     removeBuyer: '{{name}} 제거',

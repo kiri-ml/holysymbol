@@ -125,6 +125,8 @@ export const ptBR = {
     guild: 'Guild: {{guild}}',
     dueCopied: 'Valor a pagar de {{name}} copiado',
     copyDue: 'Copiar valor a pagar de {{name}}',
+    estimatedCostCopied: 'Custo estimado copiado',
+    copyEstimatedCost: 'Copiar custo estimado',
     lockBuyer: 'Bloquear {{name}}',
     unlockBuyer: 'Desbloquear {{name}}',
     removeBuyer: 'Remover {{name}}',

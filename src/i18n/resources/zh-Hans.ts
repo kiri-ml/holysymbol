@@ -125,6 +125,8 @@ export const zhHans = {
     guild: '公会：{{guild}}',
     dueCopied: '{{name}} 的应付金额已复制',
     copyDue: '复制 {{name}} 的应付金额',
+    estimatedCostCopied: '预估费用已复制',
+    copyEstimatedCost: '复制预估费用',
     lockBuyer: '锁定 {{name}}',
     unlockBuyer: '解锁 {{name}}',
     removeBuyer: '移除 {{name}}',

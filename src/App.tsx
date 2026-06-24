@@ -52,6 +52,8 @@ import './styles/app.css';
 type Notice = { type: 'error' | 'info'; text: string } | null;
 type ThemeMode = 'system' | 'light' | 'dark';
 
+const COPY_FEEDBACK_MS = 1600;
+
 type QuickEstimateState = {
   fromLevel: number;
   fromExpPercent: number;
@@ -619,6 +621,35 @@ function QuickEstimate({
       }),
     [estimate],
   );
+  const estimatedCost = estimate.billingType === 'ratio' ? result.ratioMesosDue : result.hourlyMesosDue;
+  const [costCopied, setCostCopied] = useState(false);
+  const costCopyFeedbackTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return clearCostCopyFeedbackTimer;
+  }, []);
+
+  useEffect(() => {
+    clearCostCopyFeedbackTimer();
+    setCostCopied(false);
+  }, [estimatedCost]);
+
+  function clearCostCopyFeedbackTimer() {
+    if (costCopyFeedbackTimerRef.current === null) return;
+    window.clearTimeout(costCopyFeedbackTimerRef.current);
+    costCopyFeedbackTimerRef.current = null;
+  }
+
+  async function copyEstimatedCost() {
+    if (typeof estimatedCost !== 'number' || !Number.isFinite(estimatedCost)) return;
+    const roundedCost = Math.max(0, Math.round(estimatedCost));
+    try {
+      await navigator.clipboard.writeText(String(roundedCost));
+      setCostCopied(true);
+      clearCostCopyFeedbackTimer();
+      costCopyFeedbackTimerRef.current = window.setTimeout(() => setCostCopied(false), COPY_FEEDBACK_MS);
+    } catch {}
+  }
 
   return (
     <section className="panel estimate-panel">
@@ -737,23 +768,31 @@ function QuickEstimate({
             <span>4</span>
             <strong>{t('calculator.result')}</strong>
           </div>
-          <div>
+          <button
+            type="button"
+            className={`estimate-result__item estimate-result__item--full estimate-result__cost${costCopied ? ' estimate-result__cost--copied' : ''}`}
+            aria-label={costCopied ? t('aria.estimatedCostCopied') : t('aria.copyEstimatedCost')}
+            onClick={() => void copyEstimatedCost()}
+          >
+            <span className="estimate-result__copy-label" aria-live="polite">
+              {costCopied ? t('common.copied') : t('calculator.estimatedCost')}
+              {costCopied ? <Check size={13} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
+            </span>
+            <strong>{formatMesosShort(estimatedCost)}</strong>
+            <small>{formatMesosValue(estimatedCost)}</small>
+          </button>
+          <div className={`estimate-result__item${estimate.billingType === 'ratio' ? ' estimate-result__item--full' : ''}`}>
             <span>{t('calculator.expNeeded')}</span>
             <strong>{formatCompact(result.expNeeded)}</strong>
             <small>{formatExp(result.expNeeded)}</small>
           </div>
           {estimate.billingType === 'hourly' ? (
-            <div>
+            <div className="estimate-result__item">
               <span>{t('calculator.expectedTime')}</span>
               <strong>{formatDuration(result.expectedDurationMs)}</strong>
               <small>{formatHours(result.expectedDurationMs)}</small>
             </div>
           ) : null}
-          <div>
-            <span>{t('calculator.estimatedCost')}</span>
-            <strong>{formatMesosShort(estimate.billingType === 'ratio' ? result.ratioMesosDue : result.hourlyMesosDue)}</strong>
-            <small>{formatMesosValue(estimate.billingType === 'ratio' ? result.ratioMesosDue : result.hourlyMesosDue)}</small>
-          </div>
         </div>
       </div>
     </section>
@@ -1397,7 +1436,7 @@ export default function App() {
   function showCopiedBuyer(buyerId: string) {
     setCopiedBuyerId(buyerId);
     if (copyFeedbackTimerRef.current !== null) window.clearTimeout(copyFeedbackTimerRef.current);
-    copyFeedbackTimerRef.current = window.setTimeout(() => setCopiedBuyerId(null), 1600);
+    copyFeedbackTimerRef.current = window.setTimeout(() => setCopiedBuyerId(null), COPY_FEEDBACK_MS);
   }
 
   async function loadCharacter(ign: string): Promise<CharacterSnapshot> {

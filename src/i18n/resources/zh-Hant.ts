@@ -125,6 +125,8 @@ export const zhHant = {
     guild: '公會：{{guild}}',
     dueCopied: '{{name}} 的應付金額已複製',
     copyDue: '複製 {{name}} 的應付金額',
+    estimatedCostCopied: '預估費用已複製',
+    copyEstimatedCost: '複製預估費用',
     lockBuyer: '鎖定 {{name}}',
     unlockBuyer: '解鎖 {{name}}',
     removeBuyer: '移除 {{name}}',

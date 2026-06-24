@@ -334,7 +334,7 @@ h3 {
 
 .rail-kicker,
 .billing-settings > span,
-.estimate-result > div:not(.flow-card__heading) span,
+.estimate-result__item > span,
 .timer-card span,
 .tool-stat span,
 .buyer-row-stat span,
@@ -650,11 +650,14 @@ h3 {
   position: static;
 }
 
-.estimate-result > div:not(.flow-card__heading) {
+.estimate-result__item {
   min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
 }
 
-.estimate-result > div:not(.flow-card__heading) strong,
+.estimate-result__item strong,
 .timer-card strong,
 .tool-stat strong,
 .snapshot-summary strong {
@@ -666,9 +669,65 @@ h3 {
   font-variant-numeric: tabular-nums;
 }
 
-.estimate-result > div:not(.flow-card__heading) small,
-.estimate-result > div:not(.flow-card__heading) strong {
+.estimate-result__item small,
+.estimate-result__item strong {
   overflow-wrap: anywhere;
+}
+
+.estimate-result__item--full {
+  grid-column: 1 / -1;
+}
+
+.estimate-result__cost {
+  border-color: var(--primary);
+  min-height: 0;
+  display: block;
+  text-align: left;
+  background: transparent;
+  color: inherit;
+  font-weight: inherit;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.estimate-result__cost:hover:not(:disabled) {
+  background: transparent;
+  border-color: var(--primary-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.estimate-result__cost:active {
+  box-shadow: none;
+  transform: none;
+}
+
+.estimate-result__cost:focus-visible {
+  outline-color: var(--focus);
+}
+
+.estimate-result__item > .estimate-result__copy-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.estimate-result__cost span,
+.estimate-result__cost strong {
+  color: var(--primary-strong);
+}
+
+.estimate-result__cost--copied {
+  border-color: var(--success);
+}
+
+.estimate-result__cost--copied .estimate-result__copy-label,
+.estimate-result__cost--copied strong {
+  color: var(--success);
+}
+
+.estimate-result__cost strong {
+  font-size: 1.55rem;
 }
 
 .segmented-control {

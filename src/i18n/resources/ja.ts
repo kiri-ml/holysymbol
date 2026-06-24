@@ -125,6 +125,8 @@ export const ja = {
     guild: 'ギルド: {{guild}}',
     dueCopied: '{{name}} の請求額をコピーしました',
     copyDue: '{{name}} の請求額をコピー',
+    estimatedCostCopied: '推定コストをコピーしました',
+    copyEstimatedCost: '推定コストをコピー',
     lockBuyer: '{{name}} をロック',
     unlockBuyer: '{{name}} のロックを解除',
     removeBuyer: '{{name}} を削除',
