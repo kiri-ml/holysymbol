@@ -366,7 +366,6 @@ function LanguageSelect() {
   return (
     <label className="language-select">
       <Languages size={15} aria-hidden="true" />
-      <span>{t('language.label')}</span>
       <select
         value={selectedLanguage}
         onChange={(event) => {

@@ -740,10 +740,6 @@ h3 {
   white-space: nowrap;
 }
 
-.language-select > span {
-  line-height: 1;
-}
-
 .language-select:hover {
   border-color: var(--border-strong);
   background: var(--control-hover);
