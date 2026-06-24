@@ -1,7 +1,7 @@
-export const zh = {
+export const zhHans = {
   app: {
     name: 'Holy Symbol',
-    tagline: 'MapleLegends Leech 计算器',
+    tagline: 'MapleLegends leech 计算器',
   },
   theme: {
     label: '主题',
