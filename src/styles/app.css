@@ -752,10 +752,16 @@ h3 {
   border-radius: 999px;
   background: transparent;
   color: var(--ink);
+  color-scheme: light dark;
   padding: 0 1.6rem 0 0.25rem;
   font-size: 0.84rem;
   font-weight: 760;
   cursor: pointer;
+}
+
+.language-select option {
+  background: var(--surface-2);
+  color: var(--ink);
 }
 
 .topbar-export-button {
