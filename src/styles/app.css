@@ -721,43 +721,46 @@ h3 {
 }
 
 .theme-switch svg,
-.language-select svg,
 .topbar-export-button svg {
   flex: 0 0 auto;
 }
 
 .language-select {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  height: var(--topbar-control-height);
-  padding: 0 0.48rem 0 0.7rem;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface-2);
+  min-width: 9.5rem;
   color: var(--ink-soft);
-  font-size: 0.84rem;
-  font-weight: 760;
-  white-space: nowrap;
 }
 
-.language-select:hover {
+.language-select svg {
+  position: absolute;
+  left: 0.7rem;
+  top: 50%;
+  z-index: 1;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.language-select:hover select {
   border-color: var(--border-strong);
   background: var(--control-hover);
   color: var(--ink);
 }
 
 .language-select select {
-  width: auto;
-  border: 0;
+  width: 100%;
+  min-height: var(--topbar-control-height);
+  border: 1px solid var(--border);
   border-radius: 999px;
-  background: transparent;
+  background: var(--surface-2);
   color: var(--ink);
   color-scheme: light dark;
-  padding: 0 1.6rem 0 0.25rem;
+  padding: 0 2rem 0 2.05rem;
   font-size: 0.84rem;
   font-weight: 760;
   cursor: pointer;
+  outline-offset: 2px;
 }
 
 .language-select option {
@@ -1622,7 +1625,6 @@ h3 {
 
   .language-select {
     width: 100%;
-    justify-content: space-between;
   }
 
   .topbar-actions,
