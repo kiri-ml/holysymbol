@@ -13,9 +13,12 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
+    "i18next": "^26.3.2",
+    "i18next-browser-languagedetector": "^8.2.1",
     "lucide-react": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "react-i18next": "^17.0.8",
     "typescript": "latest",
     "vite": "latest"
   },
