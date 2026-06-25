@@ -83,6 +83,7 @@ export const ptBR = {
     count_other: '{{count}} compradores',
     edit: 'Editar comprador',
     expGained: 'EXP ganha',
+    billableTime: 'Tempo faturável',
     noBuyersTitle: 'Ainda não há compradores',
     noBuyersBody: 'Adicione o IGN do comprador para buscar a EXP inicial dele.',
     refreshed: '{{count}} atualizados',
@@ -135,6 +136,7 @@ export const ptBR = {
   },
   confirm: {
     refreshSnapshot: 'Atualizar a EXP de {{label}}? Isso substituirá o nível e a EXP atuais.',
+    resetTimer: 'Redefinir o temporizador do run e limpar todas as sessões faturáveis dos compradores?',
     deleteBuyer: 'Excluir {{name}} de {{run}}?',
     deleteRun: 'Excluir {{name}}?',
   },

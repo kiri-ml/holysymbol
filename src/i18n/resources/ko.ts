@@ -83,6 +83,7 @@ export const ko = {
     count_other: '구매자 {{count}}명',
     edit: '구매자 수정',
     expGained: '획득 EXP',
+    billableTime: '청구 시간',
     noBuyersTitle: '아직 구매자가 없습니다',
     noBuyersBody: '구매자의 IGN을 추가해 시작 EXP를 가져오세요.',
     refreshed: '{{count}}명 갱신됨',
@@ -135,6 +136,7 @@ export const ko = {
   },
   confirm: {
     refreshSnapshot: '{{label}} EXP를 갱신할까요? 현재 레벨과 EXP 데이터가 덮어쓰기됩니다.',
+    resetTimer: '런 타이머를 초기화하고 모든 구매자의 청구 세션을 지울까요?',
     deleteBuyer: '{{run}}에서 {{name}}을 삭제할까요?',
     deleteRun: '{{name}}을 삭제할까요?',
   },

@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { calculateBuyer, calculateEstimate, calculateInstance, getBillableMs, pauseTimer, startTimer } from './calculator';
+import {
+  calculateBuyer,
+  calculateEstimate,
+  calculateInstance,
+  getBillableMs,
+  getBuyerBillableMs,
+  pauseBuyerHourlyTimer,
+  pauseTimer,
+  startBuyerHourlyTimer,
+  startTimer,
+} from './calculator';
 import { LEGENDS_EXP_TABLE, expGainedBetween, expToLevel, rawExpAt } from './expTable';
+import { normalizeInstances } from './persistence';
 import type { CharacterSnapshot, LeechBuyer, LeechInstance, LeechTimer } from './types';
 
 function snapshot(level: number, expPercent: number, capturedAt = '2026-06-09T00:00:00.000Z'): CharacterSnapshot {
@@ -31,6 +42,19 @@ function ratioInstance(testBuyer: LeechBuyer): LeechInstance {
     buyers: [testBuyer],
     createdAt: '2026-06-09T00:00:00.000Z',
   };
+}
+
+function hourlyBilling(timer: LeechTimer = { status: 'paused', accumulatedMs: 0 }) {
+  return {
+    type: 'hourly' as const,
+    hourlyRateMesos: 12_000_000,
+    expPerHourMillions: 35,
+    timer,
+  };
+}
+
+function hourlySession(startedAt: string, endedAt?: string) {
+  return { startedAt, endedAt };
 }
 
 describe('embedded MapleLegends EXP table', () => {
@@ -100,67 +124,150 @@ describe('EXP and billing math', () => {
     expect(result.hourlyMesosDue).toBeCloseTo(6_000_000);
   });
 
-  it('uses explicit timer state for hourly billing', () => {
-    const timer: LeechTimer = startTimer({ status: 'idle', accumulatedMs: 0 }, '2026-06-09T00:00:00.000Z');
-    const paused = pauseTimer(timer, new Date('2026-06-09T01:00:00.000Z').getTime());
-    expect(paused.accumulatedMs).toBe(3_600_000);
-
+  it('charges one active hourly buyer the full rate', () => {
     const instance: LeechInstance = {
       id: 'hourly-test',
       name: 'Hourly',
-      billing: {
-        type: 'hourly',
-        hourlyRateMesos: 12_000_000,
-        expPerHourMillions: 35,
-        timer: paused,
-      },
-      buyers: [buyer(snapshot(50, 0))],
+      billing: hourlyBilling({ status: 'idle', accumulatedMs: 0 }),
+      buyers: [{
+        ...buyer(snapshot(50, 0)),
+        hourly: { sessions: [hourlySession('2026-06-09T00:00:00.000Z', '2026-06-09T01:00:00.000Z')] },
+      }],
       createdAt: '2026-06-09T00:00:00.000Z',
     };
 
     const result = calculateInstance(instance);
-    expect(getBillableMs(paused)).toBe(3_600_000);
+    expect(result.billableMs).toBe(3_600_000);
     expect(result.totalMesosDue).toBe(12_000_000);
   });
 
-  it('does not make resumed hourly billing appear to go backward when the render clock is stale', () => {
-    const resumed = startTimer(
-      { status: 'paused', accumulatedMs: 3_600_000 },
-      '2026-06-09T01:00:01.000Z',
-    );
+  it('keeps run-level timer helpers available for display timing', () => {
+    const timer: LeechTimer = startTimer({ status: 'idle', accumulatedMs: 0 }, '2026-06-09T00:00:00.000Z');
+    const paused = pauseTimer(timer, new Date('2026-06-09T01:00:00.000Z').getTime());
+    expect(getBillableMs(paused)).toBe(3_600_000);
+  });
+
+  it('does not make resumed run timer display appear to go backward when the render clock is stale', () => {
+    const resumed = startTimer({ status: 'paused', accumulatedMs: 3_600_000 }, '2026-06-09T01:00:01.000Z');
     const staleRenderNow = new Date('2026-06-09T01:00:00.500Z').getTime();
 
     expect(getBillableMs(resumed, staleRenderNow)).toBe(3_600_000);
   });
 
-  it('splits hourly billing across started buyers', () => {
-    const timer: LeechTimer = {
-      status: 'paused',
-      accumulatedMs: 3_600_000,
-    };
+  it('splits fully overlapping hourly buyers evenly', () => {
     const buyers = [
-      buyer(snapshot(50, 0)),
-      { ...buyer(snapshot(51, 0)), id: 'buyer-test-2' },
+      {
+        ...buyer(snapshot(50, 0)),
+        hourly: { sessions: [hourlySession('2026-06-09T00:00:00.000Z', '2026-06-09T01:00:00.000Z')] },
+      },
+      {
+        ...buyer(snapshot(51, 0)),
+        id: 'buyer-test-2',
+        hourly: { sessions: [hourlySession('2026-06-09T00:00:00.000Z', '2026-06-09T01:00:00.000Z')] },
+      },
     ];
     const instance: LeechInstance = {
-      id: 'hourly-split-test',
-      name: 'Hourly split',
-      billing: {
-        type: 'hourly',
-        hourlyRateMesos: 12_000_000,
-        expPerHourMillions: 35,
-        timer,
-      },
+      id: 'hourly-different-duration-test',
+      name: 'Hourly different durations',
+      billing: hourlyBilling({ status: 'paused', accumulatedMs: 3_600_000 }),
       buyers,
       createdAt: '2026-06-09T00:00:00.000Z',
     };
 
+    const now = new Date('2026-06-09T01:00:00.000Z').getTime();
     const result = calculateInstance(instance);
-    const buyerResult = calculateBuyer(buyers[0], instance.billing, Date.now(), buyers.length);
+    const firstBuyer = calculateBuyer(buyers[0], instance.billing, now, buyers);
+    const secondBuyer = calculateBuyer(buyers[1], instance.billing, now, buyers);
 
-    expect(result.mesosPerBuyer).toBe(6_000_000);
+    expect(getBuyerBillableMs(buyers[0])).toBe(3_600_000);
+    expect(getBuyerBillableMs(buyers[1])).toBe(3_600_000);
+    expect(firstBuyer.hourlyMesosDue).toBe(6_000_000);
+    expect(secondBuyer.hourlyMesosDue).toBe(6_000_000);
     expect(result.totalMesosDue).toBe(12_000_000);
-    expect(buyerResult.hourlyMesosDue).toBe(6_000_000);
+  });
+
+  it('weights hourly split billing for a late join', () => {
+    const buyers = [
+      {
+        ...buyer(snapshot(50, 0)),
+        hourly: { sessions: [hourlySession('2026-06-09T00:00:00.000Z', '2026-06-09T01:00:00.000Z')] },
+      },
+      {
+        ...buyer(snapshot(51, 0)),
+        id: 'buyer-test-2',
+        hourly: { sessions: [hourlySession('2026-06-09T00:30:00.000Z', '2026-06-09T01:00:00.000Z')] },
+      },
+    ];
+    const billing = hourlyBilling({ status: 'running', accumulatedMs: 0 });
+    const now = new Date('2026-06-09T01:00:00.000Z').getTime();
+
+    const firstBuyer = calculateBuyer(buyers[0], billing, now, buyers);
+    const secondBuyer = calculateBuyer(buyers[1], billing, now, buyers);
+
+    expect(firstBuyer.hourlyMesosDue).toBe(9_000_000);
+    expect(secondBuyer.hourlyMesosDue).toBe(3_000_000);
+  });
+
+  it('lock closes the buyer hourly session and stops charging them', () => {
+    const testBuyer = {
+      ...buyer(snapshot(50, 0)),
+      hourly: { sessions: [hourlySession('2026-06-09T00:00:00.000Z')] },
+    };
+    const locked = pauseBuyerHourlyTimer(testBuyer, new Date('2026-06-09T00:30:00.000Z').getTime());
+    const now = new Date('2026-06-09T01:00:00.000Z').getTime();
+    const result = calculateBuyer(locked, hourlyBilling({ status: 'running', accumulatedMs: 0 }), now, [locked]);
+
+    expect(getBuyerBillableMs(locked, now)).toBe(1_800_000);
+    expect(result.hourlyMesosDue).toBe(6_000_000);
+  });
+
+  it('unlock during a running global timer closes an open session, then opens a new one', () => {
+    const unlocked = startBuyerHourlyTimer({
+      ...buyer(snapshot(50, 0)),
+      hourly: {
+        sessions: [hourlySession('2026-06-09T00:00:00.000Z')],
+      },
+    }, '2026-06-09T00:30:00.000Z');
+
+    expect(unlocked.hourly?.sessions).toEqual([
+      { startedAt: '2026-06-09T00:00:00.000Z', endedAt: '2026-06-09T00:30:00.000Z' },
+      { startedAt: '2026-06-09T00:30:00.000Z' },
+    ]);
+  });
+
+  it('includes elapsed time from open buyer sessions up to now', () => {
+    const testBuyer = {
+      ...buyer(snapshot(50, 0)),
+      hourly: {
+        sessions: [
+          hourlySession('2026-06-09T00:00:00.000Z', '2026-06-09T00:30:00.000Z'),
+          hourlySession('2026-06-09T01:00:00.000Z'),
+        ],
+      },
+    };
+    const now = new Date('2026-06-09T01:30:00.000Z').getTime();
+    const result = calculateBuyer(testBuyer, hourlyBilling({ status: 'running', accumulatedMs: 0 }), now, [testBuyer]);
+
+    expect(getBuyerBillableMs(testBuyer, now)).toBe(3_600_000);
+    expect(result.hourlyMesosDue).toBe(12_000_000);
+  });
+
+  it('normalizes old or missing hourly buyer state to empty sessions', () => {
+    const normalized = normalizeInstances([
+      {
+        id: 'old-hourly',
+        name: 'Old hourly',
+        billing: hourlyBilling({ status: 'paused', accumulatedMs: 3_600_000 }),
+        buyers: [
+          buyer(snapshot(50, 0)),
+          { ...buyer(snapshot(51, 0)), id: 'buyer-test-2', hourly: { accumulatedMs: 3_600_000, runningSince: '2026-06-09T00:00:00.000Z' } },
+        ],
+        createdAt: '2026-06-09T00:00:00.000Z',
+      },
+    ], []);
+
+    expect(normalized[0].buyers[0].hourly).toEqual({ sessions: [] });
+    expect(normalized[0].buyers[1].hourly).toEqual({ sessions: [] });
   });
 
   it('converts a level and percentage to raw accumulated EXP', () => {

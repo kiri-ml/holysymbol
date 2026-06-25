@@ -36,6 +36,15 @@ export type LeechTimer = {
   lastStartedAt?: string;
 };
 
+export type BuyerHourlySession = {
+  startedAt: string;
+  endedAt?: string;
+};
+
+export type BuyerHourlyState = {
+  sessions: BuyerHourlySession[];
+};
+
 export type RatioBilling = {
   type: 'ratio';
   /** EXP per 1 meso. For example, 3.3 means 1:3.3. */
@@ -53,12 +62,18 @@ export type HourlyBilling = {
 
 export type LeechBilling = RatioBilling | HourlyBilling;
 
+export type InactiveBilling = {
+  ratio?: RatioBilling;
+  hourly?: HourlyBilling;
+};
+
 export type LeechBuyer = {
   id: string;
   ign: string;
   locked?: boolean;
   start?: CharacterSnapshot;
   current?: CharacterSnapshot;
+  hourly?: BuyerHourlyState;
 };
 
 export type EstimateQuote = {
@@ -74,6 +89,7 @@ export type LeechInstance = {
   id: string;
   name: string;
   billing: LeechBilling;
+  inactiveBilling?: InactiveBilling;
   buyers: LeechBuyer[];
   quote?: EstimateQuote;
   createdAt: string;
@@ -91,7 +107,6 @@ export type InstanceCalculation = {
   completedBuyerCount: number;
   totalExpGained: number;
   billableMs?: number;
-  mesosPerBuyer?: number;
   totalMesosDue: number;
 };
 

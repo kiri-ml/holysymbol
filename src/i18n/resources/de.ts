@@ -83,6 +83,7 @@ export const de = {
     count_other: '{{count}} Käufer',
     edit: 'Käufer bearbeiten',
     expGained: 'Erhaltene EXP',
+    billableTime: 'Abrechenbare Zeit',
     noBuyersTitle: 'Noch keine Käufer',
     noBuyersBody: 'Füge die IGN des Käufers hinzu, um seine Start-EXP abzurufen.',
     refreshed: '{{count}} aktualisiert',
@@ -135,6 +136,7 @@ export const de = {
   },
   confirm: {
     refreshSnapshot: 'EXP von {{label}} aktualisieren? Dadurch werden das aktuelle Level und die EXP-Daten überschrieben.',
+    resetTimer: 'Run-Timer zurücksetzen und alle abrechenbaren Käufer-Sessions löschen?',
     deleteBuyer: '{{name}} aus {{run}} löschen?',
     deleteRun: '{{name}} löschen?',
   },

@@ -83,6 +83,7 @@ export const ja = {
     count_other: '買い手 {{count}} 人',
     edit: '買い手を編集',
     expGained: '獲得EXP',
+    billableTime: '請求時間',
     noBuyersTitle: 'まだ買い手がいません',
     noBuyersBody: '買い手のIGNを追加して開始EXPを取得します。',
     refreshed: '{{count}} 件更新済み',
@@ -135,6 +136,7 @@ export const ja = {
   },
   confirm: {
     refreshSnapshot: '{{label}} のEXPを更新しますか？現在のレベルとEXPデータが上書きされます。',
+    resetTimer: 'ランタイマーをリセットし、全購入者の請求対象セッションを消去しますか？',
     deleteBuyer: '{{run}} から {{name}} を削除しますか？',
     deleteRun: '{{name}} を削除しますか？',
   },

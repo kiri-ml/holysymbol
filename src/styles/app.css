@@ -447,8 +447,7 @@ h3 {
 .snapshot-summary,
 .billing-settings,
 .buyer-row-card,
-.empty-buyers-state,
-.run-tools {
+.empty-buyers-state {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);

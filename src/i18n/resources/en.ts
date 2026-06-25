@@ -83,6 +83,7 @@ export const en = {
     count_other: '{{count}} buyers',
     edit: 'Edit buyer',
     expGained: 'EXP gained',
+    billableTime: 'Billable time',
     noBuyersTitle: 'No buyers yet',
     noBuyersBody: "Add the buyer's IGN to fetch their start EXP.",
     refreshed: '{{count}} refreshed',
@@ -135,6 +136,7 @@ export const en = {
   },
   confirm: {
     refreshSnapshot: 'Refresh {{label}} EXP? This will overwrite the current level and EXP data.',
+    resetTimer: 'Reset the run timer and clear all buyer billable sessions?',
     deleteBuyer: 'Delete {{name}} from {{run}}?',
     deleteRun: 'Delete {{name}}?',
   },

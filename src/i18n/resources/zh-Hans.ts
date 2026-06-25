@@ -83,6 +83,7 @@ export const zhHans = {
     count_other: '{{count}} 名买家',
     edit: '编辑买家',
     expGained: '获得经验',
+    billableTime: '计费时间',
     noBuyersTitle: '还没有买家',
     noBuyersBody: '添加买家的角色名以获取起始经验。',
     refreshed: '已刷新 {{count}} 个',
@@ -135,6 +136,7 @@ export const zhHans = {
   },
   confirm: {
     refreshSnapshot: '刷新 {{label}} 的经验吗？这会覆盖当前等级和经验数据。',
+    resetTimer: '重置本场计时器并清空所有买家的计费时段？',
     deleteBuyer: '从 {{run}} 删除 {{name}}？',
     deleteRun: '删除 {{name}}？',
   },

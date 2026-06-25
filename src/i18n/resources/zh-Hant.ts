@@ -83,6 +83,7 @@ export const zhHant = {
     count_other: '{{count}} 名買家',
     edit: '編輯買家',
     expGained: '獲得經驗',
+    billableTime: '計費時間',
     noBuyersTitle: '還沒有買家',
     noBuyersBody: '新增買家的角色名以取得起始經驗。',
     refreshed: '已刷新 {{count}} 個',
@@ -135,6 +136,7 @@ export const zhHant = {
   },
   confirm: {
     refreshSnapshot: '要刷新 {{label}} 的經驗嗎？這會覆蓋目前等級和經驗資料。',
+    resetTimer: '重置本場計時器並清空所有買家的計費時段？',
     deleteBuyer: '從 {{run}} 刪除 {{name}}？',
     deleteRun: '刪除 {{name}}？',
   },

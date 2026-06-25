@@ -83,6 +83,7 @@ export const fr = {
     count_other: '{{count}} acheteurs',
     edit: 'Modifier l’acheteur',
     expGained: 'EXP gagnée',
+    billableTime: 'Temps facturable',
     noBuyersTitle: 'Aucun acheteur pour le moment',
     noBuyersBody: 'Ajoute l’IGN de l’acheteur pour récupérer son EXP de départ.',
     refreshed: '{{count}} actualisés',
@@ -135,6 +136,7 @@ export const fr = {
   },
   confirm: {
     refreshSnapshot: 'Actualiser l’EXP de {{label}} ? Cela remplacera le niveau et les données d’EXP actuels.',
+    resetTimer: 'Réinitialiser le minuteur du run et effacer toutes les sessions facturables des acheteurs ?',
     deleteBuyer: 'Supprimer {{name}} de {{run}} ?',
     deleteRun: 'Supprimer {{name}} ?',
   },

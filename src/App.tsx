@@ -23,25 +23,30 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ComponentPropsWithoutRef, FocusEvent, KeyboardEvent, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { avatarUrl, fetchCharacter } from './api/legends';
+import { DEFAULT_RATIO_BILLING, ensureBuyerHourlyState, switchInstanceBillingType, updateInstanceBilling } from './domain/billing';
 import { createManualSnapshot } from './domain/character';
 import {
   calculateBuyer,
   calculateEstimate,
   calculateInstance,
+  getBuyerBillableMs,
   getBillableMs,
+  isBuyerHourlyTimerRunning,
   pauseTimer,
+  pauseBuyerHourlyTimer,
   resetTimer,
+  startBuyerHourlyTimer,
   startTimer,
 } from './domain/calculator';
 import { formatCompact, formatDuration, formatExp, formatHours, formatLocalDateTime, formatMesosShort, formatMesosShortPrecise, formatMesosValue, formatPercent, formatRatio } from './domain/format';
 import { createId } from './domain/id';
+import { normalizeInstances } from './domain/persistence';
 import type {
   BillingType,
   CharacterSnapshot,
   LeechBilling,
   LeechBuyer,
   LeechInstance,
-  RatioBilling,
   TimerStatus,
 } from './domain/types';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -86,11 +91,6 @@ const DEFAULT_ESTIMATE: QuickEstimateState = {
   expPerHourMillions: 35,
 };
 
-const DEFAULT_RATIO_BILLING: RatioBilling = {
-  type: 'ratio',
-  expPerMesoRatio: 3.3,
-};
-
 function defaultRunName(createdAt: string) {
   const name = i18n.t('run.defaultName');
   const date = new Date(createdAt);
@@ -128,6 +128,10 @@ function confirmDeletion(message: string) {
 }
 
 function confirmSnapshotOverwrite(message: string) {
+  return window.confirm(message);
+}
+
+function confirmTimerReset(message: string) {
   return window.confirm(message);
 }
 
@@ -232,10 +236,8 @@ function exportInstances(instances: LeechInstance[], t: TFunction, now = Date.no
   ];
 
   const rows = instances.flatMap((instance) => {
-    const instanceCalc = calculateInstance(instance, now);
-    const chargedBuyerCount = instance.billing.type === 'hourly' ? instance.buyers.filter((buyer) => buyer.start).length : 1;
     return instance.buyers.map((buyer) => {
-      const buyerCalc = calculateBuyer(buyer, instance.billing, now, chargedBuyerCount);
+      const buyerCalc = calculateBuyer(buyer, instance.billing, now, instance.buyers);
       const due = instance.billing.type === 'ratio' ? buyerCalc.ratioMesosDue : buyerCalc.hourlyMesosDue;
       return [
         instance.name,
@@ -250,7 +252,7 @@ function exportInstances(instances: LeechInstance[], t: TFunction, now = Date.no
         buyer.current?.capturedAt,
         buyerCalc.expGained,
         due,
-        instanceCalc.billableMs,
+        instance.billing.type === 'hourly' ? getBuyerBillableMs(buyer, now) : undefined,
       ].map(csvEscape).join(',');
     });
   });
@@ -799,7 +801,17 @@ function QuickEstimate({
   );
 }
 
-function TimerControls({ billing, onChange, now }: { billing: Extract<LeechBilling, { type: 'hourly' }>; onChange: (billing: LeechBilling) => void; now: number }) {
+function TimerControls({
+  billing,
+  onReset,
+  onToggle,
+  now,
+}: {
+  billing: Extract<LeechBilling, { type: 'hourly' }>;
+  onReset: () => void;
+  onToggle: () => void;
+  now: number;
+}) {
   const { t } = useTranslation();
   const billableMs = getBillableMs(billing.timer, now);
   const isRunning = billing.timer.status === 'running';
@@ -815,11 +827,16 @@ function TimerControls({ billing, onChange, now }: { billing: Extract<LeechBilli
           <strong>{formatDuration(billableMs)}</strong>
         </div>
         <div className="timer-card__actions">
-          <button type="button" className="timer-card__toggle" onClick={() => onChange({ ...billing, timer: isRunning ? pauseTimer(billing.timer) : startTimer(billing.timer) })} aria-label={isRunning ? t('aria.pauseTimer') : t('aria.startTimer')}>
+          <button
+            type="button"
+            className="timer-card__toggle"
+            onClick={onToggle}
+            aria-label={isRunning ? t('aria.pauseTimer') : t('aria.startTimer')}
+          >
             {isRunning ? <Pause size={16} /> : <Play size={16} />}
             {isRunning ? t('timer.pause') : t('timer.start')}
           </button>
-          <button type="button" className="secondary-button timer-card__reset" onClick={() => onChange({ ...billing, timer: resetTimer() })} disabled={isRunning}>
+          <button type="button" className="secondary-button timer-card__reset" onClick={onReset} disabled={isRunning}>
             <RotateCcw size={16} /> {t('common.reset')}
           </button>
         </div>
@@ -853,9 +870,10 @@ function BuyerRow({
   const [startDraft, setStartDraft] = useState<DraftSnapshotState>({ level: buyer.start?.level ?? 120, expPercent: buyer.start?.expPercent ?? 0 });
   const [currentDraft, setCurrentDraft] = useState<DraftSnapshotState>({ level: buyer.current?.level ?? buyer.start?.level ?? 120, expPercent: buyer.current?.expPercent ?? 0 });
   const [refreshingSnapshot, setRefreshingSnapshot] = useState<'start' | 'current' | null>(null);
-  const chargedBuyerCount = instance.billing.type === 'hourly' ? instance.buyers.filter((item) => item.start).length : 1;
-  const calc = calculateBuyer(buyer, instance.billing, now, chargedBuyerCount);
+  const calc = calculateBuyer(buyer, instance.billing, now, instance.buyers);
   const due = instance.billing.type === 'ratio' ? calc.ratioMesosDue : calc.hourlyMesosDue;
+  const buyerBillableMs = instance.billing.type === 'hourly' ? getBuyerBillableMs(buyer, now) : undefined;
+  const buyerTimerRunning = instance.billing.type === 'hourly' && isBuyerHourlyTimerRunning(buyer);
   const lookupIgn = buyerLookupIgn(buyer);
   const displayIgn = lookupIgn || t('buyer.fallback');
   const locked = buyer.locked ?? false;
@@ -877,7 +895,11 @@ function BuyerRow({
     setRefreshingSnapshot('start');
     try {
       const snapshot = await onFetchSnapshot(lookupIgn);
-      onUpdate({ ...buyer, ign: snapshot.ign, start: snapshot, current: buyer.current ?? snapshot });
+      const nextBuyer = { ...buyer, ign: snapshot.ign, start: snapshot, current: buyer.current ?? snapshot };
+      const nowIso = new Date().toISOString();
+      onUpdate(instance.billing.type === 'hourly' && instance.billing.timer.status === 'running' && !locked
+        ? startBuyerHourlyTimer(ensureBuyerHourlyState(nextBuyer), nowIso)
+        : nextBuyer);
     } finally {
       setRefreshingSnapshot(null);
     }
@@ -896,7 +918,11 @@ function BuyerRow({
   function commitStartDraft(nextDraft = startDraft) {
     if (!draftDiffersFromSnapshot(nextDraft, buyer.start)) return;
     const snapshot = makeManualSnapshot(lookupIgn, nextDraft, t('buyer.entered'));
-    onUpdate({ ...buyer, ign: buyer.ign || snapshot.ign, start: snapshot, current: buyer.current ?? snapshot });
+    const nextBuyer = { ...buyer, ign: buyer.ign || snapshot.ign, start: snapshot, current: buyer.current ?? snapshot };
+    const nowIso = new Date().toISOString();
+    onUpdate(instance.billing.type === 'hourly' && instance.billing.timer.status === 'running' && !locked
+      ? startBuyerHourlyTimer(ensureBuyerHourlyState(nextBuyer), nowIso)
+      : nextBuyer);
   }
 
   function commitCurrentDraft(nextDraft = currentDraft) {
@@ -917,6 +943,22 @@ function BuyerRow({
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
     void copyDue();
+  }
+
+  function toggleLock() {
+    if (instance.billing.type !== 'hourly') {
+      onUpdate({ ...buyer, locked: !locked });
+      return;
+    }
+    if (!locked) {
+      onUpdate({ ...pauseBuyerHourlyTimer(ensureBuyerHourlyState(buyer), now), locked: true });
+      return;
+    }
+    const nowIso = new Date(now).toISOString();
+    const prepared = instance.billing.timer.status === 'running' && buyer.start
+      ? startBuyerHourlyTimer(ensureBuyerHourlyState(buyer), nowIso)
+      : ensureBuyerHourlyState(buyer);
+    onUpdate({ ...prepared, locked: false });
   }
 
   return (
@@ -951,11 +993,19 @@ function BuyerRow({
             <strong>{snapshotShort(buyer.current, t)}</strong>
             {buyer.current ? <small>{formatLocalDateTime(buyer.current.capturedAt)}</small> : null}
           </div>
-          <div className="buyer-row-stat">
-            <span>{t('buyer.expGained')}</span>
-            <strong>{formatCompact(calc.expGained)}</strong>
-            <small>{formatExp(calc.expGained)}</small>
-          </div>
+          {instance.billing.type === 'hourly' ? (
+            <div className="buyer-row-stat">
+              <span>{t('buyer.billableTime')}</span>
+              <strong>{formatDuration(buyerBillableMs)}</strong>
+              <small>{buyerTimerRunning ? t('timer.running') : t('timer.paused')}</small>
+            </div>
+          ) : (
+            <div className="buyer-row-stat">
+              <span>{t('buyer.expGained')}</span>
+              <strong>{formatCompact(calc.expGained)}</strong>
+              <small>{formatExp(calc.expGained)}</small>
+            </div>
+          )}
           <div
             className={`buyer-row-stat buyer-row-stat--due${dueCopied ? ' buyer-row-stat--copied' : ''}`}
             role="button"
@@ -976,7 +1026,7 @@ function BuyerRow({
           <button
             type="button"
             className={`icon-button lock-button${locked ? ' lock-button--locked' : ''}`}
-            onClick={() => onUpdate({ ...buyer, locked: !locked })}
+            onClick={toggleLock}
             aria-label={locked ? t('aria.unlockBuyer', { name: displayIgn }) : t('aria.lockBuyer', { name: displayIgn })}
             aria-pressed={locked}
           >
@@ -1056,16 +1106,11 @@ function LeechInstanceCard({
   const refreshableBuyers = instance.buyers.filter((buyer) => !buyer.locked && buyerLookupIgn(buyer));
 
   function updateBilling(billing: LeechBilling) {
-    onUpdate({ ...instance, billing });
+    onUpdate(updateInstanceBilling(instance, billing));
   }
 
   function setBillingType(type: BillingType) {
-    if (type === instance.billing.type) return;
-    const billing: LeechBilling =
-      type === 'ratio'
-        ? { type: 'ratio', expPerMesoRatio: 3.3 }
-        : { type: 'hourly', hourlyRateMesos: 12_000_000, expPerHourMillions: 35, timer: { status: 'idle', accumulatedMs: 0 } };
-    updateBilling(billing);
+    onUpdate(switchInstanceBillingType(instance, type, now));
   }
 
   async function addBuyerFromInput() {
@@ -1080,13 +1125,24 @@ function LeechInstanceCard({
         ign: snapshot.ign,
         start: snapshot,
         current: snapshot,
+        hourly: instance.billing.type === 'hourly' ? { sessions: [] } : undefined,
       };
-      onUpdate({ ...instance, buyers: [...instance.buyers, buyer] });
+      const nowIso = new Date().toISOString();
+      onUpdate({
+        ...instance,
+        buyers: [
+          ...instance.buyers,
+          instance.billing.type === 'hourly' && instance.billing.timer.status === 'running'
+            ? startBuyerHourlyTimer(ensureBuyerHourlyState(buyer), nowIso)
+            : buyer,
+        ],
+      });
       setNewBuyerIgn('');
     } catch {
       const buyer: LeechBuyer = {
         id: createId('buyer'),
         ign,
+        hourly: instance.billing.type === 'hourly' ? { sessions: [] } : undefined,
       };
       onUpdate({ ...instance, buyers: [...instance.buyers, buyer] });
       setNewBuyerIgn('');
@@ -1120,6 +1176,40 @@ function LeechInstanceCard({
     });
 
     setRefreshingRun(false);
+  }
+
+  function toggleHourlyRunTimer() {
+    if (instance.billing.type !== 'hourly') return;
+    const isRunning = instance.billing.timer.status === 'running';
+    const nowIso = new Date().toISOString();
+    const billing = {
+      ...instance.billing,
+      timer: isRunning ? pauseTimer(instance.billing.timer, now) : startTimer(instance.billing.timer, nowIso),
+    };
+
+    onUpdate({
+      ...instance,
+      billing,
+      buyers: instance.buyers.map((buyer) => {
+        if (buyer.locked) return buyer;
+        if (isRunning) return pauseBuyerHourlyTimer(ensureBuyerHourlyState(buyer), now);
+        if (!buyer.start) return buyer;
+        return startBuyerHourlyTimer(ensureBuyerHourlyState(buyer), nowIso);
+      }),
+    });
+  }
+
+  function resetHourlyRunTimer() {
+    if (instance.billing.type !== 'hourly') return;
+    if (!confirmTimerReset(t('confirm.resetTimer'))) return;
+    onUpdate({
+      ...instance,
+      billing: { ...instance.billing, timer: resetTimer() },
+      buyers: instance.buyers.map((buyer) => ({
+        ...buyer,
+        hourly: { sessions: [] },
+      })),
+    });
   }
 
   return (
@@ -1186,7 +1276,12 @@ function LeechInstanceCard({
           ) : null}
         </div>
         {hourlyBilling ? (
-          <TimerControls billing={hourlyBilling} now={now} onChange={updateBilling} />
+          <TimerControls
+            billing={hourlyBilling}
+            now={now}
+            onReset={resetHourlyRunTimer}
+            onToggle={toggleHourlyRunTimer}
+          />
         ) : null}
         {ratioBilling ? (
           <div className="tip-card tip-card--inline">
@@ -1381,7 +1476,11 @@ function RunTools({ instance, now }: { instance?: LeechInstance; now: number }) 
 
 export default function App() {
   const { t } = useTranslation();
-  const [instances, setInstances] = useLocalStorage<LeechInstance[]>(INSTANCES_STORAGE_KEY, initialInstances());
+  const [instances, setInstances] = useLocalStorage<LeechInstance[]>(
+    INSTANCES_STORAGE_KEY,
+    initialInstances(),
+    (value) => normalizeInstances(value, initialInstances()),
+  );
   const [estimate, setEstimate] = useLocalStorage<QuickEstimateState>(ESTIMATE_STORAGE_KEY, DEFAULT_ESTIMATE);
   const [theme, setTheme] = useLocalStorage<ThemeMode>(THEME_STORAGE_KEY, 'system');
   const [notice, setNotice] = useState<Notice>(null);
@@ -1393,7 +1492,10 @@ export default function App() {
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
-    const hasRunningTimer = instances.some((instance) => instance.billing.type === 'hourly' && instance.billing.timer.status === 'running');
+    const hasRunningTimer = instances.some((instance) => (
+      instance.billing.type === 'hourly'
+      && (instance.billing.timer.status === 'running' || instance.buyers.some(isBuyerHourlyTimerRunning))
+    ));
     if (!hasRunningTimer) return;
     const id = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(id);

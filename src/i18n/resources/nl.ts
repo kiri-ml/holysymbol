@@ -83,6 +83,7 @@ export const nl = {
     count_other: '{{count}} kopers',
     edit: 'Koper bewerken',
     expGained: 'Verdiende EXP',
+    billableTime: 'Factureerbare tijd',
     noBuyersTitle: 'Nog geen kopers',
     noBuyersBody: 'Voeg de IGN van de koper toe om de start-EXP op te halen.',
     refreshed: '{{count}} vernieuwd',
@@ -135,6 +136,7 @@ export const nl = {
   },
   confirm: {
     refreshSnapshot: 'EXP van {{label}} vernieuwen? Dit overschrijft het huidige level en de EXP-gegevens.',
+    resetTimer: 'Runtimer resetten en alle factureerbare kopersessies wissen?',
     deleteBuyer: '{{name}} uit {{run}} verwijderen?',
     deleteRun: '{{name}} verwijderen?',
   },
