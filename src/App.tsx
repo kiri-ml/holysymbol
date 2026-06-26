@@ -772,11 +772,11 @@ function QuickEstimate({
           </div>
           <button
             type="button"
-            className={`estimate-result__item estimate-result__item--full estimate-result__cost${costCopied ? ' estimate-result__cost--copied' : ''}`}
+            className={`estimate-result__item estimate-result__item--full copy-metric${costCopied ? ' copy-metric--copied' : ''}`}
             aria-label={costCopied ? t('aria.estimatedCostCopied') : t('aria.copyEstimatedCost')}
             onClick={() => void copyEstimatedCost()}
           >
-            <span className="estimate-result__copy-label" aria-live="polite">
+            <span className="copy-metric__label" aria-live="polite">
               {costCopied ? t('common.copied') : t('calculator.estimatedCost')}
               {costCopied ? <Check size={13} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
             </span>
@@ -1445,7 +1445,40 @@ function RunTools({ instance, now }: { instance?: LeechInstance; now: number }) 
     );
   }
 
+  return <RunToolsContent instance={instance} now={now} />;
+}
+
+function RunToolsContent({ instance, now }: { instance: LeechInstance; now: number }) {
+  const { t } = useTranslation();
+  const [totalDueCopied, setTotalDueCopied] = useState(false);
+  const totalDueCopyFeedbackTimerRef = useRef<number | null>(null);
   const summary = calculateInstance(instance, now);
+
+  function clearTotalDueCopyFeedbackTimer() {
+    if (totalDueCopyFeedbackTimerRef.current === null) return;
+    window.clearTimeout(totalDueCopyFeedbackTimerRef.current);
+    totalDueCopyFeedbackTimerRef.current = null;
+  }
+
+  useEffect(() => {
+    return clearTotalDueCopyFeedbackTimer;
+  }, []);
+
+  useEffect(() => {
+    clearTotalDueCopyFeedbackTimer();
+    setTotalDueCopied(false);
+  }, [summary.totalMesosDue]);
+
+  async function copyTotalDue() {
+    const roundedDue = Math.max(0, Math.round(summary.totalMesosDue));
+    try {
+      await navigator.clipboard.writeText(String(roundedDue));
+      setTotalDueCopied(true);
+      clearTotalDueCopyFeedbackTimer();
+      totalDueCopyFeedbackTimerRef.current = window.setTimeout(() => setTotalDueCopied(false), COPY_FEEDBACK_MS);
+    } catch {}
+  }
+
   return (
     <section className="panel run-tools">
       <div className="panel-heading">
@@ -1453,11 +1486,19 @@ function RunTools({ instance, now }: { instance?: LeechInstance; now: number }) 
           <h2>{t('status.heading')}</h2>
         </div>
       </div>
-      <div className="tool-stat tool-stat--due">
-        <span>{t('status.totalDue')}</span>
+      <button
+        type="button"
+        className={`tool-stat copy-metric${totalDueCopied ? ' copy-metric--copied' : ''}`}
+        aria-label={totalDueCopied ? t('aria.totalDueCopied', { defaultValue: 'Total due copied' }) : t('aria.copyTotalDue', { defaultValue: 'Copy total due' })}
+        onClick={() => void copyTotalDue()}
+      >
+        <span className="copy-metric__label" aria-live="polite">
+          {totalDueCopied ? t('common.copied') : t('status.totalDue')}
+          {totalDueCopied ? <Check size={13} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
+        </span>
         <strong>{formatMesosShort(summary.totalMesosDue)}</strong>
         <small>{formatMesosValue(summary.totalMesosDue)}</small>
-      </div>
+      </button>
       <div className="tools-grid">
         <div className="tool-stat">
           <span>{t('status.buyers')}</span>
