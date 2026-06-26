@@ -405,17 +405,17 @@ h3 {
 }
 
 .run-tab:hover:not(:disabled) {
-  background: var(--surface-2);
+  background: var(--control-hover);
 }
 
 .run-tab--active {
   border-color: transparent;
-  background: var(--primary-softer);
+  background: var(--primary-soft);
   color: var(--ink);
 }
 
 .run-tab--active:hover:not(:disabled) {
-  background: var(--primary-softer);
+  background: var(--primary-soft);
 }
 
 .run-tab strong,
