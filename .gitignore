@@ -5,13 +5,26 @@ node_modules/
 dist/
 .vite/
 
+# Test output
+coverage/
+.vitest/
+
 # Cloudflare/Wrangler local state
 .wrangler/
+.dev.vars
+.dev.vars.*
 
 # Environment files
 .env
 .env.*
 !.env.example
+
+# Local agent/workspace metadata
+.agents/
+.codex/
+.github/hooks/
+.github/skills/
+.impeccable/config.local.json
 
 # Logs
 *.log
