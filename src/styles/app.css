@@ -363,13 +363,18 @@ h3 {
   display: none;
 }
 
-.run-picker select {
+.run-picker select,
+.language-select select {
   width: 100%;
-  min-height: 3rem;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
   background: var(--control);
   color: var(--ink);
+  outline-offset: 2px;
+}
+
+.run-picker select {
+  min-height: 3rem;
+  border-radius: var(--radius-md);
   padding: 0.68rem 2.25rem 0.68rem 0.78rem;
   font-size: 1rem;
   font-weight: 720;
@@ -807,18 +812,12 @@ h3 {
 }
 
 .language-select select {
-  width: 100%;
-  min-height: var(--topbar-control-height);
-  border: 1px solid var(--border);
+  height: var(--topbar-control-height);
   border-radius: 999px;
-  background: var(--surface-2);
-  color: var(--ink);
-  color-scheme: light dark;
   padding: 0 2rem 0 2.05rem;
   font-size: 0.84rem;
   font-weight: 760;
   cursor: pointer;
-  outline-offset: 2px;
 }
 
 .language-select option {
@@ -1682,11 +1681,10 @@ h3 {
   }
 
   .language-select {
-    width: 100%;
+    flex: 1 1 9.5rem;
+    min-width: 0;
   }
 
-  .topbar-actions,
-  .topbar-actions > button,
   .timer-card,
   .timer-card__body,
   .tip-card span,
@@ -1696,7 +1694,6 @@ h3 {
   }
 
   .topbar-actions {
-    display: grid;
     width: 100%;
   }
 
