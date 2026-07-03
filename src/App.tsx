@@ -76,6 +76,7 @@ type DraftSnapshotState = {
 };
 
 const INSTANCES_STORAGE_KEY = 'legends-leech-calculator.instances.v5';
+const SELECTED_RUN_STORAGE_KEY = 'legends-leech-calculator.selected-run.v1';
 const ESTIMATE_STORAGE_KEY = 'legends-leech-calculator.estimate.v1';
 const THEME_STORAGE_KEY = 'legends-leech-calculator.theme.v1';
 const MANUAL_SNAPSHOT_COMMIT_DELAY_MS = 350;
@@ -1527,10 +1528,15 @@ export default function App() {
   const [notice, setNotice] = useState<Notice>(null);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [highlightedRunId, setHighlightedRunId] = useState<string | null>(null);
-  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
+  const [selectedRunId, setSelectedRunId] = useLocalStorage<string | null>(
+    SELECTED_RUN_STORAGE_KEY,
+    null,
+    (value) => (typeof value === 'string' ? value : null),
+  );
   const [copiedBuyerId, setCopiedBuyerId] = useState<string | null>(null);
   const copyFeedbackTimerRef = useRef<number | null>(null);
   const [now, setNow] = useState(Date.now());
+  const displayedInstances = useMemo(() => [...instances].sort((a, b) => createdAtMs(b) - createdAtMs(a)), [instances]);
 
   useEffect(() => {
     const hasRunningTimer = instances.some((instance) => (
@@ -1562,8 +1568,8 @@ export default function App() {
       return;
     }
     if (selectedRunId && instances.some((instance) => instance.id === selectedRunId)) return;
-    setSelectedRunId(instances[0].id);
-  }, [instances, selectedRunId]);
+    setSelectedRunId(displayedInstances[0].id);
+  }, [displayedInstances, instances, selectedRunId, setSelectedRunId]);
 
   function upsertInstance(nextInstance: LeechInstance) {
     setInstances((current) => current.map((instance) => (instance.id === nextInstance.id ? nextInstance : instance)));
@@ -1597,7 +1603,6 @@ export default function App() {
     }
   }
 
-  const displayedInstances = useMemo(() => [...instances].sort((a, b) => createdAtMs(b) - createdAtMs(a)), [instances]);
   const selectedInstance = useMemo(
     () => displayedInstances.find((instance) => instance.id === selectedRunId) ?? displayedInstances[0],
     [displayedInstances, selectedRunId],
