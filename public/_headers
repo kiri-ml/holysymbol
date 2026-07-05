@@ -1,0 +1,19 @@
+/*
+  Cache-Control: public, max-age=0, must-revalidate
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self' https://legends.ml https://maplestory.io data:; object-src 'none'; script-src 'self'; style-src 'self'; upgrade-insecure-requests
+  Permissions-Policy: camera=(), geolocation=(), microphone=()
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+
+/assets/index-*.js
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/index-*.css
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/icons/*
+  ! Cache-Control
+  Cache-Control: public, max-age=86400, must-revalidate

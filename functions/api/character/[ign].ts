@@ -1,13 +1,11 @@
 const LEGENDS_ORIGIN = 'https://legends.ml';
 
-type CloudflareRequestInit = RequestInit & { cf?: unknown };
-
 function jsonResponse(body: unknown, init: ResponseInit = {}) {
   return new Response(JSON.stringify(body), {
     ...init,
     headers: {
       'content-type': 'application/json; charset=utf-8',
-      'cache-control': 'public, max-age=30',
+      'cache-control': 'no-store',
       'access-control-allow-origin': '*',
       ...(init.headers ?? {}),
     },
@@ -19,14 +17,14 @@ export async function onRequestGet(context: any) {
   if (!ign) return jsonResponse({ error: 'Missing IGN.' }, { status: 400 });
 
   const upstream = `${LEGENDS_ORIGIN}/api/character?name=${encodeURIComponent(ign)}`;
-  const init: CloudflareRequestInit = {
+  const init: RequestInit = {
+    cache: 'no-store',
     headers: {
       accept: 'application/json',
       'user-agent': 'legends-leech-calculator/0.1 (+https://legends.ml)',
     },
-    cf: { cacheTtl: 30, cacheEverything: true },
   };
-  const response = await fetch(upstream, init as RequestInit);
+  const response = await fetch(upstream, init);
 
   const text = await response.text();
   if (!response.ok) {
@@ -40,7 +38,7 @@ export async function onRequestGet(context: any) {
     status: 200,
     headers: {
       'content-type': response.headers.get('content-type') ?? 'application/json; charset=utf-8',
-      'cache-control': 'public, max-age=30',
+      'cache-control': 'no-store',
       'access-control-allow-origin': '*',
     },
   });
