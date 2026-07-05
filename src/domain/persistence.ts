@@ -54,9 +54,23 @@ function normalizeBuyer(value: unknown, includeHourly: boolean): LeechBuyer | un
 
 function normalizeRatioBilling(value: unknown) {
   const source = isRecord(value) ? value : {};
+  const tiersByLevel = new Map<number, number>();
+
+  if (Array.isArray(source.tiers)) {
+    for (const value of source.tiers) {
+      if (!isRecord(value) || typeof value.minLevel !== 'number' || !Number.isFinite(value.minLevel)) continue;
+      if (typeof value.expPerMesoRatio !== 'number' || !Number.isFinite(value.expPerMesoRatio)) continue;
+      const minLevel = Math.max(1, Math.min(200, Math.round(value.minLevel)));
+      tiersByLevel.set(minLevel, Math.max(0, value.expPerMesoRatio));
+    }
+  }
+
   return {
     type: 'ratio' as const,
     expPerMesoRatio: nonNegativeNumber(source.expPerMesoRatio, 3.3),
+    tiers: [...tiersByLevel.entries()]
+      .sort(([left], [right]) => left - right)
+      .map(([minLevel, expPerMesoRatio]) => ({ minLevel, expPerMesoRatio })),
   };
 }
 

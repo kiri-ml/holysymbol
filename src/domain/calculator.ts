@@ -1,4 +1,4 @@
-import { expGainedBetween } from './expTable';
+import { expGainedBetween, rawExpAt } from './expTable';
 import type {
   BuyerCalculation,
   EstimateCalculation,
@@ -7,7 +7,42 @@ import type {
   LeechBuyer,
   LeechInstance,
   LeechTimer,
+  RatioBilling,
 } from './types';
+
+function orderedRatioTiers(billing: RatioBilling) {
+  return [...billing.tiers].sort((left, right) => left.minLevel - right.minLevel);
+}
+
+export function calculateTieredRatioDue(
+  billing: RatioBilling,
+  fromLevel: number,
+  fromExpPercent: number,
+  toLevel: number,
+  toExpPercent: number,
+): number | undefined {
+  const startExp = rawExpAt(fromLevel, fromExpPercent);
+  const endExp = Math.max(startExp, rawExpAt(toLevel, toExpPercent));
+  let currentRatio = billing.expPerMesoRatio;
+  let segmentStart = startExp;
+  let due = 0;
+
+  for (const tier of orderedRatioTiers(billing)) {
+    const thresholdExp = rawExpAt(tier.minLevel, 0);
+    if (thresholdExp <= startExp) {
+      currentRatio = tier.expPerMesoRatio;
+      continue;
+    }
+    if (thresholdExp >= endExp) break;
+    if (currentRatio <= 0) return undefined;
+    due += (thresholdExp - segmentStart) / currentRatio;
+    segmentStart = thresholdExp;
+    currentRatio = tier.expPerMesoRatio;
+  }
+
+  if (currentRatio <= 0) return undefined;
+  return due + (endExp - segmentStart) / currentRatio;
+}
 
 export function getBillableMs(timer: LeechTimer, now = Date.now()): number {
   if (timer.status !== 'running' || !timer.lastStartedAt) return timer.accumulatedMs;
@@ -120,7 +155,15 @@ export function calculateBuyer(buyer: LeechBuyer, billing: LeechBilling, now = D
   if (billing.type === 'ratio') {
     return {
       expGained,
-      ratioMesosDue: expGained !== undefined && billing.expPerMesoRatio > 0 ? expGained / billing.expPerMesoRatio : undefined,
+      ratioMesosDue: buyer.start && buyer.current
+        ? calculateTieredRatioDue(
+          billing,
+          buyer.start.level,
+          buyer.start.expPercent,
+          buyer.current.level,
+          buyer.current.expPercent,
+        )
+        : undefined,
     };
   }
 
@@ -134,20 +177,25 @@ export function calculateBuyer(buyer: LeechBuyer, billing: LeechBilling, now = D
 export function calculateInstance(instance: LeechInstance, now = Date.now()): InstanceCalculation {
   const buyerCount = instance.buyers.filter((buyer) => buyer.start || buyer.ign.trim()).length;
   const completedBuyerCount = instance.buyers.filter((buyer) => buyer.start && buyer.current).length;
-  const totalExpGained = instance.buyers.reduce((total, buyer) => total + (calculateBuyer(buyer, instance.billing, now, instance.buyers).expGained ?? 0), 0);
+  const buyerCalculations = instance.buyers.map((buyer) => calculateBuyer(buyer, instance.billing, now, instance.buyers));
+  const totalExpGained = buyerCalculations.reduce((total, calculation) => total + (calculation.expGained ?? 0), 0);
 
   if (instance.billing.type === 'ratio') {
+    const totalMesosDue = buyerCalculations.reduce(
+      (total, calculation) => total + (calculation.ratioMesosDue ?? 0),
+      0,
+    );
     return {
       buyerCount,
       completedBuyerCount,
       totalExpGained,
-      totalMesosDue: instance.billing.expPerMesoRatio > 0 ? totalExpGained / instance.billing.expPerMesoRatio : 0,
+      totalMesosDue,
     };
   }
 
   const billableMs = instance.buyers.reduce((total, buyer) => total + (buyer.start ? getBuyerBillableMs(buyer, now) : 0), 0);
-  const totalHourlyMesos = instance.buyers.reduce(
-    (total, buyer) => total + (calculateBuyer(buyer, instance.billing, now, instance.buyers).hourlyMesosDue ?? 0),
+  const totalHourlyMesos = buyerCalculations.reduce(
+    (total, calculation) => total + (calculation.hourlyMesosDue ?? 0),
     0,
   );
 

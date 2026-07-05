@@ -68,6 +68,13 @@ export function formatRatio(value: number | undefined) {
   return `1:${DECIMAL_FORMAT.format(value)}`;
 }
 
+export function formatRatioRange(min: number | undefined, max: number | undefined, prefix = '1 :') {
+  if (min === undefined || max === undefined || !Number.isFinite(min) || !Number.isFinite(max) || min <= 0 || max <= 0) return '—';
+  const minLabel = DECIMAL_FORMAT.format(min);
+  const maxLabel = DECIMAL_FORMAT.format(max);
+  return min === max ? `${prefix} ${minLabel}` : `${prefix} ${minLabel}~${maxLabel}`;
+}
+
 export function formatDuration(ms: number | undefined) {
   if (ms === undefined || !Number.isFinite(ms) || ms < 0) return '—';
   const totalSeconds = Math.round(ms / 1000);

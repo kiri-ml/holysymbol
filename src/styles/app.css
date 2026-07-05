@@ -549,6 +549,8 @@ h3 {
 }
 
 .ratio-input {
+  width: 7.5rem;
+  max-width: 100%;
   grid-template-columns: auto minmax(0, 1fr);
 }
 
@@ -866,6 +868,101 @@ h3 {
 
 .compact-label {
   min-width: 0;
+}
+
+.ratio-tier-editor {
+  display: flex;
+  gap: var(--space-2);
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-gutter: stable;
+  padding: 0.1rem 0 var(--space-2);
+}
+
+.ratio-tier-card {
+  display: grid;
+  gap: var(--space-2);
+  align-items: end;
+  padding: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.ratio-tier-card--base,
+.ratio-tier-card--saved,
+.ratio-tier-card--add {
+  flex: 0 0 auto;
+  grid-template-columns: max-content;
+  padding-inline: var(--space-2);
+}
+
+.ratio-tier-card--base {
+  background: var(--primary-soft);
+}
+
+.ratio-tier-card--saved {
+  align-items: center;
+}
+
+.ratio-tier-card--add {
+  background: var(--info-soft);
+}
+
+.ratio-tier-summary {
+  display: grid;
+  min-width: 0;
+}
+
+.ratio-tier-card--base > label,
+.ratio-tier-summary,
+.ratio-tier-card--add {
+  gap: var(--space-1);
+}
+
+.ratio-tier-summary > span:first-child {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.ratio-input--saved-tier {
+  width: 6.75rem;
+  border-color: var(--border);
+  background: var(--surface-2);
+}
+
+.ratio-tier-add-title {
+  color: var(--info);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.ratio-tier-card--add .ratio-tier-control-row > input {
+  width: 6rem;
+  min-height: 2.5rem;
+  padding-block: 0;
+}
+
+.ratio-tier-control-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ratio-tier-remove {
+  width: 2rem;
+  min-width: 2rem;
+  height: 2rem;
+  min-height: 2rem;
+}
+
+.ratio-tier-add {
+  border-radius: 50%;
 }
 
 .timer-card {

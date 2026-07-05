@@ -49,6 +49,14 @@ export type RatioBilling = {
   type: 'ratio';
   /** EXP per 1 meso. For example, 3.3 means 1:3.3. */
   expPerMesoRatio: number;
+  tiers: RatioTier[];
+};
+
+export type RatioTier = {
+  /** The tier applies to EXP earned from this level onward. */
+  minLevel: number;
+  /** EXP per 1 meso for this tier. */
+  expPerMesoRatio: number;
 };
 
 export type HourlyBilling = {

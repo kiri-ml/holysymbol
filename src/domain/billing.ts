@@ -16,6 +16,7 @@ import type {
 export const DEFAULT_RATIO_BILLING: RatioBilling = {
   type: 'ratio',
   expPerMesoRatio: 3.3,
+  tiers: [],
 };
 
 export const DEFAULT_HOURLY_BILLING: HourlyBilling = {

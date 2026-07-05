@@ -29,7 +29,7 @@ function instance(overrides: Partial<LeechInstance> = {}): LeechInstance {
   return {
     id: 'leech-test',
     name: 'Leech',
-    billing: { type: 'ratio', expPerMesoRatio: 3.3 },
+    billing: { type: 'ratio', expPerMesoRatio: 3.3, tiers: [] },
     buyers: [],
     createdAt: '2026-06-09T00:00:00.000Z',
     ...overrides,
@@ -54,7 +54,7 @@ describe('billing mode switching', () => {
       }],
     }), 'ratio', now);
 
-    expect(switched.billing).toEqual({ type: 'ratio', expPerMesoRatio: 3.3 });
+    expect(switched.billing).toEqual({ type: 'ratio', expPerMesoRatio: 3.3, tiers: [] });
     expect(switched.inactiveBilling?.hourly?.timer).toEqual({
       status: 'paused',
       accumulatedMs: 3_600_000,
@@ -107,11 +107,19 @@ describe('billing mode switching', () => {
   });
 
   it('preserves ratio settings across mode switches', () => {
-    const updated = updateInstanceBilling(instance(), { type: 'ratio', expPerMesoRatio: 4.2 });
+    const updated = updateInstanceBilling(instance(), {
+      type: 'ratio',
+      expPerMesoRatio: 4.2,
+      tiers: [{ minLevel: 120, expPerMesoRatio: 4.5 }],
+    });
     const hourlyRun = switchInstanceBillingType(updated, 'hourly');
     const ratioRun = switchInstanceBillingType(hourlyRun, 'ratio');
 
-    expect(ratioRun.billing).toEqual({ type: 'ratio', expPerMesoRatio: 4.2 });
+    expect(ratioRun.billing).toEqual({
+      type: 'ratio',
+      expPerMesoRatio: 4.2,
+      tiers: [{ minLevel: 120, expPerMesoRatio: 4.5 }],
+    });
   });
 
   it('creates default hourly state on the first switch to hourly', () => {

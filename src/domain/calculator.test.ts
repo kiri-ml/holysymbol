@@ -38,7 +38,7 @@ function ratioInstance(testBuyer: LeechBuyer): LeechInstance {
   return {
     id: 'leech-test',
     name: 'Leech #1',
-    billing: { type: 'ratio', expPerMesoRatio: 3.3 },
+    billing: { type: 'ratio', expPerMesoRatio: 3.3, tiers: [] },
     buyers: [testBuyer],
     createdAt: '2026-06-09T00:00:00.000Z',
   };
@@ -92,10 +92,58 @@ describe('EXP and billing math', () => {
 
   it('calculates ratio-priced buyer cost using EXP per meso', () => {
     const testBuyer = buyer(snapshot(50, 0), snapshot(51, 0, '2026-06-09T01:00:00.000Z'));
-    const result = calculateBuyer(testBuyer, { type: 'ratio', expPerMesoRatio: 3.3 });
+    const result = calculateBuyer(testBuyer, { type: 'ratio', expPerMesoRatio: 3.3, tiers: [] });
 
     expect(result.expGained).toBe(709_716);
     expect(result.ratioMesosDue).toBeCloseTo(709_716 / 3.3);
+  });
+
+  it('splits ratio pricing when a buyer crosses a level tier', () => {
+    const testBuyer = buyer(snapshot(50, 50), snapshot(51, 50, '2026-06-09T01:00:00.000Z'));
+    const result = calculateBuyer(testBuyer, {
+      type: 'ratio',
+      expPerMesoRatio: 3,
+      tiers: [{ minLevel: 51, expPerMesoRatio: 4 }],
+    });
+
+    expect(result.ratioMesosDue).toBeCloseTo((709_716 * 0.5) / 3 + (748_608 * 0.5) / 4);
+  });
+
+  it('uses all crossed tiers and starts a tier at zero percent of its threshold level', () => {
+    const testBuyer = buyer(snapshot(50, 0), snapshot(53, 0, '2026-06-09T01:00:00.000Z'));
+    const result = calculateBuyer(testBuyer, {
+      type: 'ratio',
+      expPerMesoRatio: 3,
+      tiers: [
+        { minLevel: 52, expPerMesoRatio: 5 },
+        { minLevel: 51, expPerMesoRatio: 4 },
+      ],
+    });
+
+    expect(result.ratioMesosDue).toBeCloseTo(709_716 / 3 + 748_608 / 4 + 789_631 / 5);
+  });
+
+  it('uses the tier ratio for a partial level that starts exactly at its threshold', () => {
+    const testBuyer = buyer(snapshot(51, 0), snapshot(51, 25, '2026-06-09T01:00:00.000Z'));
+    const result = calculateBuyer(testBuyer, {
+      type: 'ratio',
+      expPerMesoRatio: 3,
+      tiers: [{ minLevel: 51, expPerMesoRatio: 4 }],
+    });
+
+    expect(result.ratioMesosDue).toBeCloseTo((748_608 * 0.25) / 4);
+  });
+
+  it('does not charge negative EXP when the current snapshot precedes the start snapshot', () => {
+    const testBuyer = buyer(snapshot(51, 0), snapshot(50, 0, '2026-06-09T01:00:00.000Z'));
+    const result = calculateBuyer(testBuyer, {
+      type: 'ratio',
+      expPerMesoRatio: 3,
+      tiers: [{ minLevel: 51, expPerMesoRatio: 4 }],
+    });
+
+    expect(result.expGained).toBe(0);
+    expect(result.ratioMesosDue).toBe(0);
   });
 
   it('calculates instance totals', () => {
@@ -105,6 +153,23 @@ describe('EXP and billing math', () => {
     expect(result.completedBuyerCount).toBe(1);
     expect(result.totalExpGained).toBe(709_716);
     expect(result.totalMesosDue).toBeCloseTo(709_716 / 3.3);
+  });
+
+  it('sums tiered buyer dues instead of applying one ratio to aggregate EXP', () => {
+    const instance: LeechInstance = {
+      ...ratioInstance(buyer(snapshot(50, 0), snapshot(51, 0))),
+      billing: {
+        type: 'ratio',
+        expPerMesoRatio: 3,
+        tiers: [{ minLevel: 51, expPerMesoRatio: 4 }],
+      },
+      buyers: [
+        { ...buyer(snapshot(50, 0), snapshot(51, 0)), id: 'buyer-one' },
+        { ...buyer(snapshot(51, 0), snapshot(52, 0)), id: 'buyer-two' },
+      ],
+    };
+
+    expect(calculateInstance(instance).totalMesosDue).toBeCloseTo(709_716 / 3 + 748_608 / 4);
   });
 
   it('estimates hourly cost from EPH and hourly rate', () => {
@@ -268,6 +333,41 @@ describe('EXP and billing math', () => {
 
     expect(normalized[0].buyers[0].hourly).toEqual({ sessions: [] });
     expect(normalized[0].buyers[1].hourly).toEqual({ sessions: [] });
+  });
+
+  it('normalizes legacy and malformed ratio tier data', () => {
+    const normalized = normalizeInstances([{
+      id: 'ratio-tier-normalization',
+      name: 'Ratio tiers',
+      billing: {
+        type: 'ratio',
+        expPerMesoRatio: 3.3,
+        tiers: [
+          { minLevel: 120, expPerMesoRatio: 4 },
+          { minLevel: 80.4, expPerMesoRatio: 3.5 },
+          { minLevel: 120, expPerMesoRatio: 4.2 },
+          { minLevel: 'invalid', expPerMesoRatio: 5 },
+        ],
+      },
+      buyers: [],
+      createdAt: '2026-06-09T00:00:00.000Z',
+    }, {
+      id: 'legacy-ratio',
+      name: 'Legacy ratio',
+      billing: { type: 'ratio', expPerMesoRatio: 3.3 },
+      buyers: [],
+      createdAt: '2026-06-09T00:00:00.000Z',
+    }], []);
+
+    expect(normalized[0].billing).toEqual({
+      type: 'ratio',
+      expPerMesoRatio: 3.3,
+      tiers: [
+        { minLevel: 80, expPerMesoRatio: 3.5 },
+        { minLevel: 120, expPerMesoRatio: 4.2 },
+      ],
+    });
+    expect(normalized[1].billing).toEqual({ type: 'ratio', expPerMesoRatio: 3.3, tiers: [] });
   });
 
   it('converts a level and percentage to raw accumulated EXP', () => {

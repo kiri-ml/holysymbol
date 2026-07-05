@@ -38,7 +38,7 @@ import {
   startBuyerHourlyTimer,
   startTimer,
 } from './domain/calculator';
-import { formatCompact, formatDuration, formatExp, formatHours, formatLocalDateTime, formatMesosShort, formatMesosShortPrecise, formatMesosValue, formatPercent, formatRatio } from './domain/format';
+import { formatCompact, formatDuration, formatExp, formatHours, formatLocalDateTime, formatMesosShort, formatMesosShortPrecise, formatMesosValue, formatPercent, formatRatio, formatRatioRange } from './domain/format';
 import { createId } from './domain/id';
 import { normalizeInstances } from './domain/persistence';
 import type {
@@ -178,8 +178,21 @@ function csvEscape(value: unknown) {
 }
 
 function billingLabel(billing: LeechBilling, t: TFunction) {
-  if (billing.type === 'ratio') return formatRatio(billing.expPerMesoRatio);
+  if (billing.type === 'ratio') {
+    return [
+      formatRatio(billing.expPerMesoRatio),
+      ...billing.tiers.map((tier) => `Lv.${tier.minLevel}+ ${formatRatio(tier.expPerMesoRatio)}`),
+    ].join(' · ');
+  }
   return t('billing.hourlyRateShort', { rate: formatMesosShort(billing.hourlyRateMesos) });
+}
+
+function compactBillingLabel(billing: LeechBilling, t: TFunction) {
+  if (billing.type !== 'ratio') return billingLabel(billing, t);
+  const ratios = [billing.expPerMesoRatio, ...billing.tiers.map((tier) => tier.expPerMesoRatio)];
+  const minRatio = Math.min(...ratios);
+  const maxRatio = Math.max(...ratios);
+  return formatRatioRange(minRatio, maxRatio, t('common.ratioPrefix'));
 }
 
 function timerStatusLabel(status: TimerStatus, t: TFunction) {
@@ -442,6 +455,35 @@ function EditableNumberInput({
         if (Number.isFinite(parsed)) onValueChange(parsed);
       }}
     />
+  );
+}
+
+function RatioInput({
+  value,
+  ariaLabel,
+  className = '',
+  onValueChange,
+}: {
+  value: number;
+  ariaLabel: string;
+  className?: string;
+  onValueChange: (value: number) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <span className={`ratio-input${className ? ` ${className}` : ''}`}>
+      <span>{t('common.ratioPrefix')}</span>
+      <EditableNumberInput
+        type="number"
+        min={0.1}
+        step={0.1}
+        value={value}
+        emptyValue={0.1}
+        normalize={(nextValue) => Math.max(0.1, nextValue)}
+        aria-label={ariaLabel}
+        onValueChange={onValueChange}
+      />
+    </span>
   );
 }
 
@@ -1100,15 +1142,54 @@ function LeechInstanceCard({
 }) {
   const { t } = useTranslation();
   const [newBuyerIgn, setNewBuyerIgn] = useState('');
+  const [ratioTierLevelDraft, setRatioTierLevelDraft] = useState('');
   const [addingBuyer, setAddingBuyer] = useState(false);
   const [refreshingRun, setRefreshingRun] = useState(false);
   const refreshExpTipId = useId();
+  const ratioTierLevelId = useId();
   const ratioBilling = instance.billing.type === 'ratio' ? instance.billing : undefined;
   const hourlyBilling = instance.billing.type === 'hourly' ? instance.billing : undefined;
   const refreshableBuyers = instance.buyers.filter((buyer) => !buyer.locked && buyerLookupIgn(buyer));
+  const ratioTierLevel = Number(ratioTierLevelDraft);
+  const canAddRatioTier = Boolean(
+    ratioBilling
+    && ratioBilling.tiers.length < 200
+    && Number.isInteger(ratioTierLevel)
+    && ratioTierLevel >= 1
+    && ratioTierLevel <= 200
+    && !ratioBilling.tiers.some((tier) => tier.minLevel === ratioTierLevel),
+  );
 
   function updateBilling(billing: LeechBilling) {
     onUpdate(updateInstanceBilling(instance, billing));
+  }
+
+  function addRatioTier() {
+    if (!ratioBilling || !canAddRatioTier) return;
+    const precedingTier = ratioBilling.tiers.filter((tier) => tier.minLevel < ratioTierLevel).at(-1);
+    const expPerMesoRatio = precedingTier?.expPerMesoRatio ?? ratioBilling.expPerMesoRatio;
+
+    updateBilling({
+      ...ratioBilling,
+      tiers: [...ratioBilling.tiers, { minLevel: ratioTierLevel, expPerMesoRatio }]
+        .sort((left, right) => left.minLevel - right.minLevel),
+    });
+    setRatioTierLevelDraft('');
+  }
+
+  function updateRatioTierRatio(minLevel: number, expPerMesoRatio: number) {
+    if (!ratioBilling) return;
+    updateBilling({
+      ...ratioBilling,
+      tiers: ratioBilling.tiers.map((tier) => (
+        tier.minLevel === minLevel ? { ...tier, expPerMesoRatio } : tier
+      )),
+    });
+  }
+
+  function removeRatioTier(minLevel: number) {
+    if (!ratioBilling) return;
+    updateBilling({ ...ratioBilling, tiers: ratioBilling.tiers.filter((tier) => tier.minLevel !== minLevel) });
   }
 
   function setBillingType(type: BillingType) {
@@ -1226,7 +1307,7 @@ function LeechInstanceCard({
           />
           <p className="run-created-at">
             {instance.billing.type === 'ratio'
-              ? t('billing.ratioModeSummary', { label: billingLabel(instance.billing, t) })
+              ? t('billing.ratioModeSummary', { label: compactBillingLabel(instance.billing, t) })
               : t('billing.hourlyModeSummary', { label: billingLabel(instance.billing, t) })} · {t('run.created', { date: formatLocalDateTime(instance.createdAt) })}
           </p>
         </div>
@@ -1245,20 +1326,72 @@ function LeechInstanceCard({
         <div className="billing-settings">
           <span>{t('billing.pricing')}</span>
           {ratioBilling ? (
-            <label className="compact-label">
-              {t('billing.expRatio')}
-              <span className="ratio-input">
-                <span>{t('common.ratioPrefix')}</span>
-                <input
-                  type="number"
-                  min={0.1}
-                  step={0.1}
-                  value={ratioBilling.expPerMesoRatio}
-                  aria-label={t('aria.runExpRatio')}
-                  onChange={(event) => updateBilling({ type: 'ratio', expPerMesoRatio: Number(event.target.value) })}
-                />
-              </span>
-            </label>
+            <div className="ratio-tier-editor">
+              <div className="ratio-tier-card ratio-tier-card--base">
+                <label className="compact-label">
+                  {t('billing.baseRatio')}
+                  <RatioInput
+                    value={ratioBilling.expPerMesoRatio}
+                    ariaLabel={t('aria.runExpRatio')}
+                    onValueChange={(expPerMesoRatio) => updateBilling({ ...ratioBilling, expPerMesoRatio })}
+                  />
+                </label>
+              </div>
+              {ratioBilling.tiers.map((tier, index) => (
+                <div className="ratio-tier-card ratio-tier-card--saved" key={tier.minLevel}>
+                  <div className="ratio-tier-summary">
+                    <span>{t('billing.tierLevel')} {tier.minLevel}</span>
+                    <div className="ratio-tier-control-row">
+                      <RatioInput
+                        className="ratio-input--saved-tier"
+                        value={tier.expPerMesoRatio}
+                        ariaLabel={t('aria.ratioTierRatio', { number: index + 1 })}
+                        onValueChange={(expPerMesoRatio) => updateRatioTierRatio(tier.minLevel, expPerMesoRatio)}
+                      />
+                      <button
+                        type="button"
+                        className="icon-button danger-button ratio-tier-remove"
+                        onClick={() => removeRatioTier(tier.minLevel)}
+                        aria-label={t('aria.removeRatioTier', { number: index + 1 })}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div className="ratio-tier-card ratio-tier-card--add">
+                <label className="ratio-tier-add-title" htmlFor={ratioTierLevelId}>{t('billing.tierLevel')}</label>
+                <form
+                  className="ratio-tier-control-row"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    addRatioTier();
+                  }}
+                >
+                  <input
+                    id={ratioTierLevelId}
+                    type="number"
+                    min={1}
+                    max={200}
+                    step={1}
+                    value={ratioTierLevelDraft}
+                    placeholder="120"
+                    aria-label={t('aria.ratioTierLevel', { number: ratioBilling.tiers.length + 1 })}
+                    onChange={(event) => setRatioTierLevelDraft(event.target.value)}
+                  />
+                  <button
+                    type="submit"
+                    className="icon-button ratio-tier-add"
+                    onClick={addRatioTier}
+                    aria-label={t('billing.addTier')}
+                    disabled={!canAddRatioTier}
+                  >
+                    <Plus size={17} aria-hidden="true" />
+                  </button>
+                </form>
+              </div>
+            </div>
           ) : null}
           {hourlyBilling ? (
             <label className="compact-label">
@@ -1400,7 +1533,7 @@ function RunRail({
             const summary = calculateInstance(instance, now);
             return (
               <option key={instance.id} value={instance.id}>
-                {instance.name || t('common.untitledRun')} · {billingLabel(instance.billing, t)} · {formatMesosShort(summary.totalMesosDue)}
+                {instance.name || t('common.untitledRun')} · {compactBillingLabel(instance.billing, t)} · {formatMesosShort(summary.totalMesosDue)}
               </option>
             );
           })}
@@ -1421,7 +1554,7 @@ function RunRail({
             >
               <span>
                 <strong>{instance.name || t('common.untitledRun')}</strong>
-                <small>{billingLabel(instance.billing, t)}</small>
+                <small>{compactBillingLabel(instance.billing, t)}</small>
               </span>
               <span>
                 <b>{formatMesosShort(summary.totalMesosDue)}</b>
