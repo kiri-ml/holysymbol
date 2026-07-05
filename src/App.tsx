@@ -271,7 +271,7 @@ function exportInstances(instances: LeechInstance[], t: TFunction, now = Date.no
     });
   });
 
-  const blob = new Blob([[columns.join(','), ...rows].join('\n')], { type: 'text/csv;charset=utf-8' });
+  const blob = new Blob(['\uFEFF', [columns.join(','), ...rows].join('\n')], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
