@@ -108,11 +108,11 @@ export const fr = {
     totalExp: 'EXP totale',
   },
   tip: {
-    keepExpUpdated: 'Garder l’EXP à jour',
-    partyRefreshTitle: 'Refresh de party',
-    partyRefreshBody: 'Invite n’importe quel personnage dans la party, par exemple le mule HS.',
-    selfRefreshTitle: 'Refresh perso',
-    selfRefreshBody: 'Entre dans une map, change de canal ou sors du Cash Shop.',
+    updateExpBeforeRefreshing: 'Mets l’EXP à jour en jeu avant de l’actualiser :',
+    partyUpdateTitle: 'Mise à jour via la party',
+    partyUpdateBody: 'Invite n’importe quel personnage dans la party, par exemple un prêtre (HS mule).',
+    selfUpdateTitle: 'Mise à jour perso',
+    selfUpdateBody: 'Entre dans une map, change de canal ou sors du Cash Shop.',
   },
   aria: {
     estimateLevel: 'Niveau {{label}}',

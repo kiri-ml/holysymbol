@@ -108,11 +108,11 @@ export const ptBR = {
     totalExp: 'EXP total',
   },
   tip: {
-    keepExpUpdated: 'Mantenha a EXP atualizada',
-    partyRefreshTitle: 'Refresh da party',
-    partyRefreshBody: 'Convide qualquer personagem para a party, como o mule de HS.',
-    selfRefreshTitle: 'Refresh próprio',
-    selfRefreshBody: 'Entre em um mapa, troque de canal ou saia do Cash Shop.',
+    updateExpBeforeRefreshing: 'Atualize a EXP no jogo antes de atualizar:',
+    partyUpdateTitle: 'Atualização pela party',
+    partyUpdateBody: 'Convide qualquer personagem para a party, como um sacerdote (HS mule).',
+    selfUpdateTitle: 'Atualização própria',
+    selfUpdateBody: 'Entre em um mapa, troque de canal ou saia do Cash Shop.',
   },
   aria: {
     estimateLevel: 'Nível de {{label}}',

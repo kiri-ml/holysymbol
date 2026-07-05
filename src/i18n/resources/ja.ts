@@ -108,11 +108,11 @@ export const ja = {
     totalExp: '合計EXP',
   },
   tip: {
-    keepExpUpdated: 'EXPを最新に保つ',
-    partyRefreshTitle: 'パーティ更新',
-    partyRefreshBody: 'HSサブなど、任意のキャラクターをパーティに招待します。',
-    selfRefreshTitle: '自身を更新',
-    selfRefreshBody: 'マップに入る、チャンネルを変える、またはキャッシュショップから出ます。',
+    updateExpBeforeRefreshing: '更新する前にゲーム内でEXPを最新にしてください：',
+    partyUpdateTitle: 'パーティ更新',
+    partyUpdateBody: 'プリースト（HS mule）など、任意のキャラクターをパーティに招待します。',
+    selfUpdateTitle: '自身の更新',
+    selfUpdateBody: 'マップに入る、チャンネルを変える、またはキャッシュショップから出ます。',
   },
   aria: {
     estimateLevel: '{{label}} レベル',

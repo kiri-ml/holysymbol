@@ -108,11 +108,11 @@ export const en = {
     totalExp: 'Total EXP',
   },
   tip: {
-    keepExpUpdated: 'Keep EXP updated',
-    partyRefreshTitle: 'Party refresh',
-    partyRefreshBody: 'Invite any character to the party, such as the HS mule.',
-    selfRefreshTitle: 'Self refresh',
-    selfRefreshBody: 'Enter a map, change channels, or exit the Cash Shop.',
+    updateExpBeforeRefreshing: 'Update EXP in-game before refreshing:',
+    partyUpdateTitle: 'Party update',
+    partyUpdateBody: 'Invite any character to the party, such as a Priest (HS mule).',
+    selfUpdateTitle: 'Self update',
+    selfUpdateBody: 'Enter a map, change channels, or exit the Cash Shop.',
   },
   aria: {
     estimateLevel: '{{label}} level',

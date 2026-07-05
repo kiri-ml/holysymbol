@@ -19,7 +19,7 @@ import {
   UserPlus,
 } from 'lucide-react';
 import type { TFunction } from 'i18next';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { ComponentPropsWithoutRef, FocusEvent, KeyboardEvent, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { avatarUrl, fetchCharacter } from './api/legends';
@@ -1102,6 +1102,7 @@ function LeechInstanceCard({
   const [newBuyerIgn, setNewBuyerIgn] = useState('');
   const [addingBuyer, setAddingBuyer] = useState(false);
   const [refreshingRun, setRefreshingRun] = useState(false);
+  const refreshExpTipId = useId();
   const ratioBilling = instance.billing.type === 'ratio' ? instance.billing : undefined;
   const hourlyBilling = instance.billing.type === 'hourly' ? instance.billing : undefined;
   const refreshableBuyers = instance.buyers.filter((buyer) => !buyer.locked && buyerLookupIgn(buyer));
@@ -1240,7 +1241,7 @@ function LeechInstanceCard({
         </div>
       </div>
 
-      <div className="instance-billing">
+      <div className={`instance-billing instance-billing--${instance.billing.type}`}>
         <div className="billing-settings">
           <span>{t('billing.pricing')}</span>
           {ratioBilling ? (
@@ -1284,17 +1285,6 @@ function LeechInstanceCard({
             onToggle={toggleHourlyRunTimer}
           />
         ) : null}
-        {ratioBilling ? (
-          <div className="tip-card tip-card--inline">
-            <div className="tip-card__content">
-              <strong>{t('tip.keepExpUpdated')} <AlertCircle size={14} /></strong>
-              <div className="tip-card__rows">
-                <span><b>{t('tip.partyRefreshTitle')}</b><em>{t('tip.partyRefreshBody')}</em></span>
-                <span><b>{t('tip.selfRefreshTitle')}</b><em>{t('tip.selfRefreshBody')}</em></span>
-              </div>
-            </div>
-          </div>
-        ) : null}
       </div>
 
       <div className="buyers-header buyers-toolbar">
@@ -1327,9 +1317,22 @@ function LeechInstanceCard({
               {addingBuyer ? <LoaderCircle size={16} className="spin" /> : <Plus size={16} />} {t('common.add')}
             </button>
           </form>
-          <button type="button" className="secondary-button refresh-exp-button" onClick={refreshRunCurrentExp} disabled={refreshingRun || refreshableBuyers.length === 0}>
-            <RefreshCw size={16} className={refreshingRun ? 'spin' : ''} /> {refreshingRun ? t('common.refreshing') : t('common.refreshExp')}
-          </button>
+          <div className="refresh-exp-control">
+            <button
+              type="button"
+              className="secondary-button refresh-exp-button"
+              onClick={refreshRunCurrentExp}
+              disabled={refreshingRun || refreshableBuyers.length === 0}
+              aria-describedby={refreshExpTipId}
+            >
+              <RefreshCw size={16} className={refreshingRun ? 'spin' : ''} /> {refreshingRun ? t('common.refreshing') : t('common.refreshExp')}
+            </button>
+            <div id={refreshExpTipId} className="refresh-exp-tooltip" role="tooltip">
+              <strong><AlertCircle size={14} /> {t('tip.updateExpBeforeRefreshing')}</strong>
+              <span><b>{t('tip.partyUpdateTitle')}</b><em>{t('tip.partyUpdateBody')}</em></span>
+              <span><b>{t('tip.selfUpdateTitle')}</b><em>{t('tip.selfUpdateBody')}</em></span>
+            </div>
+          </div>
         </div>
       </div>
 

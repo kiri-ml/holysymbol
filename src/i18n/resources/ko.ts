@@ -108,11 +108,11 @@ export const ko = {
     totalExp: '총 EXP',
   },
   tip: {
-    keepExpUpdated: 'EXP를 최신으로 유지',
-    partyRefreshTitle: '파티 갱신',
-    partyRefreshBody: '홀심 부캐 같은 아무 캐릭터나 파티에 초대하세요.',
-    selfRefreshTitle: '본인 갱신',
-    selfRefreshBody: '맵에 들어가거나 채널을 바꾸거나 캐시샵에서 나오세요.',
+    updateExpBeforeRefreshing: '새로고침 전에 게임 내 EXP를 갱신하세요:',
+    partyUpdateTitle: '파티 갱신',
+    partyUpdateBody: '프리스트(HS mule) 같은 아무 캐릭터나 파티에 초대하세요.',
+    selfUpdateTitle: '본인 갱신',
+    selfUpdateBody: '맵에 들어가거나 채널을 바꾸거나 캐시샵에서 나오세요.',
   },
   aria: {
     estimateLevel: '{{label}} 레벨',

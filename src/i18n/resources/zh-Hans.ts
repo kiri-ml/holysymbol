@@ -108,11 +108,11 @@ export const zhHans = {
     totalExp: '总经验',
   },
   tip: {
-    keepExpUpdated: '保持经验最新',
-    partyRefreshTitle: '队伍刷新',
-    partyRefreshBody: '让任意角色加入队伍，例如小花。',
-    selfRefreshTitle: '自身刷新',
-    selfRefreshBody: '进入任意地图、换线，或从商城出来。',
+    updateExpBeforeRefreshing: '刷新前先在游戏内更新经验值：',
+    partyUpdateTitle: '队伍更新',
+    partyUpdateBody: '让任意角色加入队伍，例如小花（HS mule）。',
+    selfUpdateTitle: '自身更新',
+    selfUpdateBody: '进入任意地图、换线，或从商城出来。',
   },
   aria: {
     estimateLevel: '{{label}} 等级',

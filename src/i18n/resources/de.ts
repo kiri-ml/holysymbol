@@ -108,11 +108,11 @@ export const de = {
     totalExp: 'Gesamt-EXP',
   },
   tip: {
-    keepExpUpdated: 'EXP aktuell halten',
-    partyRefreshTitle: 'Party-Refresh',
-    partyRefreshBody: 'Lade irgendeinen Charakter in die Party ein, zum Beispiel den HS-Mule.',
-    selfRefreshTitle: 'Self-Refresh',
-    selfRefreshBody: 'Betritt eine Map, wechsle den Channel oder verlasse den Cash Shop.',
+    updateExpBeforeRefreshing: 'EXP im Spiel vor dem Abrufen aktualisieren:',
+    partyUpdateTitle: 'Gruppen-Update',
+    partyUpdateBody: 'Lade irgendeinen Charakter in die Party ein, zum Beispiel einen Priester (HS mule).',
+    selfUpdateTitle: 'Eigenes Update',
+    selfUpdateBody: 'Betritt eine Map, wechsle den Channel oder verlasse den Cash Shop.',
   },
   aria: {
     estimateLevel: '{{label}}-Level',

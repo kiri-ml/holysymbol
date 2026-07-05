@@ -108,11 +108,11 @@ export const zhHant = {
     totalExp: '總經驗',
   },
   tip: {
-    keepExpUpdated: '保持經驗最新',
-    partyRefreshTitle: '隊伍刷新',
-    partyRefreshBody: '讓任意角色加入隊伍，例如小花。',
-    selfRefreshTitle: '自身刷新',
-    selfRefreshBody: '進入任意地圖、換線，或從商城出來。',
+    updateExpBeforeRefreshing: '刷新前先在遊戲內更新經驗值：',
+    partyUpdateTitle: '隊伍更新',
+    partyUpdateBody: '讓任意角色加入隊伍，例如祈禱機（HS mule）。',
+    selfUpdateTitle: '自身更新',
+    selfUpdateBody: '進入任意地圖、換線，或從商城出來。',
   },
   aria: {
     estimateLevel: '{{label}} 等級',

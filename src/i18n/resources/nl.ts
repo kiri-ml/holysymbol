@@ -108,11 +108,11 @@ export const nl = {
     totalExp: 'Totale EXP',
   },
   tip: {
-    keepExpUpdated: 'Houd EXP up-to-date',
-    partyRefreshTitle: 'Party-refresh',
-    partyRefreshBody: 'Nodig een willekeurig personage uit voor de party, zoals de HS-mule.',
-    selfRefreshTitle: 'Self-refresh',
-    selfRefreshBody: 'Ga een map in, wissel van channel of verlaat de Cash Shop.',
+    updateExpBeforeRefreshing: 'Werk EXP in-game bij voordat je vernieuwt:',
+    partyUpdateTitle: 'Party-update',
+    partyUpdateBody: 'Nodig een willekeurig personage uit voor de party, zoals een priester (HS mule).',
+    selfUpdateTitle: 'Zelf bijwerken',
+    selfUpdateBody: 'Ga een map in, wissel van channel of verlaat de Cash Shop.',
   },
   aria: {
     estimateLevel: '{{label}} level',
