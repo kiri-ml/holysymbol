@@ -554,6 +554,10 @@ h3 {
   grid-template-columns: auto minmax(0, 1fr);
 }
 
+.estimate-ratio-input {
+  width: 100%;
+}
+
 .unit-input {
   grid-template-columns: minmax(0, 1fr) auto;
 }

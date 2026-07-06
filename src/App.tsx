@@ -764,7 +764,7 @@ function QuickEstimate({
           }
         >
           {estimate.billingType === 'ratio' ? (
-            <span className="ratio-input">
+            <span className="ratio-input estimate-ratio-input">
               <span>{t('common.ratioPrefix')}</span>
               <EditableNumberInput
                 type="number"
