@@ -1383,11 +1383,14 @@ function LeechInstanceCard({
                   />
                   <button
                     type="submit"
-                    className="icon-button"
+                    className="icon-button ratio-tier-add-button"
                     aria-label={t('billing.addTier')}
                     disabled={!canAddRatioTier}
                   >
                     <Plus size={16} aria-hidden="true" />
+                    <span className="ratio-tier-add-button__label" aria-hidden="true">
+                      {t('billing.addTier')}
+                    </span>
                   </button>
                 </form>
               </div>

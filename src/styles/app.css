@@ -952,8 +952,30 @@ h3 {
 }
 
 .ratio-tier-card--add {
+  container: ratio-tier-add / inline-size;
+  flex: 1 1 17.5rem;
   width: auto;
+  min-width: var(--ratio-tier-card-width);
+  max-width: 17.5rem;
   padding-inline-end: 0;
+}
+
+.ratio-tier-card--add .ratio-tier-control-row {
+  width: 100%;
+}
+
+.ratio-tier-card--add .ratio-tier-add-button {
+  display: inline-flex;
+  flex: 0 0 var(--ratio-tier-control-size);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding-inline: 0;
+  white-space: nowrap;
+}
+
+.ratio-tier-add-button__label {
+  display: none;
 }
 
 .ratio-tier-stack {
@@ -1004,6 +1026,19 @@ h3 {
 .ratio-tier-card .icon-button {
   height: var(--ratio-tier-control-size);
   min-height: var(--ratio-tier-control-size);
+}
+
+@container ratio-tier-add (min-width: 14rem) {
+  .ratio-tier-card--add .ratio-tier-add-button {
+    flex: 1 1 6.5rem;
+    width: auto;
+    min-width: 6.5rem;
+    padding-inline: var(--space-3);
+  }
+
+  .ratio-tier-add-button__label {
+    display: inline;
+  }
 }
 
 input.ratio-tier-control::placeholder {
