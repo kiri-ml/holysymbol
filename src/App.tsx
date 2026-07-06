@@ -1327,10 +1327,11 @@ function LeechInstanceCard({
           <span>{t('billing.pricing')}</span>
           {ratioBilling ? (
             <div className="ratio-tier-editor">
-              <div className="ratio-tier-card ratio-tier-card--base">
+              <div className="ratio-tier-card ratio-tier-card--base" key="ratio-base">
                 <label className="compact-label">
                   {t('billing.baseRatio')}
                   <RatioInput
+                    className="ratio-tier-control"
                     value={ratioBilling.expPerMesoRatio}
                     ariaLabel={t('aria.runExpRatio')}
                     onValueChange={(expPerMesoRatio) => updateBilling({ ...ratioBilling, expPerMesoRatio })}
@@ -1343,14 +1344,14 @@ function LeechInstanceCard({
                     <span>{t('billing.tierLevel')} {tier.minLevel}</span>
                     <div className="ratio-tier-control-row">
                       <RatioInput
-                        className="ratio-input--saved-tier"
+                        className="ratio-tier-control ratio-input--saved-tier"
                         value={tier.expPerMesoRatio}
                         ariaLabel={t('aria.ratioTierRatio', { number: index + 1 })}
                         onValueChange={(expPerMesoRatio) => updateRatioTierRatio(tier.minLevel, expPerMesoRatio)}
                       />
                       <button
                         type="button"
-                        className="icon-button danger-button ratio-tier-remove"
+                        className="icon-button danger-button"
                         onClick={() => removeRatioTier(tier.minLevel)}
                         aria-label={t('aria.removeRatioTier', { number: index + 1 })}
                       >
@@ -1360,7 +1361,7 @@ function LeechInstanceCard({
                   </div>
                 </div>
               ))}
-              <div className="ratio-tier-card ratio-tier-card--add">
+              <div className="ratio-tier-card ratio-tier-card--add" key="ratio-add">
                 <label className="ratio-tier-add-title" htmlFor={ratioTierLevelId}>{t('billing.tierLevel')}</label>
                 <form
                   className="ratio-tier-control-row"
@@ -1371,6 +1372,7 @@ function LeechInstanceCard({
                 >
                   <input
                     id={ratioTierLevelId}
+                    className="ratio-tier-control"
                     type="number"
                     min={1}
                     max={200}
@@ -1382,8 +1384,7 @@ function LeechInstanceCard({
                   />
                   <button
                     type="submit"
-                    className="icon-button ratio-tier-add"
-                    onClick={addRatioTier}
+                    className="icon-button"
                     aria-label={t('billing.addTier')}
                     disabled={!canAddRatioTier}
                   >
