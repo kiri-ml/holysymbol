@@ -862,7 +862,7 @@ function TimerControls({
   return (
     <div className={`timer-card timer-card--${billing.timer.status}`}>
       <div className="timer-card__header">
-        <span>{t('timer.runTime')}</span>
+        <span className="billing-field-label">{t('timer.runTime')}</span>
         <small className="timer-status">{timerStatusLabel(billing.timer.status, t)}</small>
       </div>
       <div className="timer-card__body">
@@ -1324,11 +1324,10 @@ function LeechInstanceCard({
 
       <div className={`instance-billing instance-billing--${instance.billing.type}`}>
         <div className="billing-settings">
-          <span>{t('billing.pricing')}</span>
           {ratioBilling ? (
             <div className="ratio-tier-editor">
-              <div className="ratio-tier-card ratio-tier-card--base" key="ratio-base">
-                <label className="compact-label">
+              <div className="ratio-tier-card ratio-tier-card--base">
+                <label className="ratio-tier-stack billing-field-label">
                   {t('billing.baseRatio')}
                   <RatioInput
                     className="ratio-tier-control"
@@ -1339,12 +1338,12 @@ function LeechInstanceCard({
                 </label>
               </div>
               {ratioBilling.tiers.map((tier, index) => (
-                <div className="ratio-tier-card ratio-tier-card--saved" key={tier.minLevel}>
-                  <div className="ratio-tier-summary">
-                    <span>{t('billing.tierLevel')} {tier.minLevel}</span>
+                <div className="ratio-tier-card" key={tier.minLevel}>
+                  <div className="ratio-tier-stack">
+                    <span className="billing-field-label ratio-tier-level">{t('billing.tierLevel')} {tier.minLevel}</span>
                     <div className="ratio-tier-control-row">
                       <RatioInput
-                        className="ratio-tier-control ratio-input--saved-tier"
+                        className="ratio-tier-control"
                         value={tier.expPerMesoRatio}
                         ariaLabel={t('aria.ratioTierRatio', { number: index + 1 })}
                         onValueChange={(expPerMesoRatio) => updateRatioTierRatio(tier.minLevel, expPerMesoRatio)}
@@ -1355,14 +1354,14 @@ function LeechInstanceCard({
                         onClick={() => removeRatioTier(tier.minLevel)}
                         aria-label={t('aria.removeRatioTier', { number: index + 1 })}
                       >
-                        <Trash2 size={15} />
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </div>
                 </div>
               ))}
-              <div className="ratio-tier-card ratio-tier-card--add" key="ratio-add">
-                <label className="ratio-tier-add-title" htmlFor={ratioTierLevelId}>{t('billing.tierLevel')}</label>
+              <div className="ratio-tier-card ratio-tier-card--add">
+                <label className="billing-field-label" htmlFor={ratioTierLevelId}>{t('billing.tierLevel')}</label>
                 <form
                   className="ratio-tier-control-row"
                   onSubmit={(event) => {
@@ -1388,14 +1387,14 @@ function LeechInstanceCard({
                     aria-label={t('billing.addTier')}
                     disabled={!canAddRatioTier}
                   >
-                    <Plus size={17} aria-hidden="true" />
+                    <Plus size={16} aria-hidden="true" />
                   </button>
                 </form>
               </div>
             </div>
           ) : null}
           {hourlyBilling ? (
-            <label className="compact-label">
+            <label className="compact-label hourly-rate-field billing-field-label">
               {t('billing.hourlyRate')}
               <span className="unit-input">
                 <input
