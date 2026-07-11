@@ -148,6 +148,8 @@ export const en = {
   },
   notice: {
     refreshCharacterFailed: 'Could not refresh character.',
+    batchRefreshSuccess: '{{count}} characters refreshed.',
+    batchRefreshPartial: '{{refreshed}} characters refreshed; {{failed}} failed.',
   },
   csv: {
     instance: 'instance',

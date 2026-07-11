@@ -147,6 +147,8 @@ export const fr = {
     deleteRun: 'Supprimer {{name}} ?',
   },
   notice: {
+    batchRefreshSuccess: '{{count}} personnages actualisés.',
+    batchRefreshPartial: '{{refreshed}} personnages actualisés ; {{failed}} échecs.',
     refreshCharacterFailed: 'Impossible d’actualiser le personnage.',
   },
   csv: {

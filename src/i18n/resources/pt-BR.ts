@@ -147,6 +147,8 @@ export const ptBR = {
     deleteRun: 'Excluir {{name}}?',
   },
   notice: {
+    batchRefreshSuccess: '{{count}} personagens atualizados.',
+    batchRefreshPartial: '{{refreshed}} personagens atualizados; {{failed}} falharam.',
     refreshCharacterFailed: 'Não foi possível atualizar o personagem.',
   },
   csv: {

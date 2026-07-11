@@ -28,6 +28,7 @@ npm run dev
 Vite's dev proxy maps local API routes to Legends endpoints:
 
 - `/api/character/:ign` -> `https://legends.ml/api/character?name=:ign`
+- `POST /api/characters` batches up to 50 character lookups per request; the client transparently chunks larger run-level EXP refreshes.
 The EXP table is embedded locally as TypeScript data; it is not fetched or generated at runtime.
 
 ## Build

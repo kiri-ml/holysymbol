@@ -147,6 +147,8 @@ export const zhHant = {
     deleteRun: '刪除 {{name}}？',
   },
   notice: {
+    batchRefreshSuccess: '已重新整理 {{count}} 個角色。',
+    batchRefreshPartial: '已重新整理 {{refreshed}} 個角色，{{failed}} 個失敗。',
     refreshCharacterFailed: '無法刷新角色。',
   },
   csv: {

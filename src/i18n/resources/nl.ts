@@ -147,6 +147,8 @@ export const nl = {
     deleteRun: '{{name}} verwijderen?',
   },
   notice: {
+    batchRefreshSuccess: '{{count}} personages vernieuwd.',
+    batchRefreshPartial: '{{refreshed}} personages vernieuwd; {{failed}} mislukt.',
     refreshCharacterFailed: 'Kon personage niet vernieuwen.',
   },
   csv: {

@@ -147,6 +147,8 @@ export const ko = {
     deleteRun: '{{name}}을 삭제할까요?',
   },
   notice: {
+    batchRefreshSuccess: '캐릭터 {{count}}명을 갱신했습니다.',
+    batchRefreshPartial: '{{refreshed}}명 갱신, {{failed}}명 실패.',
     refreshCharacterFailed: '캐릭터를 갱신할 수 없습니다.',
   },
   csv: {

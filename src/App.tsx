@@ -22,7 +22,8 @@ import type { TFunction } from 'i18next';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { ComponentPropsWithoutRef, FocusEvent, KeyboardEvent, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { avatarUrl, fetchCharacter } from './api/legends';
+import { avatarUrl, fetchCharacter, fetchCharacters } from './api/legends';
+import type { CharacterBatch } from './api/legends';
 import { DEFAULT_RATIO_BILLING, ensureBuyerHourlyState, switchInstanceBillingType, updateInstanceBilling } from './domain/billing';
 import { createManualSnapshot } from './domain/character';
 import {
@@ -1126,6 +1127,7 @@ function LeechInstanceCard({
   onUpdate,
   onDelete,
   onFetchSnapshot,
+  onFetchSnapshots,
   copiedBuyerId,
   onDueCopied,
 }: {
@@ -1137,6 +1139,7 @@ function LeechInstanceCard({
   onUpdate: (instance: LeechInstance) => void;
   onDelete: () => void;
   onFetchSnapshot: (ign: string) => Promise<CharacterSnapshot>;
+  onFetchSnapshots: (igns: string[]) => Promise<CharacterBatch>;
   copiedBuyerId: string | null;
   onDueCopied: (buyerId: string) => void;
 }) {
@@ -1238,27 +1241,20 @@ function LeechInstanceCard({
     if (refreshableBuyers.length === 0) return;
 
     setRefreshingRun(true);
-    const snapshots = new Map<string, CharacterSnapshot>();
-
-    for (const buyer of refreshableBuyers) {
-      const ign = buyerLookupIgn(buyer);
-      try {
-        const snapshot = await onFetchSnapshot(ign);
-        snapshots.set(buyer.id, snapshot);
-      } catch {}
+    try {
+      const batch = await onFetchSnapshots(refreshableBuyers.map(buyerLookupIgn));
+      const refreshedAt = batch.snapshots.size > 0 ? new Date().toISOString() : instance.lastCurrentRefreshedAt;
+      onUpdate({
+        ...instance,
+        lastCurrentRefreshedAt: refreshedAt,
+        buyers: instance.buyers.map((buyer) => {
+          const snapshot = batch.snapshots.get(buyerLookupIgn(buyer).toLocaleLowerCase());
+          return snapshot ? { ...buyer, ign: snapshot.ign, current: snapshot } : buyer;
+        }),
+      });
+    } finally {
+      setRefreshingRun(false);
     }
-
-    const refreshedAt = snapshots.size > 0 ? new Date().toISOString() : instance.lastCurrentRefreshedAt;
-    onUpdate({
-      ...instance,
-      lastCurrentRefreshedAt: refreshedAt,
-      buyers: instance.buyers.map((buyer) => {
-        const snapshot = snapshots.get(buyer.id);
-        return snapshot ? { ...buyer, ign: snapshot.ign, current: snapshot } : buyer;
-      }),
-    });
-
-    setRefreshingRun(false);
   }
 
   function toggleHourlyRunTimer() {
@@ -1742,6 +1738,25 @@ export default function App() {
     }
   }
 
+  async function loadCharacters(igns: string[]): Promise<CharacterBatch> {
+    setNotice(null);
+    try {
+      const batch = await fetchCharacters(igns);
+      const refreshed = batch.snapshots.size;
+      setNotice({
+        type: batch.failures.length > 0 ? 'error' : 'info',
+        text: batch.failures.length > 0
+          ? t('notice.batchRefreshPartial', { refreshed, failed: batch.failures.length })
+          : t('notice.batchRefreshSuccess', { count: refreshed }),
+      });
+      return batch;
+    } catch (error) {
+      const text = error instanceof Error ? error.message : t('notice.refreshCharacterFailed');
+      setNotice({ type: 'error', text });
+      throw error;
+    }
+  }
+
   const selectedInstance = useMemo(
     () => displayedInstances.find((instance) => instance.id === selectedRunId) ?? displayedInstances[0],
     [displayedInstances, selectedRunId],
@@ -1787,6 +1802,7 @@ export default function App() {
                 busyKey={busyKey}
                 now={now}
                 onFetchSnapshot={loadCharacter}
+                onFetchSnapshots={loadCharacters}
                 copiedBuyerId={copiedBuyerId}
                 onDueCopied={showCopiedBuyer}
                 onUpdate={upsertInstance}

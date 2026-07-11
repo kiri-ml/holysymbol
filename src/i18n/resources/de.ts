@@ -147,6 +147,8 @@ export const de = {
     deleteRun: '{{name}} löschen?',
   },
   notice: {
+    batchRefreshSuccess: '{{count}} Charaktere aktualisiert.',
+    batchRefreshPartial: '{{refreshed}} Charaktere aktualisiert; {{failed}} fehlgeschlagen.',
     refreshCharacterFailed: 'Charakter konnte nicht aktualisiert werden.',
   },
   csv: {

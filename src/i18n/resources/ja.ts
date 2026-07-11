@@ -147,6 +147,8 @@ export const ja = {
     deleteRun: '{{name}} を削除しますか？',
   },
   notice: {
+    batchRefreshSuccess: '{{count}}人のキャラクターを更新しました。',
+    batchRefreshPartial: '{{refreshed}}人を更新、{{failed}}人は失敗しました。',
     refreshCharacterFailed: 'キャラクターを更新できませんでした。',
   },
   csv: {
