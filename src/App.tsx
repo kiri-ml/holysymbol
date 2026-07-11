@@ -17,6 +17,7 @@ import {
   Trash2,
   Unlock,
   UserPlus,
+  X,
 } from 'lucide-react';
 import type { TFunction } from 'i18next';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
@@ -55,10 +56,11 @@ import { i18n, setLanguagePreference } from './i18n';
 import { DEFAULT_LOCALE, isSupportedLocale, SUPPORTED_LOCALES } from './i18n/locales';
 import './styles/app.css';
 
-type Notice = { type: 'error' | 'info'; text: string } | null;
+type Notice = { type: 'error' | 'info'; text: string; transient?: boolean } | null;
 type ThemeMode = 'system' | 'light' | 'dark';
 
 const COPY_FEEDBACK_MS = 1600;
+const SUCCESS_NOTICE_MS = 4000;
 
 type QuickEstimateState = {
   fromLevel: number;
@@ -1693,6 +1695,12 @@ export default function App() {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 
+  useEffect(() => {
+    if (!notice?.transient) return;
+    const id = window.setTimeout(() => setNotice(null), SUCCESS_NOTICE_MS);
+    return () => window.clearTimeout(id);
+  }, [notice]);
+
   useEffect(() => () => {
     if (copyFeedbackTimerRef.current !== null) window.clearTimeout(copyFeedbackTimerRef.current);
   }, []);
@@ -1745,6 +1753,7 @@ export default function App() {
       const refreshed = batch.snapshots.size;
       setNotice({
         type: batch.failures.length > 0 ? 'error' : 'info',
+        transient: batch.failures.length === 0,
         text: batch.failures.length > 0
           ? t('notice.batchRefreshPartial', { refreshed, failed: batch.failures.length })
           : t('notice.batchRefreshSuccess', { count: refreshed }),
@@ -1782,9 +1791,12 @@ export default function App() {
       </header>
 
       {notice ? (
-        <div className={`notice notice--${notice.type}`}>
+        <div className={`notice notice--${notice.type}`} role={notice.type === 'error' ? 'alert' : 'status'}>
           <AlertCircle size={18} />
           <span>{notice.text}</span>
+          <button type="button" className="notice__dismiss" onClick={() => setNotice(null)} aria-label={t('common.dismiss')}>
+            <X size={17} />
+          </button>
         </div>
       ) : null}
 

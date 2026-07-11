@@ -31,6 +31,7 @@ export const es = {
     ratioModeSummary: 'Ratio · {{label}}',
   },
   common: {
+    dismiss: 'Cerrar mensaje',
     add: 'Añadir',
     copied: 'Copiado',
     current: 'Actual',

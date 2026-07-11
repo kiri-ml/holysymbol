@@ -31,6 +31,7 @@ export const nl = {
     ratioModeSummary: 'Ratio · {{label}}',
   },
   common: {
+    dismiss: 'Bericht sluiten',
     add: 'Toevoegen',
     copied: 'Gekopieerd',
     current: 'Huidig',

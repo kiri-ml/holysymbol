@@ -31,6 +31,7 @@ export const ptBR = {
     ratioModeSummary: 'Proporção · {{label}}',
   },
   common: {
+    dismiss: 'Fechar mensagem',
     add: 'Adicionar',
     copied: 'Copiado',
     current: 'Atual',

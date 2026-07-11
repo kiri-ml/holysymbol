@@ -31,6 +31,7 @@ export const zhHans = {
     ratioModeSummary: '按比例 · {{label}}',
   },
   common: {
+    dismiss: '关闭消息',
     add: '添加',
     copied: '已复制',
     current: '当前',

@@ -31,6 +31,7 @@ export const ja = {
     ratioModeSummary: '比率 · {{label}}',
   },
   common: {
+    dismiss: 'メッセージを閉じる',
     add: '追加',
     copied: 'コピー済み',
     current: '現在',

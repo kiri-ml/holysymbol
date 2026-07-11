@@ -31,6 +31,7 @@ export const ko = {
     ratioModeSummary: '비율 · {{label}}',
   },
   common: {
+    dismiss: '메시지 닫기',
     add: '추가',
     copied: '복사됨',
     current: '현재',

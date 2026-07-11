@@ -1736,6 +1736,28 @@ input.ratio-tier-control::placeholder {
   font-weight: 720;
 }
 
+.notice span {
+  flex: 1;
+}
+
+.notice__dismiss {
+  width: 1.75rem;
+  height: 1.75rem;
+  min-height: 0;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: currentColor;
+  display: grid;
+  place-items: center;
+}
+
+.notice__dismiss:hover {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
 .notice--error {
   border: 1px solid var(--danger);
   background: var(--danger-soft);

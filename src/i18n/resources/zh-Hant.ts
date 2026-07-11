@@ -31,6 +31,7 @@ export const zhHant = {
     ratioModeSummary: '按比例 · {{label}}',
   },
   common: {
+    dismiss: '關閉訊息',
     add: '新增',
     copied: '已複製',
     current: '目前',

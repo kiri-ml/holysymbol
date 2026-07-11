@@ -31,6 +31,7 @@ export const de = {
     ratioModeSummary: 'Verhältnis · {{label}}',
   },
   common: {
+    dismiss: 'Meldung schließen',
     add: 'Hinzufügen',
     copied: 'Kopiert',
     current: 'Aktuell',
