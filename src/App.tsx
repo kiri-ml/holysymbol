@@ -1,10 +1,11 @@
 import {
   AlertCircle,
   Check,
+  CircleCheckBig,
+  CircleDashed,
   Copy,
   Download,
   Languages,
-  Lock,
   LoaderCircle,
   Monitor,
   Moon,
@@ -15,7 +16,6 @@ import {
   RotateCcw,
   Sun,
   Trash2,
-  Unlock,
   UserPlus,
   X,
 } from 'lucide-react';
@@ -916,6 +916,7 @@ function BuyerRow({
   const [startDraft, setStartDraft] = useState<DraftSnapshotState>({ level: buyer.start?.level ?? 120, expPercent: buyer.start?.expPercent ?? 0 });
   const [currentDraft, setCurrentDraft] = useState<DraftSnapshotState>({ level: buyer.current?.level ?? buyer.start?.level ?? 120, expPercent: buyer.current?.expPercent ?? 0 });
   const [refreshingSnapshot, setRefreshingSnapshot] = useState<'start' | 'current' | null>(null);
+  const [completionPreviewSuppressed, setCompletionPreviewSuppressed] = useState(false);
   const calc = calculateBuyer(buyer, instance.billing, now, instance.buyers);
   const due = instance.billing.type === 'ratio' ? calc.ratioMesosDue : calc.hourlyMesosDue;
   const buyerBillableMs = instance.billing.type === 'hourly' ? getBuyerBillableMs(buyer, now) : undefined;
@@ -991,7 +992,7 @@ function BuyerRow({
     void copyDue();
   }
 
-  function toggleLock() {
+  function toggleBuyerDone() {
     if (instance.billing.type !== 'hourly') {
       onUpdate({ ...buyer, locked: !locked });
       return;
@@ -1071,12 +1072,22 @@ function BuyerRow({
         <div className="buyer-row-actions">
           <button
             type="button"
-            className={`icon-button lock-button${locked ? ' lock-button--locked' : ''}`}
-            onClick={toggleLock}
-            aria-label={locked ? t('aria.unlockBuyer', { name: displayIgn }) : t('aria.lockBuyer', { name: displayIgn })}
+            className={`icon-button completion-button${locked ? ' completion-button--done' : ''}${completionPreviewSuppressed ? ' completion-button--preview-suppressed' : ''}`}
+            onClick={() => {
+              setCompletionPreviewSuppressed(true);
+              toggleBuyerDone();
+            }}
+            onPointerLeave={() => setCompletionPreviewSuppressed(false)}
+            onBlur={() => setCompletionPreviewSuppressed(false)}
+            aria-label={locked ? t('aria.reopenBuyer', { name: displayIgn }) : t('aria.markBuyerDone', { name: displayIgn })}
             aria-pressed={locked}
           >
-            {locked ? <Unlock size={16} /> : <Lock size={16} />}
+            <span className="completion-button__state" aria-hidden="true">
+              {locked ? <CircleCheckBig size={16} /> : <CircleDashed size={16} />}
+            </span>
+            <span className="completion-button__action" aria-hidden="true">
+              {locked ? <CircleDashed size={16} /> : <CircleCheckBig size={16} />}
+            </span>
           </button>
           <button type="button" className="icon-button danger-button" onClick={onDelete} aria-label={t('aria.removeBuyer', { name: displayIgn })}>
             <Trash2 size={16} />

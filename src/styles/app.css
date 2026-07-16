@@ -1198,14 +1198,45 @@ input.ratio-tier-control::placeholder {
   color: oklch(0.99 0 0);
 }
 
-.lock-button {
-  background: var(--surface-3);
-  color: var(--ink-soft);
+.completion-button {
+  --completion-button-bg: var(--surface-3);
+  --completion-button-color: var(--ink-soft);
+  background: var(--completion-button-bg);
+  color: var(--completion-button-color);
 }
 
-.lock-button--locked {
-  background: var(--warning-soft);
-  color: var(--warning);
+.completion-button--done {
+  --completion-button-bg: var(--warning-soft);
+  --completion-button-color: var(--warning);
+}
+
+.completion-button:hover:not(:disabled) {
+  background: var(--completion-button-bg);
+  color: var(--completion-button-color);
+}
+
+.completion-button__state,
+.completion-button__action {
+  align-items: center;
+  justify-content: center;
+}
+
+.completion-button__state {
+  display: inline-flex;
+}
+
+.completion-button__action {
+  display: none;
+}
+
+.completion-button:not(.completion-button--preview-suppressed):hover:not(:disabled) .completion-button__state,
+.completion-button:not(.completion-button--preview-suppressed):focus-visible .completion-button__state {
+  display: none;
+}
+
+.completion-button:not(.completion-button--preview-suppressed):hover:not(:disabled) .completion-button__action,
+.completion-button:not(.completion-button--preview-suppressed):focus-visible .completion-button__action {
+  display: inline-flex;
 }
 
 .icon-button {
