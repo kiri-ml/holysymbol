@@ -91,7 +91,7 @@ export const ptBR = {
     expGained: 'EXP ganha',
     billableTime: 'Tempo faturável',
     noBuyersTitle: 'Ainda não há compradores',
-    noBuyersBody: 'Adicione o nome no jogo do comprador para buscar a EXP inicial dele.',
+    noBuyersBody: 'Adicione um comprador para buscar a EXP inicial dele.',
     refreshed: '{{count}} atualizados',
     thisCharacter: 'este personagem',
   },

@@ -91,7 +91,7 @@ export const de = {
     expGained: 'Erhaltene EXP',
     billableTime: 'Abrechenbare Zeit',
     noBuyersTitle: 'Noch keine Käufer',
-    noBuyersBody: 'Füge den Spielnamen des Käufers hinzu, um seine Start-EXP abzurufen.',
+    noBuyersBody: 'Füge einen Käufer hinzu, um seine Start-EXP abzurufen.',
     refreshed: '{{count}} aktualisiert',
     thisCharacter: 'dieser Charakter',
   },

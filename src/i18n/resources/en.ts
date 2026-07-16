@@ -89,7 +89,7 @@ export const en = {
     expGained: 'EXP gained',
     billableTime: 'Billable time',
     noBuyersTitle: 'No buyers yet',
-    noBuyersBody: "Add the buyer's in-game name to fetch their start EXP.",
+    noBuyersBody: 'Add a buyer to fetch their starting EXP.',
     refreshed: '{{count}} refreshed',
     thisCharacter: 'this character',
   },

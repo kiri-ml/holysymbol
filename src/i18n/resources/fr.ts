@@ -91,7 +91,7 @@ export const fr = {
     expGained: 'EXP gagnée',
     billableTime: 'Temps facturable',
     noBuyersTitle: 'Aucun acheteur pour le moment',
-    noBuyersBody: 'Ajoute le nom en jeu de l’acheteur pour récupérer son EXP de départ.',
+    noBuyersBody: 'Ajoute un acheteur pour récupérer son EXP de départ.',
     refreshed: '{{count}} actualisés',
     thisCharacter: 'ce personnage',
   },

@@ -91,7 +91,7 @@ export const nl = {
     expGained: 'Verdiende EXP',
     billableTime: 'Factureerbare tijd',
     noBuyersTitle: 'Nog geen kopers',
-    noBuyersBody: 'Voeg de spelnaam van de koper toe om de start-EXP op te halen.',
+    noBuyersBody: 'Voeg een koper toe om de start-EXP op te halen.',
     refreshed: '{{count}} vernieuwd',
     thisCharacter: 'dit personage',
   },
