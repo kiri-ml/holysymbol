@@ -1,9 +1,4 @@
-const LEGENDS_ORIGIN = 'https://legends.ml';
-const MAX_BATCH_SIZE = 50;
-
-type BatchResult =
-  | { ign: string; character: unknown }
-  | { ign: string; error: { status: number; message: string } };
+import { fetchCharacter, MAX_BATCH_SIZE, normalizeIgns } from '../../shared/legendsCharacters';
 
 function jsonResponse(body: unknown, init: ResponseInit = {}) {
   return new Response(JSON.stringify(body), {
@@ -17,36 +12,7 @@ function jsonResponse(body: unknown, init: ResponseInit = {}) {
   });
 }
 
-function normalizeIgns(value: unknown) {
-  if (!Array.isArray(value)) return null;
-  const unique = new Map<string, string>();
-  for (const valueIgn of value) {
-    if (typeof valueIgn !== 'string') return null;
-    const ign = valueIgn.trim();
-    if (ign && !unique.has(ign.toLocaleLowerCase())) unique.set(ign.toLocaleLowerCase(), ign);
-  }
-  return [...unique.values()];
-}
-
-async function fetchCharacter(ign: string): Promise<BatchResult> {
-  try {
-    const response = await fetch(`${LEGENDS_ORIGIN}/api/character?name=${encodeURIComponent(ign)}`, {
-      cache: 'no-store',
-      headers: {
-        accept: 'application/json',
-        'user-agent': 'legends-leech-calculator/0.1 (+https://legends.ml)',
-      },
-    });
-    if (!response.ok) {
-      return { ign, error: { status: response.status, message: 'Could not fetch character.' } };
-    }
-    return { ign, character: await response.json() };
-  } catch {
-    return { ign, error: { status: 502, message: 'Could not fetch character.' } };
-  }
-}
-
-export async function onRequestPost(context: any) {
+export async function onRequestPost(context: { request: Request }) {
   let body: unknown;
   try {
     body = await context.request.json();
