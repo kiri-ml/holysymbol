@@ -100,7 +100,7 @@ export type BuyerCalculation = {
 
 export type InstanceCalculation = {
   buyerCount: number;
-  completedBuyerCount: number;
+  doneBuyerCount: number;
   totalExpGained: number;
   billableMs?: number;
   totalMesosDue: number;

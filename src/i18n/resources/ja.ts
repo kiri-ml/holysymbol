@@ -92,7 +92,8 @@ export const ja = {
     billableTime: '請求時間',
     noBuyersTitle: 'まだ買い手がいません',
     noBuyersBody: '買い手を追加して開始時の経験値を取得します。',
-    refreshed: '{{count}}件更新済み',
+    done: '{{count}}人完了',
+    allActive: '全員進行中',
     thisCharacter: 'このキャラクター',
   },
   run: {

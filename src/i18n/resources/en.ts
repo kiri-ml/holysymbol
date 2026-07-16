@@ -90,7 +90,9 @@ export const en = {
     billableTime: 'Billable time',
     noBuyersTitle: 'No buyers yet',
     noBuyersBody: 'Add a buyer to fetch their starting EXP.',
-    refreshed: '{{count}} refreshed',
+    done_one: '{{count}} done',
+    done_other: '{{count}} done',
+    allActive: 'All active',
     thisCharacter: 'this character',
   },
   run: {
@@ -169,4 +171,11 @@ export const en = {
   },
 };
 
-export type LocaleTranslations = typeof en;
+type BuyerTranslations = Omit<typeof en.buyer, 'done_one' | 'done_other'> & (
+  | { done: string }
+  | { done_one: string; done_other: string }
+);
+
+export type LocaleTranslations = Omit<typeof en, 'buyer'> & {
+  buyer: BuyerTranslations;
+};

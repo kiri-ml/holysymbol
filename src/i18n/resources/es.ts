@@ -92,7 +92,9 @@ export const es = {
     billableTime: 'Tiempo facturable',
     noBuyersTitle: 'Aún no hay compradores',
     noBuyersBody: 'Añade un comprador para obtener su EXP inicial.',
-    refreshed: '{{count}} actualizados',
+    done_one: '{{count}} finalizado',
+    done_other: '{{count}} finalizados',
+    allActive: 'Todos activos',
     thisCharacter: 'este personaje',
   },
   run: {

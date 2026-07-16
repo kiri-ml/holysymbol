@@ -1624,7 +1624,7 @@ function RunTools({ instance, now }: { instance: LeechInstance; now: number }) {
         <div className="tool-stat">
           <span>{t('status.buyers')}</span>
           <strong>{summary.buyerCount}</strong>
-          <small>{t('buyer.refreshed', { count: summary.completedBuyerCount })}</small>
+          <small>{summary.doneBuyerCount > 0 ? t('buyer.done', { count: summary.doneBuyerCount }) : t('buyer.allActive')}</small>
         </div>
         <div className="tool-stat">
           <span>{t('status.totalExp')}</span>

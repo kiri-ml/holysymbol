@@ -92,7 +92,8 @@ export const nl = {
     billableTime: 'Factureerbare tijd',
     noBuyersTitle: 'Nog geen kopers',
     noBuyersBody: 'Voeg een koper toe om de start-EXP op te halen.',
-    refreshed: '{{count}} vernieuwd',
+    done: '{{count}} voltooid',
+    allActive: 'Allemaal actief',
     thisCharacter: 'dit personage',
   },
   run: {

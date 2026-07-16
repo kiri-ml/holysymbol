@@ -92,7 +92,8 @@ export const zhHans = {
     billableTime: '计费时间',
     noBuyersTitle: '还没有买家',
     noBuyersBody: '添加买家即可获取起始经验。',
-    refreshed: '已刷新{{count}}个',
+    done: '{{count}}个已完成',
+    allActive: '全部进行中',
     thisCharacter: '该角色',
   },
   run: {

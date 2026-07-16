@@ -3,7 +3,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 import { DEFAULT_LOCALE, SUPPORTED_LOCALE_CODES, type SupportedLocale } from './locales';
 import { de } from './resources/de';
-import { en } from './resources/en';
+import { en, type LocaleTranslations } from './resources/en';
 import { es } from './resources/es';
 import { fr } from './resources/fr';
 import { ja } from './resources/ja';
@@ -46,7 +46,7 @@ const resources = {
   nl: {
     translation: nl,
   },
-} satisfies Record<SupportedLocale, { translation: typeof en }>;
+} satisfies Record<SupportedLocale, { translation: LocaleTranslations }>;
 
 void i18n
   .use(LanguageDetector)

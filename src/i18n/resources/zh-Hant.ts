@@ -92,7 +92,8 @@ export const zhHant = {
     billableTime: '計費時間',
     noBuyersTitle: '還沒有買家',
     noBuyersBody: '新增買家即可取得起始經驗。',
-    refreshed: '已刷新{{count}}個',
+    done: '{{count}}個已完成',
+    allActive: '全部進行中',
     thisCharacter: '該角色',
   },
   run: {

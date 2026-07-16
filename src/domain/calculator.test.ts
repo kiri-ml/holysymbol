@@ -150,9 +150,21 @@ describe('EXP and billing math', () => {
     const instance = ratioInstance(buyer(snapshot(50, 0), snapshot(51, 0)));
     const result = calculateInstance(instance);
 
-    expect(result.completedBuyerCount).toBe(1);
+    expect(result.doneBuyerCount).toBe(0);
     expect(result.totalExpGained).toBe(709_716);
     expect(result.totalMesosDue).toBeCloseTo(709_716 / 3.3);
+  });
+
+  it('counts locked populated buyers as done', () => {
+    const populatedBuyer = { ...buyer(snapshot(50, 0), snapshot(51, 0)), locked: true };
+    const emptyBuyer = { ...buyer(), id: 'empty-buyer', ign: '', locked: true };
+    const result = calculateInstance({
+      ...ratioInstance(populatedBuyer),
+      buyers: [populatedBuyer, emptyBuyer],
+    });
+
+    expect(result.buyerCount).toBe(1);
+    expect(result.doneBuyerCount).toBe(1);
   });
 
   it('sums tiered buyer dues instead of applying one ratio to aggregate EXP', () => {

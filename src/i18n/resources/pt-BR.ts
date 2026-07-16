@@ -92,7 +92,9 @@ export const ptBR = {
     billableTime: 'Tempo faturável',
     noBuyersTitle: 'Ainda não há compradores',
     noBuyersBody: 'Adicione um comprador para buscar a EXP inicial dele.',
-    refreshed: '{{count}} atualizados',
+    done_one: '{{count}} concluído',
+    done_other: '{{count}} concluídos',
+    allActive: 'Todos ativos',
     thisCharacter: 'este personagem',
   },
   run: {

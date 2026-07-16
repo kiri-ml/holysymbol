@@ -92,7 +92,8 @@ export const ko = {
     billableTime: '청구 시간',
     noBuyersTitle: '아직 구매자가 없습니다',
     noBuyersBody: '구매자를 추가해 시작 경험치를 가져오세요.',
-    refreshed: '{{count}}명 갱신됨',
+    done: '{{count}}명 완료',
+    allActive: '모두 진행 중',
     thisCharacter: '이 캐릭터',
   },
   run: {

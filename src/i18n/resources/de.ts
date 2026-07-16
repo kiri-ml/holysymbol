@@ -92,7 +92,8 @@ export const de = {
     billableTime: 'Abrechenbare Zeit',
     noBuyersTitle: 'Noch keine Käufer',
     noBuyersBody: 'Füge einen Käufer hinzu, um seine Start-EXP abzurufen.',
-    refreshed: '{{count}} aktualisiert',
+    done: '{{count}} abgeschlossen',
+    allActive: 'Alle aktiv',
     thisCharacter: 'dieser Charakter',
   },
   run: {

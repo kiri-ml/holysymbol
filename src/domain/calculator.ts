@@ -176,7 +176,9 @@ export function calculateBuyer(buyer: LeechBuyer, billing: LeechBilling, now = D
 
 export function calculateInstance(instance: LeechInstance, now = Date.now()): InstanceCalculation {
   const buyerCount = instance.buyers.filter((buyer) => buyer.start || buyer.ign.trim()).length;
-  const completedBuyerCount = instance.buyers.filter((buyer) => buyer.start && buyer.current).length;
+  const doneBuyerCount = instance.buyers.filter(
+    (buyer) => (buyer.start || buyer.ign.trim()) && buyer.locked,
+  ).length;
   const buyerCalculations = instance.buyers.map((buyer) => calculateBuyer(buyer, instance.billing, now, instance.buyers));
   const totalExpGained = buyerCalculations.reduce((total, calculation) => total + (calculation.expGained ?? 0), 0);
 
@@ -187,7 +189,7 @@ export function calculateInstance(instance: LeechInstance, now = Date.now()): In
     );
     return {
       buyerCount,
-      completedBuyerCount,
+      doneBuyerCount,
       totalExpGained,
       totalMesosDue,
     };
@@ -201,7 +203,7 @@ export function calculateInstance(instance: LeechInstance, now = Date.now()): In
 
   return {
     buyerCount,
-    completedBuyerCount,
+    doneBuyerCount,
     totalExpGained,
     billableMs,
     totalMesosDue: totalHourlyMesos,
