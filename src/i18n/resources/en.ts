@@ -167,4 +167,6 @@ export const en = {
     mesosDue: 'mesos_due',
     billableMs: 'billable_ms',
   },
-} as const;
+};
+
+export type LocaleTranslations = typeof en;

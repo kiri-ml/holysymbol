@@ -1,3 +1,5 @@
+import type { LocaleTranslations } from './en';
+
 export const zhHant = {
   app: {
     name: 'Holy Symbol',
@@ -167,4 +169,4 @@ export const zhHant = {
     mesosDue: '應付楓幣',
     billableMs: '計費毫秒',
   },
-} as const;
+} satisfies LocaleTranslations;

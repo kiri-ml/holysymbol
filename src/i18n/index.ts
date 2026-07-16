@@ -15,10 +15,6 @@ import { zhHant } from './resources/zh-Hant';
 
 const LANGUAGE_STORAGE_KEY = 'holy-symbol.language.v1';
 
-type TranslationShape<T> = {
-  readonly [K in keyof T]: T[K] extends string ? string : TranslationShape<T[K]>;
-};
-
 const resources = {
   en: {
     translation: en,
@@ -50,7 +46,7 @@ const resources = {
   nl: {
     translation: nl,
   },
-} satisfies Record<SupportedLocale, { translation: TranslationShape<typeof en> }>;
+} satisfies Record<SupportedLocale, { translation: typeof en }>;
 
 void i18n
   .use(LanguageDetector)

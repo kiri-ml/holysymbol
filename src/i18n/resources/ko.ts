@@ -1,3 +1,5 @@
+import type { LocaleTranslations } from './en';
+
 export const ko = {
   app: {
     name: 'Holy Symbol',
@@ -167,4 +169,4 @@ export const ko = {
     mesosDue: '받을 메소',
     billableMs: '청구 시간(ms)',
   },
-} as const;
+} satisfies LocaleTranslations;

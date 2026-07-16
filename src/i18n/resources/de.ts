@@ -1,3 +1,5 @@
+import type { LocaleTranslations } from './en';
+
 export const de = {
   app: {
     name: 'Holy Symbol',
@@ -167,4 +169,4 @@ export const de = {
     mesosDue: 'faellige_mesos',
     billableMs: 'abrechenbare_ms',
   },
-} as const;
+} satisfies LocaleTranslations;

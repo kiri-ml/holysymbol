@@ -1,3 +1,5 @@
+import type { LocaleTranslations } from './en';
+
 export const fr = {
   app: {
     name: 'Holy Symbol',
@@ -167,4 +169,4 @@ export const fr = {
     mesosDue: 'mesos_dus',
     billableMs: 'ms_facturables',
   },
-} as const;
+} satisfies LocaleTranslations;

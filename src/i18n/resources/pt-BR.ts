@@ -1,3 +1,5 @@
+import type { LocaleTranslations } from './en';
+
 export const ptBR = {
   app: {
     name: 'Holy Symbol',
@@ -167,4 +169,4 @@ export const ptBR = {
     mesosDue: 'mesos_a_pagar',
     billableMs: 'ms_cobraveis',
   },
-} as const;
+} satisfies LocaleTranslations;
