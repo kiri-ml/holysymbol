@@ -28,4 +28,9 @@ describe('POST /api/characters', () => {
     expect((await onRequestPost(context({ igns: [] }))).status).toBe(400);
     expect((await onRequestPost(context({ igns: Array.from({ length: 51 }, (_, index) => `Buyer${index}`) }))).status).toBe(400);
   });
+
+  it('does not opt into cross-origin access', async () => {
+    const response = await onRequestPost(context({ igns: [] }));
+    expect(response.headers.has('access-control-allow-origin')).toBe(false);
+  });
 });
