@@ -79,7 +79,6 @@ function normalizeHourlyBilling(value: unknown) {
   return {
     type: 'hourly' as const,
     hourlyRateMesos: nonNegativeNumber(source.hourlyRateMesos, 12_000_000),
-    expPerHourMillions: nonNegativeNumber(source.expPerHourMillions, 35),
     timer: normalizeTimer(source.timer),
   };
 }

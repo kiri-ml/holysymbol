@@ -144,7 +144,7 @@ function isEmptyBuyer(buyer: LeechBuyer) {
 }
 
 function isEmptyInstance(instance: LeechInstance) {
-  if (instance.buyers.some((buyer) => !isEmptyBuyer(buyer)) || instance.quote) return false;
+  if (instance.buyers.some((buyer) => !isEmptyBuyer(buyer))) return false;
   if (instance.billing.type !== 'hourly') return true;
   return instance.billing.timer.status === 'idle' && instance.billing.timer.accumulatedMs === 0 && !instance.billing.timer.lastStartedAt;
 }
@@ -1569,24 +1569,7 @@ function RunRail({
   );
 }
 
-function RunTools({ instance, now }: { instance?: LeechInstance; now: number }) {
-  const { t } = useTranslation();
-  if (!instance) {
-    return (
-      <section className="panel run-tools">
-        <div className="panel-heading">
-          <div>
-            <h2>{t('status.heading')}</h2>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  return <RunToolsContent instance={instance} now={now} />;
-}
-
-function RunToolsContent({ instance, now }: { instance: LeechInstance; now: number }) {
+function RunTools({ instance, now }: { instance: LeechInstance; now: number }) {
   const { t } = useTranslation();
   const [totalDueCopied, setTotalDueCopied] = useState(false);
   const totalDueCopyFeedbackTimerRef = useRef<number | null>(null);
@@ -1805,30 +1788,28 @@ export default function App() {
 
         <section className="ledger-column instances-section" aria-label={t('run.selectedLedger')}>
           {selectedInstance ? (
-            <div className="instances-stack">
-              <LeechInstanceCard
-                key={selectedInstance.id}
-                instance={selectedInstance}
-                index={displayedInstances.findIndex((instance) => instance.id === selectedInstance.id)}
-                highlighted={selectedInstance.id === highlightedRunId}
-                busyKey={busyKey}
-                now={now}
-                onFetchSnapshot={loadCharacter}
-                onFetchSnapshots={loadCharacters}
-                copiedBuyerId={copiedBuyerId}
-                onDueCopied={showCopiedBuyer}
-                onUpdate={upsertInstance}
-                onDelete={() => {
-                  if (!isEmptyInstance(selectedInstance) && !confirmDeletion(t('confirm.deleteRun', { name: selectedInstance.name }))) return;
-                  setInstances((current) => (current.length <= 1 ? [emptyInstance()] : current.filter((item) => item.id !== selectedInstance.id)));
-                }}
-              />
-            </div>
+            <LeechInstanceCard
+              key={selectedInstance.id}
+              instance={selectedInstance}
+              index={displayedInstances.findIndex((instance) => instance.id === selectedInstance.id)}
+              highlighted={selectedInstance.id === highlightedRunId}
+              busyKey={busyKey}
+              now={now}
+              onFetchSnapshot={loadCharacter}
+              onFetchSnapshots={loadCharacters}
+              copiedBuyerId={copiedBuyerId}
+              onDueCopied={showCopiedBuyer}
+              onUpdate={upsertInstance}
+              onDelete={() => {
+                if (!isEmptyInstance(selectedInstance) && !confirmDeletion(t('confirm.deleteRun', { name: selectedInstance.name }))) return;
+                setInstances((current) => (current.length <= 1 ? [emptyInstance()] : current.filter((item) => item.id !== selectedInstance.id)));
+              }}
+            />
           ) : null}
         </section>
 
         <aside className="tools-column">
-          <RunTools instance={selectedInstance} now={now} />
+          {selectedInstance ? <RunTools instance={selectedInstance} now={now} /> : null}
           <QuickEstimate estimate={estimate} onChange={setEstimate} />
         </aside>
       </div>

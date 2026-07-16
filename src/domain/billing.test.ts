@@ -73,7 +73,6 @@ describe('billing mode switching', () => {
       billing: {
         type: 'hourly',
         hourlyRateMesos: 20_000_000,
-        expPerHourMillions: 45,
         timer: {
           status: 'running',
           accumulatedMs: 0,
@@ -91,7 +90,6 @@ describe('billing mode switching', () => {
     expect(hourlyRun.billing).toEqual({
       type: 'hourly',
       hourlyRateMesos: 20_000_000,
-      expPerHourMillions: 45,
       timer: {
         status: 'paused',
         accumulatedMs: 3_600_000,

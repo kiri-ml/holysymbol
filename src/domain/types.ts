@@ -63,8 +63,6 @@ export type HourlyBilling = {
   type: 'hourly';
   /** Mesos per hour, e.g. 12_000_000 for 12M/hr. */
   hourlyRateMesos: number;
-  /** Expected EXP per hour in millions, used only by Quick Estimate. */
-  expPerHourMillions: number;
   timer: LeechTimer;
 };
 
@@ -84,22 +82,12 @@ export type LeechBuyer = {
   hourly?: BuyerHourlyState;
 };
 
-export type EstimateQuote = {
-  fromLevel: number;
-  fromExpPercent: number;
-  toLevel: number;
-  toExpPercent: number;
-  expNeeded: number;
-  createdAt: string;
-};
-
 export type LeechInstance = {
   id: string;
   name: string;
   billing: LeechBilling;
   inactiveBilling?: InactiveBilling;
   buyers: LeechBuyer[];
-  quote?: EstimateQuote;
   createdAt: string;
   lastCurrentRefreshedAt?: string;
 };

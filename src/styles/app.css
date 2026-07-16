@@ -458,7 +458,6 @@ h3 {
 }
 
 .panel-heading,
-.section-heading,
 .instance-header,
 .buyers-header {
   display: flex;
@@ -467,8 +466,7 @@ h3 {
   align-items: flex-start;
 }
 
-.panel-heading h2,
-.section-heading h2 {
+.panel-heading h2 {
   color: var(--ink);
   font-size: 1.12rem;
   line-height: 1.2;
@@ -476,7 +474,6 @@ h3 {
 }
 
 .panel-heading p,
-.section-heading p,
 .buyers-header p {
   margin-top: 0.25rem;
   color: var(--muted);
@@ -813,7 +810,6 @@ h3 {
 }
 
 .instances-section,
-.instances-stack,
 .leech-instance {
   display: grid;
   gap: var(--space-4);
@@ -1190,16 +1186,6 @@ input.ratio-tier-control::placeholder {
   border-color: var(--border-strong);
   background: var(--control-hover);
   color: var(--ink);
-}
-
-.ghost-button {
-  background: transparent;
-  color: var(--primary-strong);
-  padding-inline: var(--space-2);
-}
-
-.ghost-button:hover:not(:disabled) {
-  background: var(--primary-softer);
 }
 
 .danger-button {
@@ -1773,12 +1759,6 @@ input.ratio-tier-control::placeholder {
   border: 1px solid var(--info);
   background: var(--info-soft);
   color: var(--info);
-}
-
-.error-text {
-  color: var(--danger);
-  font-weight: 720;
-  margin: 0;
 }
 
 .spin {

@@ -25,11 +25,6 @@ export function formatExp(value: number | undefined) {
   return EXP_FORMAT.format(Math.max(0, Math.round(value)));
 }
 
-export function formatMesos(value: number | undefined) {
-  if (value === undefined || !Number.isFinite(value)) return '—';
-  return `${MESO_FORMAT.format(Math.max(0, Math.round(value)))} mesos`;
-}
-
 export function formatMesosValue(value: number | undefined) {
   if (value === undefined || !Number.isFinite(value)) return '—';
   return MESO_FORMAT.format(Math.max(0, Math.round(value)));
@@ -102,17 +97,4 @@ export function formatLocalDateTime(iso: string | undefined) {
     hour: '2-digit',
     minute: '2-digit',
   });
-}
-
-export function toDateTimeLocalValue(iso: string) {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
-  const offsetMs = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
-}
-
-export function fromDateTimeLocalValue(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return new Date().toISOString();
-  return date.toISOString();
 }

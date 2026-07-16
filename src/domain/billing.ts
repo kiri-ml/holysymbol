@@ -22,7 +22,6 @@ export const DEFAULT_RATIO_BILLING: RatioBilling = {
 export const DEFAULT_HOURLY_BILLING: HourlyBilling = {
   type: 'hourly',
   hourlyRateMesos: 12_000_000,
-  expPerHourMillions: 35,
   timer: { status: 'idle', accumulatedMs: 0 },
 };
 
