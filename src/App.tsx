@@ -52,6 +52,23 @@ import type {
   TimerStatus,
 } from './domain/types';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import {
+  Button,
+  IconButton,
+  InputAddon,
+  InputGroup,
+  SegmentedControl,
+  SegmentedControlButton,
+  Stat,
+  Surface,
+  Tooltip,
+  TooltipContent,
+  cx,
+  fieldLabelClass,
+  groupedInputClass,
+  inputClass,
+  selectClass,
+} from './ui/primitives';
 import { i18n, setLanguagePreference } from './i18n';
 import { DEFAULT_LOCALE, isSupportedLocale, SUPPORTED_LOCALES } from './i18n/locales';
 import './styles/app.css';
@@ -315,34 +332,54 @@ function SnapshotSummary({
 }) {
   const { t } = useTranslation();
   const sourceLabel = snapshot?.source === 'manual' ? t('snapshot.entered') : t('snapshot.refreshed');
+  const titleClass = tone === 'start'
+    ? 'text-emerald-700 dark:text-emerald-300'
+    : 'text-sky-700 dark:text-sky-300';
 
   return (
-    <div className={`snapshot-summary snapshot-summary--${tone}`}>
-      <div className="snapshot-summary__head">
+    <div
+      className={cx(
+        'grid gap-3 rounded-xl border p-3',
+        tone === 'start'
+          ? 'border-emerald-200 bg-emerald-50/70 dark:border-emerald-900/70 dark:bg-emerald-950/30'
+          : 'border-sky-200 bg-sky-50/70 dark:border-sky-900/70 dark:bg-sky-950/30',
+      )}
+    >
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <span>{title}</span>
-          <strong>{snapshotShort(snapshot, t)}</strong>
+          <span className={cx('text-xs font-semibold uppercase tracking-wide', titleClass)}>{title}</span>
+          <strong className="block text-sm font-bold text-slate-950 dark:text-white">{snapshotShort(snapshot, t)}</strong>
         </div>
-        <button type="button" className="icon-button snapshot-refresh-button" onClick={onRefresh} disabled={refreshDisabled} aria-label={refreshLabel}>
-          <RefreshCw size={15} className={refreshing ? 'spin' : ''} />
-        </button>
+        <IconButton type="button" className="border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800" onClick={onRefresh} disabled={refreshDisabled} aria-label={refreshLabel}>
+          <RefreshCw size={15} className={refreshing ? 'animate-spin' : undefined} />
+        </IconButton>
       </div>
-      <small>{snapshot ? `${formatLocalDateTime(snapshot.capturedAt)} · ${sourceLabel}` : t('snapshot.emptyPrompt')}</small>
-      <div className="manual-snapshot">
+      <small className="text-xs text-slate-500 dark:text-slate-400">
+        {snapshot ? `${formatLocalDateTime(snapshot.capturedAt)} · ${sourceLabel}` : t('snapshot.emptyPrompt')}
+      </small>
+      <div className="border-t border-dashed border-slate-200 pt-3 dark:border-slate-700">
         <LevelExpInputs value={draft} onChange={onDraftChange} onCommit={onCommitDraft} />
       </div>
     </div>
   );
 }
 
+function StepHeading({ step, title }: { step: string; title: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="grid size-6 place-items-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
+        {step}
+      </span>
+      <strong className="text-sm font-semibold text-slate-900 dark:text-white">{title}</strong>
+    </div>
+  );
+}
+
 function FlowCard({ step, title, labels, children }: { step: string; title: string; labels: ReactNode; children: ReactNode }) {
   return (
-    <div className="flow-card">
-      <div className="flow-card__top">
-        <div className="flow-card__heading">
-          <span>{step}</span>
-          <strong>{title}</strong>
-        </div>
+    <div className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-950/40">
+      <div className="flex items-start justify-between gap-3">
+        <StepHeading step={step} title={title} />
         {labels}
       </div>
       {children}
@@ -359,20 +396,20 @@ function ThemeSwitch({ theme, onChange }: { theme: ThemeMode; onChange: (theme: 
   ];
 
   return (
-    <div className="theme-switch segmented-control topbar-control" role="group" aria-label={t('theme.label')}>
+    <SegmentedControl className="w-full sm:w-auto" role="group" aria-label={t('theme.label')}>
       {options.map((option) => (
-        <button
+        <SegmentedControlButton
           key={option.value}
           type="button"
-          className={theme === option.value ? 'active' : ''}
+          className="flex-1 sm:flex-none"
           onClick={() => onChange(option.value)}
           aria-pressed={theme === option.value}
         >
           {option.icon}
-          <span>{option.label}</span>
-        </button>
+          <span className="hidden lg:inline">{option.label}</span>
+        </SegmentedControlButton>
       ))}
-    </div>
+    </SegmentedControl>
   );
 }
 
@@ -385,9 +422,10 @@ function LanguageSelect() {
       : DEFAULT_LOCALE;
 
   return (
-    <label className="language-select">
+    <label className="relative flex min-h-10 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-slate-500 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800">
       <Languages size={15} aria-hidden="true" />
       <select
+        className="absolute inset-0 cursor-pointer opacity-0 sm:static sm:h-auto sm:w-auto sm:appearance-none sm:border-0 sm:bg-transparent sm:p-0 sm:text-sm sm:font-semibold sm:text-slate-700 sm:opacity-100 sm:dark:text-slate-200"
         value={selectedLanguage}
         onChange={(event) => {
           if (isSupportedLocale(event.target.value)) void setLanguagePreference(event.target.value);
@@ -409,6 +447,7 @@ type EditableNumberInputProps = Omit<ComponentPropsWithoutRef<'input'>, 'value' 
   onValueChange: (value: number) => void;
   emptyValue?: number;
   normalize?: (value: number) => number;
+  appearance?: 'default' | 'grouped';
 };
 
 function EditableNumberInput({
@@ -416,8 +455,10 @@ function EditableNumberInput({
   onValueChange,
   emptyValue = 0,
   normalize = (nextValue) => nextValue,
+  appearance = 'default',
   onBlur,
   onFocus,
+  className,
   ...inputProps
 }: EditableNumberInputProps) {
   const [text, setText] = useState(numberInputText(value));
@@ -436,6 +477,7 @@ function EditableNumberInput({
   return (
     <input
       {...inputProps}
+      className={cx(appearance === 'grouped' ? groupedInputClass : inputClass, className)}
       value={text}
       onFocus={(event) => {
         focusedRef.current = true;
@@ -474,9 +516,10 @@ function RatioInput({
 }) {
   const { t } = useTranslation();
   return (
-    <span className={`ratio-input${className ? ` ${className}` : ''}`}>
-      <span>{t('common.ratioPrefix')}</span>
+    <InputGroup className={className}>
+      <InputAddon side="left">{t('common.ratioPrefix')}</InputAddon>
       <EditableNumberInput
+        appearance="grouped"
         type="number"
         min={0.1}
         step={0.1}
@@ -486,7 +529,16 @@ function RatioInput({
         aria-label={ariaLabel}
         onValueChange={onValueChange}
       />
-    </span>
+    </InputGroup>
+  );
+}
+
+function UnitInput({ children, suffix }: { children: ReactNode; suffix: string }) {
+  return (
+    <InputGroup>
+      {children}
+      <InputAddon>{suffix}</InputAddon>
+    </InputGroup>
   );
 }
 
@@ -554,8 +606,8 @@ function LevelExpInputs({
   }
 
   return (
-    <div className="level-exp-grid" onBlur={handleBlur}>
-      <label>
+    <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1" onBlur={handleBlur}>
+      <label className={fieldLabelClass}>
         {prefix}{t('common.level')}
         <EditableNumberInput
           type="number"
@@ -568,7 +620,7 @@ function LevelExpInputs({
           onValueChange={(level) => updateValue({ ...value, level })}
         />
       </label>
-      <label>
+      <label className={fieldLabelClass}>
         {prefix}{t('common.expPercent')}
         <EditableNumberInput
           type="number"
@@ -620,7 +672,7 @@ function EstimateLevelExpInputs({
   }
 
   return (
-    <div className="estimate-level-inputs" onBlur={handleBlur}>
+    <div className="grid grid-cols-[minmax(0,0.8fr)_minmax(0,1fr)] gap-2" onBlur={handleBlur}>
       <EditableNumberInput
         type="number"
         min={1}
@@ -700,27 +752,35 @@ function QuickEstimate({
   }
 
   return (
-    <section className="panel estimate-panel">
-      <div className="panel-heading">
+    <Surface className="grid gap-4 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2>{t('calculator.heading')}</h2>
         </div>
-        <div className="segmented-control" role="group" aria-label={t('billing.estimateType')}>
-          <button type="button" className={estimate.billingType === 'ratio' ? 'active' : ''} onClick={() => onChange({ ...estimate, billingType: 'ratio' })}>
+        <SegmentedControl role="group" aria-label={t('billing.estimateType')}>
+          <SegmentedControlButton
+            type="button"
+            aria-pressed={estimate.billingType === 'ratio'}
+            onClick={() => onChange({ ...estimate, billingType: 'ratio' })}
+          >
             {t('billing.ratio')}
-          </button>
-          <button type="button" className={estimate.billingType === 'hourly' ? 'active' : ''} onClick={() => onChange({ ...estimate, billingType: 'hourly' })}>
+          </SegmentedControlButton>
+          <SegmentedControlButton
+            type="button"
+            aria-pressed={estimate.billingType === 'hourly'}
+            onClick={() => onChange({ ...estimate, billingType: 'hourly' })}
+          >
             {t('billing.hourly')}
-          </button>
-        </div>
+          </SegmentedControlButton>
+        </SegmentedControl>
       </div>
 
-      <div className="estimate-grid">
+      <div className="grid gap-3">
         <FlowCard
           step="1"
           title={t('calculator.from')}
           labels={
-            <div className="estimate-label-row estimate-label-row--level-exp">
+            <div className="grid grid-cols-[minmax(0,0.8fr)_minmax(0,1fr)] gap-2 text-[0.65rem] font-semibold uppercase tracking-wide text-slate-400">
               <span>{t('common.level')}</span>
               <span>{t('common.expPercent')}</span>
             </div>
@@ -737,7 +797,7 @@ function QuickEstimate({
           step="2"
           title={t('calculator.to')}
           labels={
-            <div className="estimate-label-row estimate-label-row--level-exp">
+            <div className="grid grid-cols-[minmax(0,0.8fr)_minmax(0,1fr)] gap-2 text-[0.65rem] font-semibold uppercase tracking-wide text-slate-400">
               <span>{t('common.level')}</span>
               <span>{t('common.expPercent')}</span>
             </div>
@@ -755,11 +815,11 @@ function QuickEstimate({
           title={t('billing.pricing')}
           labels={
             estimate.billingType === 'ratio' ? (
-              <div className="estimate-label-row estimate-label-row--single">
+              <div className="text-[0.65rem] font-semibold uppercase tracking-wide text-slate-400">
                 <span>{t('billing.ratio')}</span>
               </div>
             ) : (
-              <div className="estimate-label-row estimate-label-row--pricing">
+              <div className="grid grid-cols-2 gap-2 text-[0.65rem] font-semibold uppercase tracking-wide text-slate-400">
                 <span>{t('calculator.price')}</span>
                 <span>{t('calculator.eph')}</span>
               </div>
@@ -767,22 +827,17 @@ function QuickEstimate({
           }
         >
           {estimate.billingType === 'ratio' ? (
-            <span className="ratio-input estimate-ratio-input">
-              <span>{t('common.ratioPrefix')}</span>
-              <EditableNumberInput
-                type="number"
-                min={0.1}
-                step={0.1}
-                value={estimate.expPerMesoRatio}
-                aria-label={t('aria.expPerMesoRatio')}
-                onValueChange={(expPerMesoRatio) => onChange({ ...estimate, expPerMesoRatio })}
-              />
-            </span>
+            <RatioInput
+              value={estimate.expPerMesoRatio}
+              ariaLabel={t('aria.expPerMesoRatio')}
+              onValueChange={(expPerMesoRatio) => onChange({ ...estimate, expPerMesoRatio })}
+            />
           ) : (
-            <div className="estimate-pricing-inputs">
+            <div className="grid grid-cols-2 gap-2 max-sm:grid-cols-1">
               <div>
-                <span className="unit-input">
+                <UnitInput suffix={t('common.millionPerHour')}>
                   <EditableNumberInput
+                    appearance="grouped"
                     type="number"
                     min={0}
                     step={0.5}
@@ -790,12 +845,12 @@ function QuickEstimate({
                     aria-label={t('aria.hourlyPriceMillions')}
                     onValueChange={(hourlyRateMillions) => onChange({ ...estimate, hourlyRateMillions })}
                   />
-                  <span>{t('common.millionPerHour')}</span>
-                </span>
+                </UnitInput>
               </div>
               <div>
-                <span className="unit-input">
+                <UnitInput suffix={t('common.millionExpPerHour')}>
                   <EditableNumberInput
+                    appearance="grouped"
                     type="number"
                     min={0}
                     step={0.01}
@@ -804,46 +859,63 @@ function QuickEstimate({
                     aria-label={t('aria.expRateMillions')}
                     onValueChange={(expPerHourMillions) => onChange({ ...estimate, expPerHourMillions })}
                   />
-                  <span>{t('common.millionExpPerHour')}</span>
-                </span>
+                </UnitInput>
               </div>
             </div>
           )}
         </FlowCard>
 
-        <div className="estimate-result flow-card">
-          <div className="flow-card__heading">
-            <span>4</span>
-            <strong>{t('calculator.result')}</strong>
+        <div className="grid grid-cols-2 gap-0 overflow-hidden rounded-xl border border-indigo-200 bg-indigo-50/60 dark:border-indigo-900/70 dark:bg-indigo-950/30">
+          <div className="col-span-full p-3">
+            <StepHeading step="4" title={t('calculator.result')} />
           </div>
           <button
             type="button"
-            className={`estimate-result__item estimate-result__item--full copy-metric${costCopied ? ' copy-metric--copied' : ''}`}
+            className={cx(
+              'col-span-full min-h-0 border-0 border-t border-indigo-100 p-3 text-left shadow-none transition dark:border-indigo-900/50',
+              costCopied
+                ? 'bg-emerald-100/70 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300'
+                : 'bg-transparent text-indigo-800 hover:bg-indigo-100/70 dark:text-indigo-300 dark:hover:bg-indigo-950/60',
+            )}
             aria-label={costCopied ? t('aria.estimatedCostCopied') : t('aria.copyEstimatedCost')}
             onClick={() => void copyEstimatedCost()}
           >
-            <span className="copy-metric__label" aria-live="polite">
-              {costCopied ? t('common.copied') : t('calculator.estimatedCost')}
-              {costCopied ? <Check size={13} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
-            </span>
-            <strong>{formatMesosShort(estimatedCost)}</strong>
-            <small>{formatMesosValue(estimatedCost)}</small>
+            <Stat
+              label={(
+                <span className="inline-flex items-center gap-1.5" aria-live="polite">
+                  {costCopied ? t('common.copied') : t('calculator.estimatedCost')}
+                  {costCopied ? <Check size={13} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
+                </span>
+              )}
+              value={formatMesosShort(estimatedCost)}
+              detail={formatMesosValue(estimatedCost)}
+              labelClassName="uppercase tracking-wide text-current"
+              valueClassName="text-2xl text-current dark:text-current"
+              detailClassName="text-current dark:text-current"
+            />
           </button>
-          <div className={`estimate-result__item${estimate.billingType === 'ratio' ? ' estimate-result__item--full' : ''}`}>
-            <span>{t('calculator.expNeeded')}</span>
-            <strong>{formatCompact(result.expNeeded)}</strong>
-            <small>{formatExp(result.expNeeded)}</small>
-          </div>
+          <Stat
+            className={cx(
+              'border-t border-indigo-100 p-3 dark:border-indigo-900/50',
+              estimate.billingType === 'ratio' && 'col-span-full',
+            )}
+            label={t('calculator.expNeeded')}
+            value={formatCompact(result.expNeeded)}
+            detail={formatExp(result.expNeeded)}
+            valueClassName="text-lg"
+          />
           {estimate.billingType === 'hourly' ? (
-            <div className="estimate-result__item">
-              <span>{t('calculator.expectedTime')}</span>
-              <strong>{formatDuration(result.expectedDurationMs)}</strong>
-              <small>{formatHours(result.expectedDurationMs)}</small>
-            </div>
+            <Stat
+              className="border-t border-indigo-100 p-3 dark:border-indigo-900/50"
+              label={t('calculator.expectedTime')}
+              value={formatDuration(result.expectedDurationMs)}
+              detail={formatHours(result.expectedDurationMs)}
+              valueClassName="text-lg"
+            />
           ) : null}
         </div>
       </div>
-    </section>
+    </Surface>
   );
 }
 
@@ -863,28 +935,44 @@ function TimerControls({
   const isRunning = billing.timer.status === 'running';
 
   return (
-    <div className={`timer-card timer-card--${billing.timer.status}`}>
-      <div className="timer-card__header">
-        <span className="billing-field-label">{t('timer.runTime')}</span>
-        <small className="timer-status">{timerStatusLabel(billing.timer.status, t)}</small>
+    <div
+      className={cx(
+        'grid gap-3 rounded-xl border p-3',
+        billing.timer.status === 'running'
+          ? 'border-emerald-200 bg-emerald-50/70 dark:border-emerald-900/70 dark:bg-emerald-950/30'
+          : billing.timer.status === 'paused'
+            ? 'border-amber-200 bg-amber-50/70 dark:border-amber-900/70 dark:bg-amber-950/30'
+            : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/50',
+      )}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{t('timer.runTime')}</span>
+        <small className={cx(
+          'inline-flex items-center gap-1.5 text-xs font-semibold',
+          billing.timer.status === 'running'
+            ? 'text-emerald-700 dark:text-emerald-300'
+            : billing.timer.status === 'paused'
+              ? 'text-amber-700 dark:text-amber-300'
+              : 'text-slate-500 dark:text-slate-400',
+        )}>{timerStatusLabel(billing.timer.status, t)}</small>
       </div>
-      <div className="timer-card__body">
-        <div className="timer-card__main">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="font-mono text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
           <strong>{formatDuration(billableMs)}</strong>
         </div>
-        <div className="timer-card__actions">
-          <button
+        <div className="flex flex-wrap gap-2 max-sm:w-full">
+          <Button
             type="button"
-            className="timer-card__toggle"
+            className="max-sm:flex-1"
             onClick={onToggle}
             aria-label={isRunning ? t('aria.pauseTimer') : t('aria.startTimer')}
           >
             {isRunning ? <Pause size={16} /> : <Play size={16} />}
             {isRunning ? t('timer.pause') : t('timer.start')}
-          </button>
-          <button type="button" className="secondary-button timer-card__reset" onClick={onReset} disabled={isRunning}>
+          </Button>
+          <Button type="button" variant="secondary" className="max-sm:flex-1" onClick={onReset} disabled={isRunning}>
             <RotateCcw size={16} /> {t('common.reset')}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -1009,70 +1097,104 @@ function BuyerRow({
   }
 
   return (
-    <article className="buyer-row-card">
-      <div className={`buyer-row-main${locked ? ' buyer-row-main--locked' : ''}`}>
-        <div className="buyer-identity-cell">
+    <Surface as="article" radius="xl" className="overflow-hidden">
+      <div className={cx(
+          'grid grid-cols-[minmax(11rem,0.9fr)_minmax(0,2.5fr)_auto] items-center gap-4 p-4 max-lg:grid-cols-1',
+          locked && 'bg-slate-50 opacity-75 dark:bg-slate-950/40',
+        )}>
+        <div className="flex min-w-0 items-center gap-3">
           {lookupIgn ? (
-            <div className="avatar-frame avatar-frame--small">
-              <img src={avatarUrl(lookupIgn, !locked)} alt="" loading="lazy" />
+            <div className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
+              <img className="h-full w-full object-contain" src={avatarUrl(lookupIgn, !locked)} alt="" loading="lazy" />
             </div>
           ) : (
-            <div className="avatar-frame avatar-frame--small avatar-frame--empty"><UserPlus size={18} /></div>
+            <div className="grid size-11 shrink-0 place-items-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-slate-400 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-500"><UserPlus size={18} /></div>
           )}
-          <div className="buyer-name-display">
-            <strong>{buyer.ign || t('buyer.placeholderName')}</strong>
+          <div className="min-w-0">
+            <strong className="block truncate text-sm font-bold text-slate-950 dark:text-white">{buyer.ign || t('buyer.placeholderName')}</strong>
             {job || guild ? (
-              <div className="buyer-character-meta">
-                {job ? <span aria-label={t('aria.job', { job })} title={job}>{job}</span> : null}
-                {guild ? <span aria-label={t('aria.guild', { guild })} title={guild}>{guild}</span> : null}
+              <div className="mt-1 flex min-w-0 flex-wrap gap-1.5">
+                {job ? <span className="max-w-full truncate rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400" aria-label={t('aria.job', { job })} title={job}>{job}</span> : null}
+                {guild ? <span className="max-w-full truncate rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400" aria-label={t('aria.guild', { guild })} title={guild}>{guild}</span> : null}
               </div>
             ) : null}
           </div>
         </div>
-        <div className="buyer-row-metrics">
-          <div className="buyer-row-stat">
-            <span>{t('common.start')}</span>
-            <strong>{snapshotShort(buyer.start, t)}</strong>
-            {buyer.start ? <small>{formatLocalDateTime(buyer.start.capturedAt)}</small> : null}
-          </div>
-          <div className="buyer-row-stat">
-            <span>{t('common.current')}</span>
-            <strong>{snapshotShort(buyer.current, t)}</strong>
-            {buyer.current ? <small>{formatLocalDateTime(buyer.current.capturedAt)}</small> : null}
-          </div>
+        <div className="grid min-w-0 grid-cols-4 divide-x divide-slate-200 dark:divide-slate-800 max-lg:grid-cols-2 max-lg:divide-x-0 max-lg:gap-y-3 max-sm:grid-cols-1">
+          <Stat
+            className="gap-0.5 px-3 first:pl-0 max-lg:px-0"
+            label={t('common.start')}
+            value={snapshotShort(buyer.start, t)}
+            detail={buyer.start ? formatLocalDateTime(buyer.start.capturedAt) : undefined}
+            labelClassName="uppercase tracking-wide text-slate-400"
+            valueClassName="text-sm"
+          />
+          <Stat
+            className="gap-0.5 px-3 first:pl-0 max-lg:px-0"
+            label={t('common.current')}
+            value={snapshotShort(buyer.current, t)}
+            detail={buyer.current ? formatLocalDateTime(buyer.current.capturedAt) : undefined}
+            labelClassName="uppercase tracking-wide text-slate-400"
+            valueClassName="text-sm"
+          />
           {instance.billing.type === 'hourly' ? (
-            <div className="buyer-row-stat">
-              <span>{t('buyer.billableTime')}</span>
-              <strong>{formatDuration(buyerBillableMs)}</strong>
-              <small>{buyerTimerRunning ? t('timer.running') : t('timer.paused')}</small>
-            </div>
+            <Stat
+              className="gap-0.5 px-3 first:pl-0 max-lg:px-0"
+              label={t('buyer.billableTime')}
+              value={formatDuration(buyerBillableMs)}
+              detail={buyerTimerRunning ? t('timer.running') : t('timer.paused')}
+              labelClassName="uppercase tracking-wide text-slate-400"
+              valueClassName="text-sm"
+            />
           ) : (
-            <div className="buyer-row-stat">
-              <span>{t('buyer.expGained')}</span>
-              <strong>{formatCompact(calc.expGained)}</strong>
-              <small>{formatExp(calc.expGained)}</small>
-            </div>
+            <Stat
+              className="gap-0.5 px-3 first:pl-0 max-lg:px-0"
+              label={t('buyer.expGained')}
+              value={formatCompact(calc.expGained)}
+              detail={formatExp(calc.expGained)}
+              labelClassName="uppercase tracking-wide text-slate-400"
+              valueClassName="text-sm"
+            />
           )}
           <div
-            className={`buyer-row-stat buyer-row-stat--due${dueCopied ? ' buyer-row-stat--copied' : ''}`}
+            className={cx(
+              'min-w-0 cursor-pointer rounded-lg px-3 py-1 outline-none transition first:pl-0 max-lg:px-2',
+              'focus-visible:ring-4 focus-visible:ring-indigo-500/20',
+              dueCopied
+                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                : 'bg-indigo-50 text-indigo-800 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-950/70',
+            )}
             role="button"
             tabIndex={0}
             aria-label={dueCopied ? t('aria.dueCopied', { name: displayIgn }) : t('aria.copyDue', { name: displayIgn })}
             onClick={() => void copyDue()}
             onKeyDown={handleDueKeyDown}
           >
-            <span className="buyer-row-stat__copy-label" aria-live="polite">
-              {dueCopied ? t('common.copied') : t('common.due')}
-              {dueCopied ? <Check size={13} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
-            </span>
-            <strong>{formatMesosShortPrecise(due)}</strong>
-            <small>{formatMesosValue(due)}</small>
+            <Stat
+              className="gap-0.5"
+              label={(
+                <span className="inline-flex items-center gap-1.5" aria-live="polite">
+                  {dueCopied ? t('common.copied') : t('common.due')}
+                  {dueCopied ? <Check size={13} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
+                </span>
+              )}
+              value={formatMesosShortPrecise(due)}
+              detail={formatMesosValue(due)}
+              labelClassName="uppercase tracking-wide text-current dark:text-current"
+              valueClassName="text-sm text-current dark:text-current"
+              detailClassName="text-current dark:text-current"
+            />
           </div>
         </div>
-        <div className="buyer-row-actions">
-          <button
+        <div className="flex gap-1 self-start md:flex-col">
+          <IconButton
             type="button"
-            className={`icon-button completion-button${locked ? ' completion-button--done' : ''}${completionPreviewSuppressed ? ' completion-button--preview-suppressed' : ''}`}
+            className={cx(
+              'group',
+              locked
+                ? 'border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/70 dark:bg-emerald-950/40 dark:text-emerald-300'
+                : 'border border-slate-200 bg-white text-slate-500 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-emerald-900 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300',
+            )}
             onClick={() => {
               setCompletionPreviewSuppressed(true);
               toggleBuyerDone();
@@ -1082,23 +1204,29 @@ function BuyerRow({
             aria-label={locked ? t('aria.reopenBuyer', { name: displayIgn }) : t('aria.markBuyerDone', { name: displayIgn })}
             aria-pressed={locked}
           >
-            <span className="completion-button__state" aria-hidden="true">
+            <span
+              className={completionPreviewSuppressed ? 'inline-flex' : 'group-hover:hidden group-focus-visible:hidden'}
+              aria-hidden="true"
+            >
               {locked ? <CircleCheckBig size={16} /> : <CircleDashed size={16} />}
             </span>
-            <span className="completion-button__action" aria-hidden="true">
+            <span
+              className={completionPreviewSuppressed ? 'hidden' : 'hidden group-hover:inline-flex group-focus-visible:inline-flex'}
+              aria-hidden="true"
+            >
               {locked ? <CircleDashed size={16} /> : <CircleCheckBig size={16} />}
             </span>
-          </button>
-          <button type="button" className="icon-button danger-button" onClick={onDelete} aria-label={t('aria.removeBuyer', { name: displayIgn })}>
+          </IconButton>
+          <IconButton type="button" variant="danger" onClick={onDelete} aria-label={t('aria.removeBuyer', { name: displayIgn })}>
             <Trash2 size={16} />
-          </button>
+          </IconButton>
         </div>
       </div>
 
       {!locked ? (
-        <details className="buyer-details">
-          <summary>{t('buyer.edit')}</summary>
-          <div className="snapshot-editor-grid">
+        <details className="border-t border-slate-200 dark:border-slate-800">
+          <summary className="cursor-pointer px-4 py-2.5 text-xs font-semibold text-indigo-600 outline-none hover:bg-slate-50 dark:text-indigo-300 dark:hover:bg-slate-800/50">{t('buyer.edit')}</summary>
+          <div className="grid grid-cols-2 gap-3 border-t border-slate-200 bg-slate-50/60 p-3 max-lg:grid-cols-1 dark:border-slate-800 dark:bg-slate-950/30">
             <SnapshotSummary
               title={t('common.start')}
               tone="start"
@@ -1127,7 +1255,7 @@ function BuyerRow({
           </div>
         </details>
       ) : null}
-    </article>
+    </Surface>
   );
 }
 
@@ -1305,41 +1433,53 @@ function LeechInstanceCard({
   }
 
   return (
-    <section className={`panel leech-instance${highlighted ? ' leech-instance--highlighted' : ''}`}>
-      <div className="instance-header">
+    <Surface
+      className={cx(
+        'overflow-hidden',
+        highlighted && 'ring-4 ring-indigo-500/20',
+      )}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-4 p-4">
         <div>
           <input
-            className="instance-title-input"
+            className="min-h-0 w-full border-0 bg-transparent p-0 text-xl font-bold tracking-tight text-slate-950 shadow-none outline-none placeholder:text-slate-400 focus:ring-0 dark:text-white"
             value={instance.name}
             onChange={(event) => onUpdate({ ...instance, name: event.target.value })}
             aria-label={t('run.nameLabel', { number: index + 1 })}
           />
-          <p className="run-created-at">
+          <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
             {instance.billing.type === 'ratio'
               ? t('billing.ratioModeSummary', { label: compactBillingLabel(instance.billing, t) })
               : t('billing.hourlyModeSummary', { label: billingLabel(instance.billing, t) })} · {t('run.created', { date: formatLocalDateTime(instance.createdAt) })}
           </p>
         </div>
-        <div className="button-row wrap">
-          <div className="segmented-control" role="group" aria-label={t('billing.type')}>
-            <button type="button" className={instance.billing.type === 'ratio' ? 'active' : ''} onClick={() => setBillingType('ratio')}>{t('billing.ratio')}</button>
-            <button type="button" className={instance.billing.type === 'hourly' ? 'active' : ''} onClick={() => setBillingType('hourly')}>{t('billing.hourly')}</button>
-          </div>
-          <button type="button" className="icon-button danger-button" onClick={onDelete} aria-label={t('run.delete')}>
+        <div className="flex flex-wrap items-center gap-2">
+          <SegmentedControl role="group" aria-label={t('billing.type')}>
+            <SegmentedControlButton type="button" aria-pressed={instance.billing.type === 'ratio'} onClick={() => setBillingType('ratio')}>
+              {t('billing.ratio')}
+            </SegmentedControlButton>
+            <SegmentedControlButton type="button" aria-pressed={instance.billing.type === 'hourly'} onClick={() => setBillingType('hourly')}>
+              {t('billing.hourly')}
+            </SegmentedControlButton>
+          </SegmentedControl>
+          <IconButton type="button" variant="danger" onClick={onDelete} aria-label={t('run.delete')}>
             <Trash2 size={16} />
-          </button>
+          </IconButton>
         </div>
       </div>
 
-      <div className={`instance-billing instance-billing--${instance.billing.type}`}>
-        <div className="billing-settings">
+      <div className={cx(
+          'grid gap-3 border-t border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/30',
+          instance.billing.type === 'hourly' && 'lg:grid-cols-[minmax(12rem,0.8fr)_minmax(20rem,1.2fr)]',
+        )}>
+        <div className="min-w-0">
           {ratioBilling ? (
-            <div className="ratio-tier-editor">
-              <div className="ratio-tier-card ratio-tier-card--base">
-                <label className="ratio-tier-stack billing-field-label">
+            <div className="flex flex-wrap items-end gap-2">
+              <div className="min-w-40 flex-1 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
+                <label className="grid gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
                   {t('billing.baseRatio')}
                   <RatioInput
-                    className="ratio-tier-control"
+                    className="w-full"
                     value={ratioBilling.expPerMesoRatio}
                     ariaLabel={t('aria.runExpRatio')}
                     onValueChange={(expPerMesoRatio) => updateBilling({ ...ratioBilling, expPerMesoRatio })}
@@ -1347,32 +1487,32 @@ function LeechInstanceCard({
                 </label>
               </div>
               {ratioBilling.tiers.map((tier, index) => (
-                <div className="ratio-tier-card" key={tier.minLevel}>
-                  <div className="ratio-tier-stack">
-                    <span className="billing-field-label ratio-tier-level">{t('billing.tierLevel')} {tier.minLevel}</span>
-                    <div className="ratio-tier-control-row">
+                <div className="min-w-44 flex-1 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900" key={tier.minLevel}>
+                  <div className="grid gap-2">
+                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{t('billing.tierLevel')} {tier.minLevel}</span>
+                    <div className="flex items-center gap-2">
                       <RatioInput
-                        className="ratio-tier-control"
+                        className="w-full"
                         value={tier.expPerMesoRatio}
                         ariaLabel={t('aria.ratioTierRatio', { number: index + 1 })}
                         onValueChange={(expPerMesoRatio) => updateRatioTierRatio(tier.minLevel, expPerMesoRatio)}
                       />
-                      <button
+                      <IconButton
                         type="button"
-                        className="icon-button danger-button"
+                        variant="danger"
                         onClick={() => removeRatioTier(tier.minLevel)}
                         aria-label={t('aria.removeRatioTier', { number: index + 1 })}
                       >
                         <Trash2 size={16} />
-                      </button>
+                      </IconButton>
                     </div>
                   </div>
                 </div>
               ))}
-              <div className="ratio-tier-card ratio-tier-card--add">
-                <label className="billing-field-label" htmlFor={ratioTierLevelId}>{t('billing.tierLevel')}</label>
+              <div className="min-w-44 flex-1 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/40">
+                <label className="text-xs font-semibold text-slate-600 dark:text-slate-300" htmlFor={ratioTierLevelId}>{t('billing.tierLevel')}</label>
                 <form
-                  className="ratio-tier-control-row"
+                  className="flex items-center gap-2"
                   onSubmit={(event) => {
                     event.preventDefault();
                     addRatioTier();
@@ -1380,7 +1520,7 @@ function LeechInstanceCard({
                 >
                   <input
                     id={ratioTierLevelId}
-                    className="ratio-tier-control"
+                    className={cx(inputClass, 'flex-1')}
                     type="number"
                     min={1}
                     max={200}
@@ -1390,26 +1530,27 @@ function LeechInstanceCard({
                     aria-label={t('aria.ratioTierLevel', { number: ratioBilling.tiers.length + 1 })}
                     onChange={(event) => setRatioTierLevelDraft(event.target.value)}
                   />
-                  <button
+                  <IconButton
                     type="submit"
-                    className="icon-button ratio-tier-add-button"
+                    className="w-auto px-3"
                     aria-label={t('billing.addTier')}
                     disabled={!canAddRatioTier}
                   >
                     <Plus size={16} aria-hidden="true" />
-                    <span className="ratio-tier-add-button__label" aria-hidden="true">
+                    <span className="hidden 2xl:inline" aria-hidden="true">
                       {t('billing.addTier')}
                     </span>
-                  </button>
+                  </IconButton>
                 </form>
               </div>
             </div>
           ) : null}
           {hourlyBilling ? (
-            <label className="compact-label hourly-rate-field billing-field-label">
+            <label className="grid max-w-sm gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
               {t('billing.hourlyRate')}
-              <span className="unit-input">
+              <UnitInput suffix={t('common.millionPerHourSpaced')}>
                 <input
+                  className={groupedInputClass}
                   type="number"
                   min={0}
                   step={0.5}
@@ -1417,8 +1558,7 @@ function LeechInstanceCard({
                   aria-label={t('aria.runHourlyPriceMillions')}
                   onChange={(event) => updateBilling({ ...hourlyBilling, hourlyRateMesos: Number(event.target.value) * 1_000_000 })}
                 />
-                <span>{t('common.millionPerHourSpaced')}</span>
-              </span>
+              </UnitInput>
             </label>
           ) : null}
         </div>
@@ -1432,57 +1572,60 @@ function LeechInstanceCard({
         ) : null}
       </div>
 
-      <div className="buyers-header buyers-toolbar">
-        <div className="buyers-heading">
-          <h3>{t('buyer.buyers')}</h3>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-4 py-3 dark:border-slate-800">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <h3 className="text-sm font-bold text-slate-950 dark:text-white">{t('buyer.buyers')}</h3>
           {instance.lastCurrentRefreshedAt ? (
-            <small>{t('snapshot.refreshed')} <time dateTime={instance.lastCurrentRefreshedAt}>{formatLocalDateTime(instance.lastCurrentRefreshedAt)}</time></small>
+            <small className="text-xs text-slate-500 dark:text-slate-400">{t('snapshot.refreshed')} <time dateTime={instance.lastCurrentRefreshedAt}>{formatLocalDateTime(instance.lastCurrentRefreshedAt)}</time></small>
           ) : null}
         </div>
-        <div className="buyers-toolbar__actions">
-          <form
-            className="add-buyer-form"
+        <div className="flex flex-wrap items-center gap-2 max-sm:w-full max-sm:flex-col max-sm:items-stretch">
+          <InputGroup
+            as="form"
             onSubmit={(event) => {
               event.preventDefault();
               void addBuyerFromInput();
             }}
           >
             <input
+              className={groupedInputClass}
               aria-label={t('buyer.ign')}
               value={newBuyerIgn}
               onChange={(event) => setNewBuyerIgn(event.target.value)}
               placeholder={t('buyer.ign')}
             />
-            <button
+            <Button
               type="submit"
+              className="rounded-none shadow-none"
               aria-label={addingBuyer ? t('buyer.adding') : t('buyer.add')}
               aria-busy={addingBuyer}
               disabled={addingBuyer || !newBuyerIgn.trim()}
             >
-              {addingBuyer ? <LoaderCircle size={16} className="spin" /> : <Plus size={16} />} {t('common.add')}
-            </button>
-          </form>
-          <div className="refresh-exp-control">
-            <button
+              {addingBuyer ? <LoaderCircle size={16} className="animate-spin" /> : <Plus size={16} />} {t('common.add')}
+            </Button>
+          </InputGroup>
+          <Tooltip className="max-sm:w-full">
+            <Button
               type="button"
-              className="secondary-button refresh-exp-button"
+              variant="secondary"
+              className="max-sm:w-full"
               onClick={refreshRunCurrentExp}
               disabled={refreshingRun || refreshableBuyers.length === 0}
               aria-describedby={refreshExpTipId}
             >
-              <RefreshCw size={16} className={refreshingRun ? 'spin' : ''} /> {refreshingRun ? t('common.refreshing') : t('common.refreshExp')}
-            </button>
-            <div id={refreshExpTipId} className="refresh-exp-tooltip" role="tooltip">
-              <strong><AlertCircle size={14} /> {t('tip.updateExpBeforeRefreshing')}</strong>
-              <span><b>{t('tip.partyUpdateTitle')}</b><em>{t('tip.partyUpdateBody')}</em></span>
-              <span><b>{t('tip.selfUpdateTitle')}</b><em>{t('tip.selfUpdateBody')}</em></span>
-            </div>
-          </div>
+              <RefreshCw size={16} className={refreshingRun ? 'animate-spin' : undefined} /> {refreshingRun ? t('common.refreshing') : t('common.refreshExp')}
+            </Button>
+            <TooltipContent id={refreshExpTipId} className="grid gap-2" role="tooltip">
+              <strong className="flex items-center gap-1.5 text-amber-700 dark:text-amber-300"><AlertCircle size={14} /> {t('tip.updateExpBeforeRefreshing')}</strong>
+              <span className="grid gap-0.5"><b className="text-slate-900 dark:text-white">{t('tip.partyUpdateTitle')}</b><em className="not-italic text-slate-500 dark:text-slate-400">{t('tip.partyUpdateBody')}</em></span>
+              <span className="grid gap-0.5"><b className="text-slate-900 dark:text-white">{t('tip.selfUpdateTitle')}</b><em className="not-italic text-slate-500 dark:text-slate-400">{t('tip.selfUpdateBody')}</em></span>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
       {instance.buyers.length > 0 ? (
-        <div className="buyer-list">
+        <div className="grid gap-3 border-t border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-950/30">
           {instance.buyers.map((buyer) => (
             <BuyerRow
               key={buyer.id}
@@ -1503,13 +1646,13 @@ function LeechInstanceCard({
           ))}
         </div>
       ) : (
-        <div className="empty-buyers-state">
-          <UserPlus size={24} />
-          <strong>{t('buyer.noBuyersTitle')}</strong>
+        <div className="grid place-items-center gap-2 border-t border-slate-200 bg-slate-50/60 px-4 py-12 text-center text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-950/30 dark:text-slate-400">
+          <UserPlus size={24} className="text-slate-400" />
+          <strong className="text-slate-900 dark:text-white">{t('buyer.noBuyersTitle')}</strong>
           <span>{t('buyer.noBuyersBody')}</span>
         </div>
       )}
-    </section>
+    </Surface>
   );
 }
 
@@ -1528,19 +1671,19 @@ function RunRail({
 }) {
   const { t } = useTranslation();
   return (
-    <aside className="run-rail" aria-label={t('run.railLabel')}>
-      <div className="rail-header">
+    <Surface as="aside" className="self-start p-3 md:sticky md:top-5" aria-label={t('run.railLabel')}>
+      <div className="mb-3 flex items-center justify-between gap-3 px-1">
         <div>
-          <span className="rail-kicker">{t('run.railKicker')}</span>
+          <span className="block text-[0.65rem] font-bold uppercase tracking-[0.16em] text-indigo-600 dark:text-indigo-300">{t('run.railKicker')}</span>
           <strong>{t('run.active', { count: instances.length })}</strong>
         </div>
-        <button type="button" className="icon-button" onClick={onAdd} aria-label={t('run.new')}>
+        <IconButton type="button" onClick={onAdd} aria-label={t('run.new')}>
           <Plus size={17} />
-        </button>
+        </IconButton>
       </div>
 
-      <label className="run-picker">
-        <select value={selectedRunId ?? ''} onChange={(event) => onSelect(event.target.value)} aria-label={t('run.selected')}>
+      <label className="relative block md:hidden">
+        <select className={cx(selectClass, 'w-full')} value={selectedRunId ?? ''} onChange={(event) => onSelect(event.target.value)} aria-label={t('run.selected')}>
           {instances.map((instance) => {
             const summary = calculateInstance(instance, now);
             return (
@@ -1552,7 +1695,7 @@ function RunRail({
         </select>
       </label>
 
-      <div className="run-tabs">
+      <div className="hidden gap-1.5 md:grid">
         {instances.map((instance) => {
           const summary = calculateInstance(instance, now);
           const selected = instance.id === selectedRunId;
@@ -1560,23 +1703,28 @@ function RunRail({
             <button
               key={instance.id}
               type="button"
-              className={`run-tab${selected ? ' run-tab--active' : ''}`}
+              className={cx(
+                'grid min-h-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border px-3 py-3 text-left shadow-none transition',
+                selected
+                  ? 'border-indigo-200 bg-indigo-50 text-indigo-950 ring-1 ring-indigo-100 hover:bg-indigo-100 dark:border-indigo-900/70 dark:bg-indigo-950/50 dark:text-indigo-100 dark:ring-indigo-900/50'
+                  : 'border-transparent bg-transparent text-slate-700 hover:border-slate-200 hover:bg-slate-50 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800/70',
+              )}
               onClick={() => onSelect(instance.id)}
               aria-current={selected ? 'true' : undefined}
             >
-              <span>
-                <strong>{instance.name || t('common.untitledRun')}</strong>
-                <small>{compactBillingLabel(instance.billing, t)}</small>
+              <span className="min-w-0">
+                <strong className="block truncate text-sm font-bold">{instance.name || t('common.untitledRun')}</strong>
+                <small className="block truncate text-xs">{compactBillingLabel(instance.billing, t)}</small>
               </span>
-              <span>
-                <b>{formatMesosShort(summary.totalMesosDue)}</b>
-                <small>{t('buyer.count', { count: summary.buyerCount })}</small>
+              <span className="min-w-0 text-right">
+                <b className="block text-sm font-bold">{formatMesosShort(summary.totalMesosDue)}</b>
+                <small className="block truncate text-xs">{t('buyer.count', { count: summary.buyerCount })}</small>
               </span>
             </button>
           );
         })}
       </div>
-    </aside>
+    </Surface>
   );
 }
 
@@ -1612,38 +1760,54 @@ function RunTools({ instance, now }: { instance: LeechInstance; now: number }) {
   }
 
   return (
-    <section className="panel run-tools">
-      <div className="panel-heading">
+    <Surface className="grid gap-3 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2>{t('status.heading')}</h2>
         </div>
       </div>
       <button
         type="button"
-        className={`tool-stat copy-metric${totalDueCopied ? ' copy-metric--copied' : ''}`}
+        className={cx(
+          'min-h-0 rounded-xl border p-3 text-left shadow-none transition',
+          totalDueCopied
+            ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/40 dark:text-emerald-300'
+            : 'border-indigo-200 bg-indigo-50 text-indigo-800 hover:bg-indigo-100 dark:border-indigo-900/70 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-950/70',
+        )}
         aria-label={totalDueCopied ? t('aria.totalDueCopied', { defaultValue: 'Total due copied' }) : t('aria.copyTotalDue', { defaultValue: 'Copy total due' })}
         onClick={() => void copyTotalDue()}
       >
-        <span className="copy-metric__label" aria-live="polite">
-          {totalDueCopied ? t('common.copied') : t('status.totalDue')}
-          {totalDueCopied ? <Check size={13} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
-        </span>
-        <strong>{formatMesosShort(summary.totalMesosDue)}</strong>
-        <small>{formatMesosValue(summary.totalMesosDue)}</small>
+        <Stat
+          label={(
+            <span className="inline-flex items-center gap-1.5" aria-live="polite">
+              {totalDueCopied ? t('common.copied') : t('status.totalDue')}
+              {totalDueCopied ? <Check size={13} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
+            </span>
+          )}
+          value={formatMesosShort(summary.totalMesosDue)}
+          detail={formatMesosValue(summary.totalMesosDue)}
+          labelClassName="uppercase tracking-wide text-current dark:text-current"
+          valueClassName="text-3xl font-extrabold tracking-tight text-current dark:text-current"
+          detailClassName="text-current dark:text-current"
+        />
       </button>
-      <div className="tools-grid">
-        <div className="tool-stat">
-          <span>{t('status.buyers')}</span>
-          <strong>{summary.buyerCount}</strong>
-          <small>{summary.doneBuyerCount > 0 ? t('buyer.done', { count: summary.doneBuyerCount }) : t('buyer.allActive')}</small>
-        </div>
-        <div className="tool-stat">
-          <span>{t('status.totalExp')}</span>
-          <strong>{formatCompact(summary.totalExpGained)}</strong>
-          <small>{formatExp(summary.totalExpGained)}</small>
-        </div>
+      <div className="grid grid-cols-2 divide-x divide-slate-200 dark:divide-slate-800">
+        <Stat
+          className="p-3"
+          label={t('status.buyers')}
+          value={summary.buyerCount}
+          detail={summary.doneBuyerCount > 0 ? t('buyer.done', { count: summary.doneBuyerCount }) : t('buyer.allActive')}
+          valueClassName="text-2xl tracking-tight"
+        />
+        <Stat
+          className="p-3"
+          label={t('status.totalExp')}
+          value={formatCompact(summary.totalExpGained)}
+          detail={formatExp(summary.totalExpGained)}
+          valueClassName="text-2xl tracking-tight"
+        />
       </div>
-    </section>
+    </Surface>
   );
 }
 
@@ -1686,7 +1850,16 @@ export default function App() {
   }, [highlightedRunId]);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
+    const root = document.documentElement;
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const applyTheme = () => {
+      const isDark = theme === 'dark' || (theme === 'system' && media.matches);
+      root.classList.toggle('dark', isDark);
+    };
+
+    applyTheme();
+    media.addEventListener('change', applyTheme);
+    return () => media.removeEventListener('change', applyTheme);
   }, [theme]);
 
   useEffect(() => {
@@ -1766,38 +1939,43 @@ export default function App() {
   );
 
   return (
-    <main className="app-shell">
-      <header className="app-topbar">
-        <div className="brand-lockup">
-          <img src="/assets/icons/hs.png" alt="" className="brand-logo" />
+    <main className="scheme-light dark:scheme-dark mx-auto min-h-screen max-w-[1800px] bg-slate-100 p-3 text-slate-950 sm:p-5 lg:p-6 dark:bg-slate-950 dark:text-slate-100">
+      <Surface as="header" className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <img src="/assets/icons/hs.png" alt="" className="size-11 rounded-xl bg-indigo-50 p-1.5 ring-1 ring-indigo-100 dark:bg-indigo-500/10 dark:ring-indigo-500/20" />
           <div>
-            <span className="app-mark">{t('app.name')}</span>
+            <span className="text-lg font-extrabold tracking-tight text-slate-950 dark:text-white">{t('app.name')}</span>
             <p>{t('app.tagline')}</p>
           </div>
         </div>
-        <div className="topbar-actions">
+        <div className="flex flex-wrap items-center gap-2">
           <ThemeSwitch theme={theme} onChange={setTheme} />
           <LanguageSelect />
-          <button type="button" className="secondary-button topbar-control topbar-export-button" onClick={() => exportInstances(instances, t, now)} disabled={instances.length === 0}>
+          <Button type="button" variant="secondary" onClick={() => exportInstances(instances, t, now)} disabled={instances.length === 0}>
             <Download size={16} /> {t('topbar.exportCsv')}
-          </button>
+          </Button>
         </div>
-      </header>
+      </Surface>
 
       {notice ? (
-        <div className={`notice notice--${notice.type}`} role={notice.type === 'error' ? 'alert' : 'status'}>
+        <div className={cx(
+          'mt-4 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold shadow-sm',
+          notice.type === 'error'
+            ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900/70 dark:bg-rose-950/40 dark:text-rose-300'
+            : 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-900/70 dark:bg-sky-950/40 dark:text-sky-300',
+        )} role={notice.type === 'error' ? 'alert' : 'status'}>
           <AlertCircle size={18} />
           <span>{notice.text}</span>
-          <button type="button" className="notice__dismiss" onClick={() => setNotice(null)} aria-label={t('common.dismiss')}>
+          <button type="button" className="ml-auto grid size-8 min-h-0 shrink-0 place-items-center rounded-full bg-transparent p-0 text-current shadow-none hover:bg-black/5 dark:hover:bg-white/10" onClick={() => setNotice(null)} aria-label={t('common.dismiss')}>
             <X size={17} />
           </button>
         </div>
       ) : null}
 
-      <div className="workbench-layout">
+      <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[15rem_minmax(0,1fr)_20rem]">
         <RunRail instances={displayedInstances} selectedRunId={selectedInstance?.id ?? null} now={now} onSelect={setSelectedRunId} onAdd={addInstance} />
 
-        <section className="ledger-column instances-section" aria-label={t('run.selectedLedger')}>
+        <section className="min-w-0 md:col-start-2 xl:col-start-2" aria-label={t('run.selectedLedger')}>
           {selectedInstance ? (
             <LeechInstanceCard
               key={selectedInstance.id}
@@ -1819,7 +1997,7 @@ export default function App() {
           ) : null}
         </section>
 
-        <aside className="tools-column">
+        <aside className="grid min-w-0 gap-4 md:col-start-2 xl:col-start-3 xl:row-start-1 xl:self-start xl:sticky xl:top-5">
           {selectedInstance ? <RunTools instance={selectedInstance} now={now} /> : null}
           <QuickEstimate estimate={estimate} onChange={setEstimate} />
         </aside>

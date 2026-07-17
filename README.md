@@ -1,6 +1,6 @@
 # Holy Symbol
 
-Holy Symbol is a Vite + React + TypeScript calculator for MapleLegends leech buyers and sellers.
+Holy Symbol is a Vite + React + TypeScript + Tailwind CSS calculator for MapleLegends leech buyers and sellers.
 
 ## Features
 
@@ -17,6 +17,14 @@ Holy Symbol is a Vite + React + TypeScript calculator for MapleLegends leech buy
 - Calculates EXP gained and mesos due for ratio or timer-based hourly billing.
 - Local browser persistence through `localStorage`.
 - CSV export for all instances.
+
+## UI architecture
+
+- Tailwind CSS v4.3 is integrated through the Vite plugin.
+- The interface uses Tailwind's built-in slate, indigo, emerald, sky, amber, and rose palettes rather than custom color tokens.
+- `src/ui/primitives.tsx` contains reusable buttons, polymorphic surfaces, ARIA-driven segmented controls, compound input groups, statistics, tooltips, and shared form utility classes.
+- Component and responsive styling lives in Tailwind utility classes. `src/styles/app.css` contains only the Tailwind import and the class-based dark-mode variant; the JSX no longer uses descendant-selector mini stylesheets or inline theme styles.
+- Domain, persistence, billing, timer, and API code remain independent from the visual layer.
 
 ## Run locally
 
