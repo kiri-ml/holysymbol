@@ -26,6 +26,7 @@ import { useTranslation } from 'react-i18next';
 import { avatarUrl, fetchCharacter, fetchCharacters } from './api/legends';
 import type { CharacterBatch } from './api/legends';
 import { DEFAULT_RATIO_BILLING, ensureBuyerHourlyState, switchInstanceBillingType, updateInstanceBilling } from './domain/billing';
+import { applyCurrentSnapshots, buyerLookupIgn } from './domain/buyers';
 import { createManualSnapshot } from './domain/character';
 import {
   calculateBuyer,
@@ -225,10 +226,6 @@ function draftDiffersFromSnapshot(draft: DraftSnapshotState, snapshot?: Characte
 function createdAtMs(instance: LeechInstance) {
   const ms = new Date(instance.createdAt).getTime();
   return Number.isFinite(ms) ? ms : 0;
-}
-
-function buyerLookupIgn(buyer: LeechBuyer) {
-  return (buyer.ign || buyer.start?.ign || buyer.current?.ign || '').trim();
 }
 
 function snapshotShort(snapshot: CharacterSnapshot | undefined, t: TFunction) {
@@ -1264,10 +1261,7 @@ function LeechInstanceCard({
       onUpdate({
         ...instance,
         lastCurrentRefreshedAt: refreshedAt,
-        buyers: instance.buyers.map((buyer) => {
-          const snapshot = batch.snapshots.get(buyerLookupIgn(buyer).toLocaleLowerCase());
-          return snapshot ? { ...buyer, ign: snapshot.ign, current: snapshot } : buyer;
-        }),
+        buyers: applyCurrentSnapshots(instance.buyers, batch.snapshots),
       });
     } finally {
       setRefreshingRun(false);
