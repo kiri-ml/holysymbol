@@ -43,6 +43,7 @@ import {
 } from './domain/calculator';
 import { formatCompact, formatDuration, formatExp, formatHours, formatLocalDateTime, formatMesosShort, formatMesosShortPrecise, formatMesosValue, formatPercent, formatRatio, formatRatioRange } from './domain/format';
 import { createId } from './domain/id';
+import { createInstanceWithBillingSettings } from './domain/instances';
 import { normalizeInstances } from './domain/persistence';
 import type {
   BillingType,
@@ -1710,11 +1711,19 @@ export default function App() {
     setInstances((current) => current.map((instance) => (instance.id === nextInstance.id ? nextInstance : instance)));
   }
 
-  function addInstance() {
+  function addInstance(source?: LeechInstance) {
     const id = createId('leech');
+    const createdAt = new Date().toISOString();
+    const instance = source
+      ? createInstanceWithBillingSettings(source, {
+        id,
+        createdAt,
+        name: defaultRunName(createdAt),
+      })
+      : emptyInstance(DEFAULT_RATIO_BILLING, id);
     setHighlightedRunId(id);
     setSelectedRunId(id);
-    setInstances((current) => [...current, emptyInstance(DEFAULT_RATIO_BILLING, id)]);
+    setInstances((current) => [...current, instance]);
   }
 
   function showCopiedBuyer(buyerId: string) {
@@ -1793,7 +1802,7 @@ export default function App() {
       ) : null}
 
       <div className="workbench-layout">
-        <RunRail instances={displayedInstances} selectedRunId={selectedInstance?.id ?? null} now={now} onSelect={setSelectedRunId} onAdd={addInstance} />
+        <RunRail instances={displayedInstances} selectedRunId={selectedInstance?.id ?? null} now={now} onSelect={setSelectedRunId} onAdd={() => addInstance(selectedInstance)} />
 
         <section className="ledger-column instances-section" aria-label={t('run.selectedLedger')}>
           {selectedInstance ? (
