@@ -1088,9 +1088,13 @@ function BuyerRow({
             <span className="completion-button__action" aria-hidden="true">
               {locked ? <CircleDashed size={16} /> : <CircleCheckBig size={16} />}
             </span>
+            <span className="buyer-action-label" aria-hidden="true">
+              {locked ? t('buyer.completed') : t('buyer.active')}
+            </span>
           </button>
           <button type="button" className="icon-button danger-button" onClick={onDelete} aria-label={t('aria.removeBuyer', { name: displayIgn })}>
             <Trash2 size={16} />
+            <span className="buyer-action-label" aria-hidden="true">{t('buyer.delete')}</span>
           </button>
         </div>
       </div>
