@@ -1896,7 +1896,7 @@ input.ratio-tier-control::placeholder {
   }
 
   .app-topbar,
-  .panel-heading {
+  .panel:not(.estimate-panel) .panel-heading {
     align-items: stretch;
     flex-direction: column;
   }

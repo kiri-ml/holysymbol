@@ -1286,7 +1286,7 @@ function LeechInstanceCard({
               : t('billing.hourlyModeSummary', { label: billingLabel(instance.billing, t) })} · {t('run.created', { date: formatLocalDateTime(instance.createdAt) })}
           </p>
         </div>
-        <div className="button-row wrap">
+        <div className="button-row">
           <div className="segmented-control" role="group" aria-label={t('billing.type')}>
             <button type="button" className={instance.billing.type === 'ratio' ? 'active' : ''} onClick={() => setBillingType('ratio')}>{t('billing.ratio')}</button>
             <button type="button" className={instance.billing.type === 'hourly' ? 'active' : ''} onClick={() => setBillingType('hourly')}>{t('billing.hourly')}</button>
