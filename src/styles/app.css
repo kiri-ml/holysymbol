@@ -47,6 +47,7 @@
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
   --radius-pill: 999px;
+  --control-height: 2.6rem;
 }
 
 html[data-theme="dark"] {
@@ -186,7 +187,7 @@ textarea {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  min-height: 2.6rem;
+  min-height: var(--control-height);
   padding: 0.62rem 0.72rem;
   color: var(--ink);
   background: var(--control);
@@ -552,6 +553,7 @@ h3 {
 .ratio-input,
 .unit-input {
   width: 100%;
+  height: var(--control-height);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   color: var(--ink);
@@ -605,6 +607,8 @@ h3 {
 
 .ratio-input input,
 .unit-input input {
+  height: var(--control-height);
+  min-height: var(--control-height);
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -679,7 +683,7 @@ h3 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0;
-  margin-top: var(--space-2);
+  padding-bottom: 0;
   border: 0;
   border-top: 1px solid var(--border);
   background: transparent;
@@ -906,16 +910,15 @@ h3 {
 }
 
 .instance-billing--hourly {
-  --billing-control-height: 2.5rem;
-  --billing-section-padding-block-start: var(--space-4);
-  --billing-section-padding-block-end: var(--space-5);
+  --billing-section-padding-block-start: var(--space-2);
+  --billing-section-padding-block-end: var(--space-3);
 }
 
 .instance-billing--hourly .unit-input,
 .instance-billing--hourly .unit-input input,
 .instance-billing--hourly .timer-card button {
-  height: var(--billing-control-height);
-  min-height: var(--billing-control-height);
+  height: var(--control-height);
+  min-height: var(--control-height);
 }
 
 .billing-settings {
@@ -927,17 +930,9 @@ h3 {
   padding-inline: var(--space-1) var(--space-3);
 }
 
-.hourly-rate-field {
-  align-content: space-between;
-}
-
-.compact-label {
-  min-width: 0;
-}
-
 .ratio-tier-editor {
-  --ratio-tier-control-size: 2.625rem;
-  --ratio-tier-field-width: 6.25rem;
+  --ratio-tier-control-size: var(--control-height);
+  --ratio-tier-field-width: 6.5rem;
   --ratio-tier-card-width: calc(
     var(--ratio-tier-field-width) + var(--ratio-tier-control-size) + var(--space-1) + var(--space-3) + var(--space-3)
   );
@@ -951,16 +946,21 @@ h3 {
   padding: var(--space-2) var(--space-1) var(--space-3);
 }
 
-.ratio-tier-card {
+.billing-control-field {
   display: grid;
+  height: 5rem;
+  gap: var(--space-1);
+  align-content: space-between;
+  min-width: 0;
+  padding-block: var(--space-2);
+}
+
+.ratio-tier-card {
   position: relative;
   flex: 0 0 auto;
   grid-template-columns: max-content;
   width: var(--ratio-tier-card-width);
-  height: 5rem;
-  gap: var(--space-1);
-  align-content: space-between;
-  padding: var(--space-2) var(--space-3);
+  padding-inline: var(--space-3);
 }
 
 .ratio-tier-card--base {
@@ -968,6 +968,7 @@ h3 {
   padding-inline-start: 0;
 }
 
+.ratio-tier-card--base .ratio-tier-control-row,
 .ratio-tier-card--base .ratio-tier-control {
   width: 100%;
 }
@@ -1008,14 +1009,6 @@ h3 {
   display: none;
 }
 
-.ratio-tier-stack {
-  display: grid;
-  align-content: space-between;
-  gap: var(--space-1);
-  height: 100%;
-  min-width: 0;
-}
-
 .billing-field-label {
   color: var(--ink-soft);
   font-size: 0.78rem;
@@ -1029,11 +1022,6 @@ h3 {
 
 .ratio-tier-control {
   width: var(--ratio-tier-field-width);
-}
-
-.ratio-tier-control > input {
-  height: 100%;
-  min-height: 0;
 }
 
 .ratio-tier-control[type="number"] {
@@ -1075,20 +1063,11 @@ input.ratio-tier-control::placeholder {
   color: var(--muted);
 }
 
-@media (pointer: coarse) {
-  .ratio-tier-editor {
-    --ratio-tier-control-size: 2.75rem;
-  }
-}
-
 .timer-card {
   --timer-accent: var(--primary);
   --timer-bg: transparent;
   --timer-status-bg: var(--surface-2);
 
-  display: grid;
-  gap: 0;
-  align-content: space-between;
   background: var(--timer-bg);
 }
 
@@ -1342,7 +1321,7 @@ input.ratio-tier-control::placeholder {
 }
 
 .add-buyer-form button {
-  min-height: 2.6rem;
+  min-height: var(--control-height);
   margin-left: -1px;
   border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
 }
@@ -1354,7 +1333,7 @@ input.ratio-tier-control::placeholder {
 
 .add-buyer-form button,
 .refresh-exp-button {
-  min-height: 2.6rem;
+  min-height: var(--control-height);
   padding-inline: var(--space-3);
   white-space: nowrap;
 }
@@ -1610,11 +1589,12 @@ input.ratio-tier-control::placeholder {
 }
 
 .buyer-details summary {
-  padding: 0.65rem var(--space-3);
+  padding: 0.45rem var(--space-3);
   cursor: pointer;
   color: var(--primary-strong);
-  font-size: 0.84rem;
+  font-size: 0.8rem;
   font-weight: 780;
+  line-height: 1.3;
 }
 
 .buyer-details[open] summary {

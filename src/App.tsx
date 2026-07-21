@@ -849,27 +849,29 @@ function TimerControls({
 
   return (
     <div className={`timer-card timer-card--${billing.ledger.status}`}>
-      <div className="timer-card__header">
-        <span className="billing-field-label">{t('timer.runTime')}</span>
-        <small className="timer-status">{timerStatusLabel(billing.ledger.status, t)}</small>
-      </div>
-      <div className="timer-card__body">
-        <div className="timer-card__main">
-          <strong>{formatDuration(billableMs)}</strong>
+      <div className="billing-control-field">
+        <div className="timer-card__header">
+          <span className="billing-field-label">{t('timer.runTime')}</span>
+          <small className="timer-status">{timerStatusLabel(billing.ledger.status, t)}</small>
         </div>
-        <div className="timer-card__actions">
-          <button
-            type="button"
-            className="timer-card__toggle"
-            onClick={onToggle}
-            aria-label={isRunning ? t('aria.pauseTimer') : t('aria.startTimer')}
-          >
-            {isRunning ? <Pause size={16} /> : <Play size={16} />}
-            {isRunning ? t('timer.pause') : t('timer.start')}
-          </button>
-          <button type="button" className="secondary-button timer-card__reset" onClick={onReset} disabled={isRunning}>
-            <RotateCcw size={16} /> {t('common.reset')}
-          </button>
+        <div className="timer-card__body">
+          <div className="timer-card__main">
+            <strong>{formatDuration(billableMs)}</strong>
+          </div>
+          <div className="timer-card__actions">
+            <button
+              type="button"
+              className="timer-card__toggle"
+              onClick={onToggle}
+              aria-label={isRunning ? t('aria.pauseTimer') : t('aria.startTimer')}
+            >
+              {isRunning ? <Pause size={16} /> : <Play size={16} />}
+              {isRunning ? t('timer.pause') : t('timer.start')}
+            </button>
+            <button type="button" className="secondary-button timer-card__reset" onClick={onReset} disabled={isRunning}>
+              <RotateCcw size={16} /> {t('common.reset')}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1295,41 +1297,39 @@ function LeechInstanceCard({
         <div className="billing-settings">
           {ratioBilling ? (
             <div className="ratio-tier-editor">
-              <div className="ratio-tier-card ratio-tier-card--base">
-                <label className="ratio-tier-stack billing-field-label">
-                  {t('billing.baseRatio')}
+              <div className="billing-control-field ratio-tier-card ratio-tier-card--base">
+                <span className="billing-field-label">{t('billing.baseRatio')}</span>
+                <div className="ratio-tier-control-row">
                   <RatioInput
                     className="ratio-tier-control"
                     value={ratioBilling.expPerMesoRatio}
                     ariaLabel={t('aria.runExpRatio')}
                     onValueChange={(expPerMesoRatio) => updateBilling({ ...ratioBilling, expPerMesoRatio })}
                   />
-                </label>
+                </div>
               </div>
               {ratioBilling.tiers.map((tier, index) => (
-                <div className="ratio-tier-card" key={tier.minLevel}>
-                  <div className="ratio-tier-stack">
-                    <span className="billing-field-label ratio-tier-level">{t('billing.tierLevel')} {tier.minLevel}</span>
-                    <div className="ratio-tier-control-row">
-                      <RatioInput
-                        className="ratio-tier-control"
-                        value={tier.expPerMesoRatio}
-                        ariaLabel={t('aria.ratioTierRatio', { number: index + 1 })}
-                        onValueChange={(expPerMesoRatio) => updateRatioTierRatio(tier.minLevel, expPerMesoRatio)}
-                      />
-                      <button
-                        type="button"
-                        className="icon-button danger-button"
-                        onClick={() => removeRatioTier(tier.minLevel)}
-                        aria-label={t('aria.removeRatioTier', { number: index + 1 })}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
+                <div className="billing-control-field ratio-tier-card" key={tier.minLevel}>
+                  <span className="billing-field-label ratio-tier-level">{t('billing.tierLevel')} {tier.minLevel}</span>
+                  <div className="ratio-tier-control-row">
+                    <RatioInput
+                      className="ratio-tier-control"
+                      value={tier.expPerMesoRatio}
+                      ariaLabel={t('aria.ratioTierRatio', { number: index + 1 })}
+                      onValueChange={(expPerMesoRatio) => updateRatioTierRatio(tier.minLevel, expPerMesoRatio)}
+                    />
+                    <button
+                      type="button"
+                      className="icon-button danger-button"
+                      onClick={() => removeRatioTier(tier.minLevel)}
+                      aria-label={t('aria.removeRatioTier', { number: index + 1 })}
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </div>
                 </div>
               ))}
-              <div className="ratio-tier-card ratio-tier-card--add">
+              <div className="billing-control-field ratio-tier-card ratio-tier-card--add">
                 <label className="billing-field-label" htmlFor={ratioTierLevelId}>{t('billing.tierLevel')}</label>
                 <form
                   className="ratio-tier-control-row"
@@ -1366,8 +1366,8 @@ function LeechInstanceCard({
             </div>
           ) : null}
           {hourlyBilling ? (
-            <label className="compact-label hourly-rate-field billing-field-label">
-              {t('billing.hourlyRate')}
+            <div className="billing-control-field">
+              <span className="billing-field-label">{t('billing.hourlyRate')}</span>
               <span className="unit-input">
                 <input
                   type="number"
@@ -1379,7 +1379,7 @@ function LeechInstanceCard({
                 />
                 <span>{t('common.millionPerHourSpaced')}</span>
               </span>
-            </label>
+            </div>
           ) : null}
         </div>
         {hourlyBilling ? (
