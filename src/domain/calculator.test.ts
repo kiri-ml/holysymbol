@@ -5,18 +5,17 @@ import {
   calculateInstance,
   getBillableMs,
   getBuyerBillableMs,
-  pauseBuyerHourlyTimer,
-  pauseTimer,
-  startBuyerHourlyTimer,
-  startTimer,
+  pauseHourlyBilling,
+  removeHourlyAccount,
+  setHourlyAccountActive,
+  startHourlyBilling,
 } from './calculator';
 import { LEGENDS_EXP_TABLE, expGainedBetween, expToLevel, rawExpAt } from './expTable';
-import { normalizeInstances } from './persistence';
-import type { CharacterSnapshot, LeechBuyer, LeechInstance, LeechTimer } from './types';
+import { encodeInstances, migrateV5Instances, normalizeInstances } from './persistence';
+import type { CharacterSnapshot, HourlyBilling, HourlyLedger, LeechBuyer, LeechInstance } from './types';
 
 function snapshot(level: number, expPercent: number, capturedAt = '2026-06-09T00:00:00.000Z'): CharacterSnapshot {
   return {
-    id: `snapshot-${level}-${expPercent}`,
     ign: 'Buyer',
     level,
     expPercent,
@@ -27,7 +26,7 @@ function snapshot(level: number, expPercent: number, capturedAt = '2026-06-09T00
 
 function buyer(start?: CharacterSnapshot, current?: CharacterSnapshot): LeechBuyer {
   return {
-    id: 'buyer-test',
+    id: 0,
     ign: 'Buyer',
     start,
     current,
@@ -40,21 +39,17 @@ function ratioInstance(testBuyer: LeechBuyer): LeechInstance {
     name: 'Leech #1',
     billing: { type: 'ratio', expPerMesoRatio: 3.3, tiers: [] },
     buyers: [testBuyer],
+    nextBuyerId: 1,
     createdAt: '2026-06-09T00:00:00.000Z',
   };
 }
 
-function hourlyBilling(timer: LeechTimer = { status: 'paused', accumulatedMs: 0 }) {
+function hourlyBilling(ledger: HourlyLedger = { status: 'paused', accumulatedMs: 0, accounts: {} }): HourlyBilling {
   return {
     type: 'hourly' as const,
     hourlyRateMesos: 12_000_000,
-    expPerHourMillions: 35,
-    timer,
+    ledger,
   };
-}
-
-function hourlySession(startedAt: string, endedAt?: string) {
-  return { startedAt, endedAt };
 }
 
 describe('embedded MapleLegends EXP table', () => {
@@ -157,7 +152,7 @@ describe('EXP and billing math', () => {
 
   it('counts locked populated buyers as done', () => {
     const populatedBuyer = { ...buyer(snapshot(50, 0), snapshot(51, 0)), locked: true };
-    const emptyBuyer = { ...buyer(), id: 'empty-buyer', ign: '', locked: true };
+    const emptyBuyer = { ...buyer(), id: 1, ign: '', locked: true };
     const result = calculateInstance({
       ...ratioInstance(populatedBuyer),
       buyers: [populatedBuyer, emptyBuyer],
@@ -176,9 +171,10 @@ describe('EXP and billing math', () => {
         tiers: [{ minLevel: 51, expPerMesoRatio: 4 }],
       },
       buyers: [
-        { ...buyer(snapshot(50, 0), snapshot(51, 0)), id: 'buyer-one' },
-        { ...buyer(snapshot(51, 0), snapshot(52, 0)), id: 'buyer-two' },
+        { ...buyer(snapshot(50, 0), snapshot(51, 0)), id: 1 },
+        { ...buyer(snapshot(51, 0), snapshot(52, 0)), id: 2 },
       ],
+      nextBuyerId: 3,
     };
 
     expect(calculateInstance(instance).totalMesosDue).toBeCloseTo(709_716 / 3 + 748_608 / 4);
@@ -201,174 +197,219 @@ describe('EXP and billing math', () => {
     expect(result.hourlyMesosDue).toBeCloseTo(6_000_000);
   });
 
-  it('charges one active hourly buyer the full rate', () => {
-    const instance: LeechInstance = {
-      id: 'hourly-test',
-      name: 'Hourly',
-      billing: hourlyBilling({ status: 'idle', accumulatedMs: 0 }),
-      buyers: [{
-        ...buyer(snapshot(50, 0)),
-        hourly: { sessions: [hourlySession('2026-06-09T00:00:00.000Z', '2026-06-09T01:00:00.000Z')] },
-      }],
-      createdAt: '2026-06-09T00:00:00.000Z',
-    };
+  it('splits running time and checkpoints a late join', () => {
+    const start = Date.UTC(2026, 5, 9, 0, 0);
+    let billing = startHourlyBilling(hourlyBilling(), [0], start);
+    billing = setHourlyAccountActive(billing, 1, true, start + 1_800_000);
 
-    const result = calculateInstance(instance);
-    expect(result.billableMs).toBe(3_600_000);
-    expect(result.totalMesosDue).toBe(12_000_000);
+    expect(getBuyerBillableMs(billing, 0, start + 3_600_000)).toBe(2_700_000);
+    expect(getBuyerBillableMs(billing, 1, start + 3_600_000)).toBe(900_000);
+    expect(getBillableMs(billing.ledger, start + 3_600_000)).toBe(3_600_000);
   });
 
-  it('keeps run-level timer helpers available for display timing', () => {
-    const timer: LeechTimer = startTimer({ status: 'idle', accumulatedMs: 0 }, '2026-06-09T00:00:00.000Z');
-    const paused = pauseTimer(timer, new Date('2026-06-09T01:00:00.000Z').getTime());
-    expect(getBillableMs(paused)).toBe(3_600_000);
+  it('pauses by finalizing shares and stops live projection', () => {
+    const start = Date.UTC(2026, 5, 9, 0, 0);
+    const running = startHourlyBilling(hourlyBilling(), [0], start);
+    const paused = pauseHourlyBilling(running, start + 3_600_000);
+
+    expect(paused.ledger.status).toBe('paused');
+    expect(paused.ledger.checkpointAt).toBeUndefined();
+    expect(getBuyerBillableMs(paused, 0, start + 7_200_000)).toBe(3_600_000);
   });
 
-  it('does not make resumed run timer display appear to go backward when the render clock is stale', () => {
-    const resumed = startTimer({ status: 'paused', accumulatedMs: 3_600_000 }, '2026-06-09T01:00:01.000Z');
-    const staleRenderNow = new Date('2026-06-09T01:00:00.500Z').getTime();
+  it('deletes one account without redistributing remaining accrued time', () => {
+    const start = Date.UTC(2026, 5, 9, 0, 0);
+    const running = startHourlyBilling(hourlyBilling(), [0, 1], start);
+    const beforeDelete = getBuyerBillableMs(running, 0, start + 3_600_000);
+    const deleted = removeHourlyAccount(running, 1, start + 3_600_000);
 
-    expect(getBillableMs(resumed, staleRenderNow)).toBe(3_600_000);
+    expect(getBuyerBillableMs(deleted, 0, start + 3_600_000)).toBe(beforeDelete);
+    expect(deleted.ledger.accounts[1]).toBeUndefined();
+    expect(getBuyerBillableMs(deleted, 0, start + 5_400_000)).toBe(3_600_000);
   });
 
-  it('splits fully overlapping hourly buyers evenly', () => {
-    const buyers = [
-      {
-        ...buyer(snapshot(50, 0)),
-        hourly: { sessions: [hourlySession('2026-06-09T00:00:00.000Z', '2026-06-09T01:00:00.000Z')] },
-      },
-      {
-        ...buyer(snapshot(51, 0)),
-        id: 'buyer-test-2',
-        hourly: { sessions: [hourlySession('2026-06-09T00:00:00.000Z', '2026-06-09T01:00:00.000Z')] },
-      },
-    ];
-    const instance: LeechInstance = {
-      id: 'hourly-different-duration-test',
-      name: 'Hourly different durations',
-      billing: hourlyBilling({ status: 'paused', accumulatedMs: 3_600_000 }),
-      buyers,
-      createdAt: '2026-06-09T00:00:00.000Z',
-    };
+  it('calculates due from accrued and live ledger milliseconds at the current rate', () => {
+    const testBuyer = buyer(snapshot(50, 0));
+    const billing = hourlyBilling({
+      status: 'running',
+      accumulatedMs: 1_800_000,
+      checkpointAt: 1_000,
+      accounts: { [testBuyer.id]: { accruedMs: 1_800_000, active: true } },
+    });
+    const result = calculateBuyer(testBuyer, billing, 1_801_000);
 
-    const now = new Date('2026-06-09T01:00:00.000Z').getTime();
-    const result = calculateInstance(instance);
-    const firstBuyer = calculateBuyer(buyers[0], instance.billing, now, buyers);
-    const secondBuyer = calculateBuyer(buyers[1], instance.billing, now, buyers);
-
-    expect(getBuyerBillableMs(buyers[0])).toBe(3_600_000);
-    expect(getBuyerBillableMs(buyers[1])).toBe(3_600_000);
-    expect(firstBuyer.hourlyMesosDue).toBe(6_000_000);
-    expect(secondBuyer.hourlyMesosDue).toBe(6_000_000);
-    expect(result.totalMesosDue).toBe(12_000_000);
-  });
-
-  it('weights hourly split billing for a late join', () => {
-    const buyers = [
-      {
-        ...buyer(snapshot(50, 0)),
-        hourly: { sessions: [hourlySession('2026-06-09T00:00:00.000Z', '2026-06-09T01:00:00.000Z')] },
-      },
-      {
-        ...buyer(snapshot(51, 0)),
-        id: 'buyer-test-2',
-        hourly: { sessions: [hourlySession('2026-06-09T00:30:00.000Z', '2026-06-09T01:00:00.000Z')] },
-      },
-    ];
-    const billing = hourlyBilling({ status: 'running', accumulatedMs: 0 });
-    const now = new Date('2026-06-09T01:00:00.000Z').getTime();
-
-    const firstBuyer = calculateBuyer(buyers[0], billing, now, buyers);
-    const secondBuyer = calculateBuyer(buyers[1], billing, now, buyers);
-
-    expect(firstBuyer.hourlyMesosDue).toBe(9_000_000);
-    expect(secondBuyer.hourlyMesosDue).toBe(3_000_000);
-  });
-
-  it('lock closes the buyer hourly session and stops charging them', () => {
-    const testBuyer = {
-      ...buyer(snapshot(50, 0)),
-      hourly: { sessions: [hourlySession('2026-06-09T00:00:00.000Z')] },
-    };
-    const locked = pauseBuyerHourlyTimer(testBuyer, new Date('2026-06-09T00:30:00.000Z').getTime());
-    const now = new Date('2026-06-09T01:00:00.000Z').getTime();
-    const result = calculateBuyer(locked, hourlyBilling({ status: 'running', accumulatedMs: 0 }), now, [locked]);
-
-    expect(getBuyerBillableMs(locked, now)).toBe(1_800_000);
-    expect(result.hourlyMesosDue).toBe(6_000_000);
-  });
-
-  it('unlock during a running global timer closes an open session, then opens a new one', () => {
-    const unlocked = startBuyerHourlyTimer({
-      ...buyer(snapshot(50, 0)),
-      hourly: {
-        sessions: [hourlySession('2026-06-09T00:00:00.000Z')],
-      },
-    }, '2026-06-09T00:30:00.000Z');
-
-    expect(unlocked.hourly?.sessions).toEqual([
-      { startedAt: '2026-06-09T00:00:00.000Z', endedAt: '2026-06-09T00:30:00.000Z' },
-      { startedAt: '2026-06-09T00:30:00.000Z' },
-    ]);
-  });
-
-  it('includes elapsed time from open buyer sessions up to now', () => {
-    const testBuyer = {
-      ...buyer(snapshot(50, 0)),
-      hourly: {
-        sessions: [
-          hourlySession('2026-06-09T00:00:00.000Z', '2026-06-09T00:30:00.000Z'),
-          hourlySession('2026-06-09T01:00:00.000Z'),
-        ],
-      },
-    };
-    const now = new Date('2026-06-09T01:30:00.000Z').getTime();
-    const result = calculateBuyer(testBuyer, hourlyBilling({ status: 'running', accumulatedMs: 0 }), now, [testBuyer]);
-
-    expect(getBuyerBillableMs(testBuyer, now)).toBe(3_600_000);
     expect(result.hourlyMesosDue).toBe(12_000_000);
   });
 
-  it('normalizes old or missing hourly buyer state to empty sessions', () => {
-    const normalized = normalizeInstances([
-      {
-        id: 'old-hourly',
-        name: 'Old hourly',
-        billing: hourlyBilling({ status: 'paused', accumulatedMs: 3_600_000 }),
-        buyers: [
-          buyer(snapshot(50, 0)),
-          { ...buyer(snapshot(51, 0)), id: 'buyer-test-2', hourly: { accumulatedMs: 3_600_000, runningSince: '2026-06-09T00:00:00.000Z' } },
-        ],
-        createdAt: '2026-06-09T00:00:00.000Z',
+  it('migrates v5 overlapping sessions into stable ledger shares', () => {
+    const now = Date.parse('2026-06-09T01:00:00.000Z');
+    const migrated = migrateV5Instances([{
+      id: 'legacy',
+      name: 'Legacy',
+      billing: {
+        type: 'hourly',
+        hourlyRateMesos: 12_000_000,
+        timer: { status: 'running', accumulatedMs: 0, lastStartedAt: '2026-06-09T00:00:00.000Z' },
       },
-    ], []);
+      buyers: [
+        { ...buyer(snapshot(50, 0)), id: 'buyer-test', hourly: { sessions: [{ startedAt: '2026-06-09T00:00:00.000Z' }] } },
+        { ...buyer(snapshot(51, 0)), id: 'buyer-test-2', hourly: { sessions: [{ startedAt: '2026-06-09T00:30:00.000Z' }] } },
+      ],
+      createdAt: '2026-06-09T00:00:00.000Z',
+    }], [], now);
+    const billing = migrated[0].billing as HourlyBilling;
 
-    expect(normalized[0].buyers[0].hourly).toEqual({ sessions: [] });
-    expect(normalized[0].buyers[1].hourly).toEqual({ sessions: [] });
+    expect(billing.ledger.accounts[0].accruedMs).toBe(2_700_000);
+    expect(billing.ledger.accounts[1].accruedMs).toBe(900_000);
+    expect(migrated[0].buyers.map((item) => item.id)).toEqual([0, 1]);
+    expect(migrated[0].nextBuyerId).toBe(2);
+    expect(billing.ledger.checkpointAt).toBe(now);
+    expect(migrated[0].buyers[0]).not.toHaveProperty('hourly');
+  });
+
+  it('normalizes compact v6 ledgers', () => {
+    const normalized = normalizeInstances([{
+      i: 'v6', n: 'V6', b: { t: 'h', r: 12_000_000, l: { s: 'r', t: 500, c: 1_000, a: { 0: { m: 250, r: 1 } } } },
+      u: [{ i: 0, n: 'Buyer' }], d: 1, c: Date.parse('2026-06-09T00:00:00.000Z'),
+    }], []);
+
+    expect(normalized[0].billing).toEqual(hourlyBilling({
+      status: 'running', accumulatedMs: 500, checkpointAt: 1_000, accounts: { 0: { accruedMs: 250, active: true } },
+    }));
+  });
+
+  it('preserves the numeric high-water mark and discards invalid buyer ids', () => {
+    const normalized = normalizeInstances([{
+      i: 'numeric-v6', n: 'Numeric V6', b: { t: 'r', r: 3.3 },
+      u: [{ i: 2, n: 'First' }, { i: 2, n: 'Duplicate' }, { i: -1, n: 'Invalid' }],
+      d: 10, c: Date.parse('2026-06-09T00:00:00.000Z'),
+    }], []);
+
+    expect(normalized[0].buyers.map((item) => item.id)).toEqual([2]);
+    expect(normalized[0].nextBuyerId).toBe(10);
+  });
+
+  it('encodes hourly ledgers with compact keys and omits inactive flags', () => {
+    const encoded = encodeInstances([{
+      id: 'v6',
+      name: 'V6',
+      billing: hourlyBilling({
+        status: 'running',
+        accumulatedMs: 500,
+        checkpointAt: 1_000,
+        accounts: { 0: { accruedMs: 250, active: true }, 1: { accruedMs: 100, active: false } },
+      }),
+      buyers: [],
+      nextBuyerId: 2,
+      createdAt: '2026-06-09T00:00:00.000Z',
+    }]) as Array<{ b: unknown }>;
+
+    expect(encoded[0].b).toEqual({
+      t: 'h',
+      r: 12_000_000,
+      l: { s: 'r', t: 500, c: 1_000, a: { 0: { m: 250, r: 1 }, 1: { m: 100 } } },
+    });
+  });
+
+  it('encodes snapshots as tuples and hoists latest-known metadata onto the buyer', () => {
+    const encoded = encodeInstances([{
+      id: 'snapshot-tuples',
+      name: 'Snapshot tuples',
+      billing: { type: 'ratio', expPerMesoRatio: 3.3, tiers: [] },
+      buyers: [{
+        id: 0,
+        ign: 'Buyer',
+        start: {
+          ign: 'Buyer', level: 120, expPercent: 10, job: 'Bishop', guild: 'OldGuild', fame: 10,
+          capturedAt: '2026-06-09T00:00:00.123Z', source: 'api',
+        },
+        current: {
+          ign: 'Buyer', level: 121, expPercent: 20, guild: 'NewGuild',
+          capturedAt: '2026-06-09T01:00:00.456Z', source: 'manual',
+        },
+      }],
+      nextBuyerId: 1,
+      createdAt: '2026-06-09T00:00:00.000Z',
+    }]) as Array<{ u: Array<Record<string, unknown>> }>;
+    const storedBuyer = encoded[0].u[0];
+    const decodedBuyer = normalizeInstances(encoded, [])[0].buyers[0];
+
+    expect(storedBuyer).toMatchObject({
+      i: 0, n: 'Buyer', j: 'Bishop', g: 'NewGuild',
+      s: [120, 10, 0, 0],
+      c: [121, 20, 3_600, 1],
+    });
+    expect(JSON.stringify(storedBuyer)).not.toContain('snapshot_');
+    const legacyObjectBuyer = {
+      i: 0, n: 'Buyer',
+      s: { i: 'snapshot_550e8400-e29b-41d4-a716-446655440000', n: 'Buyer', l: 120, e: 10, j: 'Bishop', g: 'OldGuild', f: 10, t: Date.parse('2026-06-09T00:00:00.123Z'), s: 'a' },
+      c: { i: 'snapshot_550e8400-e29b-41d4-a716-446655440000', n: 'Buyer', l: 121, e: 20, g: 'NewGuild', t: Date.parse('2026-06-09T01:00:00.456Z'), s: 'm' },
+    };
+    expect(JSON.stringify(storedBuyer).length).toBeLessThan(JSON.stringify(legacyObjectBuyer).length);
+    expect(storedBuyer).not.toHaveProperty('f');
+    expect(decodedBuyer.start).toMatchObject({ ign: 'Buyer', source: 'api' });
+    expect(decodedBuyer.start).not.toMatchObject({ job: 'Bishop', guild: 'NewGuild' });
+    expect(decodedBuyer.current).toMatchObject({ ign: 'Buyer', job: 'Bishop', guild: 'NewGuild', source: 'manual' });
+    expect(decodedBuyer.current).not.toHaveProperty('fame', 10);
+  });
+
+  it('round-trips the complete compact v6 payload with epoch timestamps', () => {
+    const start = {
+      ign: 'SameIGN', level: 120, expPercent: 12.5,
+      job: 'Bishop', guild: 'Guild', fame: 42,
+      capturedAt: '2026-06-09T00:00:00.123Z', source: 'api' as const,
+    };
+    const original: LeechInstance = {
+      id: 'run-id',
+      name: 'Compact run',
+      billing: { type: 'ratio', expPerMesoRatio: 3.3, tiers: [{ minLevel: 120, expPerMesoRatio: 4.2 }] },
+      inactiveBilling: {
+        ratio: { type: 'ratio', expPerMesoRatio: 3.3, tiers: [{ minLevel: 120, expPerMesoRatio: 4.2 }] },
+        hourly: hourlyBilling({ status: 'paused', accumulatedMs: 500, accounts: { 0: { accruedMs: 250, active: false } } }),
+      },
+      buyers: [{ id: 0, ign: 'SameIGN', locked: true, start, current: { ...start, source: 'manual' } }],
+      nextBuyerId: 1,
+      createdAt: '2026-06-09T00:00:00.456Z',
+      lastCurrentRefreshedAt: '2026-06-09T01:00:00.789Z',
+    };
+    const encoded = encodeInstances([original]) as Array<Record<string, unknown>>;
+    const decoded = normalizeInstances(encoded, []);
+
+    expect(Object.keys(encoded[0]).sort()).toEqual(['b', 'c', 'd', 'i', 'n', 'r', 'u', 'x']);
+    expect(encoded[0].c).toBe(Math.floor(Date.parse(original.createdAt) / 1000));
+    expect(encoded[0].r).toBe(3_600);
+    expect(JSON.stringify(encoded).length).toBeLessThan(JSON.stringify([original]).length);
+    expect(decoded[0]).toMatchObject({
+      ...original,
+      buyers: [{
+        id: 0,
+        ign: 'SameIGN',
+        locked: true,
+        start: {
+          ign: 'SameIGN', level: 120, expPercent: 12.5,
+          capturedAt: '2026-06-09T00:00:00.000Z', source: 'api',
+          job: undefined, guild: undefined,
+        },
+        current: {
+          ign: 'SameIGN', level: 120, expPercent: 12.5,
+          capturedAt: '2026-06-09T00:00:00.000Z', source: 'manual',
+          job: 'Bishop', guild: 'Guild',
+        },
+      }],
+      createdAt: '2026-06-09T00:00:00.000Z',
+      lastCurrentRefreshedAt: '2026-06-09T01:00:00.000Z',
+    });
+    expect(decoded[0].buyers[0].start).not.toHaveProperty('fame');
+    expect(decoded[0].buyers[0].current).not.toHaveProperty('fame');
   });
 
   it('normalizes legacy and malformed ratio tier data', () => {
     const normalized = normalizeInstances([{
-      id: 'ratio-tier-normalization',
-      name: 'Ratio tiers',
-      billing: {
-        type: 'ratio',
-        expPerMesoRatio: 3.3,
-        tiers: [
-          { minLevel: 120, expPerMesoRatio: 4 },
-          { minLevel: 80.4, expPerMesoRatio: 3.5 },
-          { minLevel: 120, expPerMesoRatio: 4.2 },
-          { minLevel: 'invalid', expPerMesoRatio: 5 },
-        ],
-      },
-      buyers: [],
-      createdAt: '2026-06-09T00:00:00.000Z',
+      i: 'ratio-tier-normalization', n: 'Ratio tiers',
+      b: { t: 'r', r: 3.3, q: [[120, 4], [80.4, 3.5], [120, 4.2], ['invalid', 5]] },
+      u: [], d: 0, c: 0,
     }, {
-      id: 'legacy-ratio',
-      name: 'Legacy ratio',
-      billing: { type: 'ratio', expPerMesoRatio: 3.3 },
-      buyers: [],
-      createdAt: '2026-06-09T00:00:00.000Z',
+      i: 'ratio', n: 'Ratio', b: { t: 'r', r: 3.3 }, u: [], d: 0, c: 0,
     }], []);
 
     expect(normalized[0].billing).toEqual({

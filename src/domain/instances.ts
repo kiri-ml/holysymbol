@@ -10,7 +10,7 @@ function copyRatioBilling(billing: RatioBilling): RatioBilling {
 function copyHourlyBilling(billing: HourlyBilling): HourlyBilling {
   return {
     ...billing,
-    timer: { status: 'idle', accumulatedMs: 0 },
+    ledger: { status: 'idle', accumulatedMs: 0, accounts: {} },
   };
 }
 
@@ -42,5 +42,6 @@ export function createInstanceWithBillingSettings(
     billing,
     inactiveBilling: copyBillingSettings(source, billing),
     buyers: [],
+    nextBuyerId: 0,
   };
 }

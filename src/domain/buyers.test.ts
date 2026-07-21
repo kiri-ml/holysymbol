@@ -2,9 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { applyCurrentSnapshots } from './buyers';
 import type { CharacterSnapshot, LeechBuyer } from './types';
 
-function snapshot(id: string, expPercent: number): CharacterSnapshot {
+function snapshot(_id: string, expPercent: number): CharacterSnapshot {
   return {
-    id,
     ign: 'RepeatedBuyer',
     level: 120,
     expPercent,
@@ -17,8 +16,8 @@ describe('applyCurrentSnapshots', () => {
   it('does not refresh a completed row when an active buyer has the same IGN', () => {
     const completedSnapshot = snapshot('completed-current', 10);
     const buyers: LeechBuyer[] = [
-      { id: 'completed', ign: 'RepeatedBuyer', locked: true, current: completedSnapshot },
-      { id: 'active', ign: 'RepeatedBuyer', current: snapshot('active-current', 20) },
+      { id: 0, ign: 'RepeatedBuyer', locked: true, current: completedSnapshot },
+      { id: 1, ign: 'RepeatedBuyer', current: snapshot('active-current', 20) },
     ];
     const refreshedSnapshot = snapshot('refreshed', 30);
 

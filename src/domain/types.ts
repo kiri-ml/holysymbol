@@ -9,7 +9,6 @@ export type CharacterApiPayload = {
 };
 
 export type CharacterSnapshot = {
-  id: string;
   ign: string;
   level: number;
   expPercent: number;
@@ -27,22 +26,20 @@ export type ExpTableRow = {
 };
 
 export type BillingType = 'ratio' | 'hourly';
+export type BuyerId = number;
 
 export type TimerStatus = 'idle' | 'running' | 'paused';
 
-export type LeechTimer = {
+export type HourlyAccount = {
+  accruedMs: number;
+  active: boolean;
+};
+
+export type HourlyLedger = {
   status: TimerStatus;
   accumulatedMs: number;
-  lastStartedAt?: string;
-};
-
-export type BuyerHourlySession = {
-  startedAt: string;
-  endedAt?: string;
-};
-
-export type BuyerHourlyState = {
-  sessions: BuyerHourlySession[];
+  checkpointAt?: number;
+  accounts: Record<BuyerId, HourlyAccount>;
 };
 
 export type RatioBilling = {
@@ -63,7 +60,7 @@ export type HourlyBilling = {
   type: 'hourly';
   /** Mesos per hour, e.g. 12_000_000 for 12M/hr. */
   hourlyRateMesos: number;
-  timer: LeechTimer;
+  ledger: HourlyLedger;
 };
 
 export type LeechBilling = RatioBilling | HourlyBilling;
@@ -74,12 +71,11 @@ export type InactiveBilling = {
 };
 
 export type LeechBuyer = {
-  id: string;
+  id: BuyerId;
   ign: string;
   locked?: boolean;
   start?: CharacterSnapshot;
   current?: CharacterSnapshot;
-  hourly?: BuyerHourlyState;
 };
 
 export type LeechInstance = {
@@ -88,6 +84,7 @@ export type LeechInstance = {
   billing: LeechBilling;
   inactiveBilling?: InactiveBilling;
   buyers: LeechBuyer[];
+  nextBuyerId: number;
   createdAt: string;
   lastCurrentRefreshedAt?: string;
 };

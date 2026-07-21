@@ -24,10 +24,11 @@ describe('creating a run from existing billing settings', () => {
         hourly: {
           type: 'hourly',
           hourlyRateMesos: 15_000_000,
-          timer: { status: 'paused', accumulatedMs: 1_800_000 },
+          ledger: { status: 'paused', accumulatedMs: 1_800_000, accounts: { 0: { accruedMs: 1_800_000, active: false } } },
         },
       },
-      buyers: [{ id: 'buyer', ign: 'Buyer' }],
+      buyers: [{ id: 0, ign: 'Buyer' }],
+      nextBuyerId: 1,
     };
 
     const newInstance = createInstanceWithBillingSettings(source, identity);
@@ -48,10 +49,11 @@ describe('creating a run from existing billing settings', () => {
         hourly: {
           type: 'hourly',
           hourlyRateMesos: 15_000_000,
-          timer: { status: 'idle', accumulatedMs: 0 },
+          ledger: { status: 'idle', accumulatedMs: 0, accounts: {} },
         },
       },
       buyers: [],
+      nextBuyerId: 0,
     });
     expect(newInstance).not.toHaveProperty('lastCurrentRefreshedAt');
     expect(newInstance.billing).not.toBe(source.billing);
@@ -69,17 +71,18 @@ describe('creating a run from existing billing settings', () => {
       billing: {
         type: 'hourly',
         hourlyRateMesos: 18_000_000,
-        timer: { status: 'running', accumulatedMs: 900_000, lastStartedAt: '2026-07-20T03:00:00.000Z' },
+        ledger: { status: 'running', accumulatedMs: 900_000, checkpointAt: 1_000, accounts: { 0: { accruedMs: 900_000, active: true } } },
       },
       inactiveBilling: {
         ratio: { type: 'ratio', expPerMesoRatio: 4, tiers: [{ minLevel: 150, expPerMesoRatio: 4.5 }] },
         hourly: {
           type: 'hourly',
           hourlyRateMesos: 18_000_000,
-          timer: { status: 'paused', accumulatedMs: 900_000 },
+          ledger: { status: 'paused', accumulatedMs: 900_000, accounts: { 0: { accruedMs: 900_000, active: false } } },
         },
       },
-      buyers: [{ id: 'buyer', ign: 'Buyer', hourly: { sessions: [{ startedAt: '2026-07-20T03:00:00.000Z' }] } }],
+      buyers: [{ id: 0, ign: 'Buyer' }],
+      nextBuyerId: 1,
     };
 
     const newInstance = createInstanceWithBillingSettings(source, identity);
@@ -87,7 +90,7 @@ describe('creating a run from existing billing settings', () => {
     expect(newInstance.billing).toEqual({
       type: 'hourly',
       hourlyRateMesos: 18_000_000,
-      timer: { status: 'idle', accumulatedMs: 0 },
+      ledger: { status: 'idle', accumulatedMs: 0, accounts: {} },
     });
     expect(newInstance.inactiveBilling).toEqual({
       ratio: { type: 'ratio', expPerMesoRatio: 4, tiers: [{ minLevel: 150, expPerMesoRatio: 4.5 }] },

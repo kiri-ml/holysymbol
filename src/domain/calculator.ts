@@ -1,12 +1,14 @@
 import { expGainedBetween, rawExpAt } from './expTable';
 import type {
   BuyerCalculation,
+  BuyerId,
   EstimateCalculation,
+  HourlyBilling,
+  HourlyLedger,
   InstanceCalculation,
   LeechBilling,
   LeechBuyer,
   LeechInstance,
-  LeechTimer,
   RatioBilling,
 } from './types';
 
@@ -44,110 +46,108 @@ export function calculateTieredRatioDue(
   return due + (endExp - segmentStart) / currentRatio;
 }
 
-export function getBillableMs(timer: LeechTimer, now = Date.now()): number {
-  if (timer.status !== 'running' || !timer.lastStartedAt) return timer.accumulatedMs;
-  const startedMs = new Date(timer.lastStartedAt).getTime();
-  if (!Number.isFinite(startedMs)) return timer.accumulatedMs;
-  return timer.accumulatedMs + Math.max(0, now - startedMs);
+function liveElapsedMs(ledger: HourlyLedger, now: number): number {
+  if (ledger.status !== 'running' || ledger.checkpointAt === undefined) return 0;
+  return Math.max(0, now - ledger.checkpointAt);
 }
 
-export function startTimer(timer: LeechTimer, nowIso = new Date().toISOString()): LeechTimer {
-  if (timer.status === 'running') return timer;
-  return {
-    ...timer,
-    status: 'running',
-    lastStartedAt: nowIso,
-  };
+export function getBillableMs(ledger: HourlyLedger, now = Date.now()): number {
+  return ledger.accumulatedMs + liveElapsedMs(ledger, now);
 }
 
-export function pauseTimer(timer: LeechTimer, now = Date.now()): LeechTimer {
-  if (timer.status !== 'running') return timer;
-  return {
-    ...timer,
-    status: 'paused',
-    accumulatedMs: getBillableMs(timer, now),
-    lastStartedAt: undefined,
-  };
+export function getBuyerBillableMs(billing: HourlyBilling, buyerId: BuyerId, now = Date.now()): number {
+  const account = billing.ledger.accounts[buyerId];
+  if (!account) return 0;
+  const activeCount = Object.values(billing.ledger.accounts).filter((item) => item.active).length;
+  const liveShare = account.active && activeCount > 0 ? liveElapsedMs(billing.ledger, now) / activeCount : 0;
+  return account.accruedMs + liveShare;
 }
 
-export function resetTimer(): LeechTimer {
-  return { status: 'idle', accumulatedMs: 0 };
+export function isBuyerHourlyTimerRunning(billing: HourlyBilling, buyerId: BuyerId): boolean {
+  return billing.ledger.status === 'running' && Boolean(billing.ledger.accounts[buyerId]?.active);
 }
 
-function dateMs(value: string | undefined): number | undefined {
-  if (!value) return undefined;
-  const ms = new Date(value).getTime();
-  return Number.isFinite(ms) ? ms : undefined;
-}
-
-export function getBuyerBillableMs(buyer: LeechBuyer, now = Date.now()): number {
-  return (buyer.hourly?.sessions ?? []).reduce((total, session) => {
-    const startedMs = dateMs(session.startedAt);
-    if (startedMs === undefined) return total;
-    const endedMs = dateMs(session.endedAt) ?? now;
-    return total + Math.max(0, endedMs - startedMs);
-  }, 0);
-}
-
-export function isBuyerHourlyTimerRunning(buyer: LeechBuyer): boolean {
-  return Boolean(buyer.hourly?.sessions.some((session) => !session.endedAt));
-}
-
-export function startBuyerHourlyTimer(buyer: LeechBuyer, nowIso = new Date().toISOString()): LeechBuyer {
-  const hourly = buyer.hourly ?? { sessions: [] };
-  return {
-    ...buyer,
-    hourly: {
-      sessions: [
-        ...hourly.sessions.map((session) => (session.endedAt ? session : { ...session, endedAt: nowIso })),
-        { startedAt: nowIso },
-      ],
-    },
-  };
-}
-
-export function pauseBuyerHourlyTimer(buyer: LeechBuyer, now = Date.now()): LeechBuyer {
-  const hourly = buyer.hourly ?? { sessions: [] };
-  const endedAt = new Date(now).toISOString();
-  return {
-    ...buyer,
-    hourly: {
-      sessions: hourly.sessions.map((session) => (session.endedAt ? session : { ...session, endedAt })),
-    },
-  };
-}
-
-function getBuyerSplitBillableMs(targetBuyer: LeechBuyer, buyers: LeechBuyer[], now = Date.now()): number {
-  const intervals = buyers.flatMap((buyer) => {
-    if (!buyer.start) return [];
-    return (buyer.hourly?.sessions ?? []).flatMap((session) => {
-      const startedMs = dateMs(session.startedAt);
-      if (startedMs === undefined) return [];
-      const endedMs = dateMs(session.endedAt) ?? now;
-      if (endedMs <= startedMs) return [];
-      return [{ buyerId: buyer.id, startedMs, endedMs }];
-    });
-  });
-
-  if (intervals.length === 0) return 0;
-
-  const boundaries = [...new Set(intervals.flatMap((interval) => [interval.startedMs, interval.endedMs]))].sort((a, b) => a - b);
-  let billableMs = 0;
-
-  for (let index = 0; index < boundaries.length - 1; index += 1) {
-    const startedMs = boundaries[index];
-    const endedMs = boundaries[index + 1];
-    if (endedMs <= startedMs) continue;
-
-    const active = intervals.filter((interval) => interval.startedMs < endedMs && interval.endedMs > startedMs);
-    if (!active.some((interval) => interval.buyerId === targetBuyer.id)) continue;
-    billableMs += (endedMs - startedMs) / active.length;
+export function checkpointHourlyBilling(billing: HourlyBilling, now = Date.now()): HourlyBilling {
+  if (billing.ledger.status !== 'running') return billing;
+  const elapsedMs = liveElapsedMs(billing.ledger, now);
+  const activeIds = Object.entries(billing.ledger.accounts)
+    .filter(([, account]) => account.active)
+    .map(([buyerId]) => Number(buyerId));
+  const shareMs = activeIds.length > 0 ? elapsedMs / activeIds.length : 0;
+  const accounts = { ...billing.ledger.accounts };
+  for (const buyerId of activeIds) {
+    accounts[buyerId] = { ...accounts[buyerId], accruedMs: accounts[buyerId].accruedMs + shareMs };
   }
-
-  return billableMs;
+  return {
+    ...billing,
+    ledger: {
+      ...billing.ledger,
+      accumulatedMs: billing.ledger.accumulatedMs + elapsedMs,
+      checkpointAt: now,
+      accounts,
+    },
+  };
 }
 
-export function calculateBuyer(buyer: LeechBuyer, billing: LeechBilling, now = Date.now(), buyers: LeechBuyer[] = [buyer]): BuyerCalculation {
+export function startHourlyBilling(billing: HourlyBilling, activeBuyerIds: BuyerId[], now = Date.now()): HourlyBilling {
+  if (billing.ledger.status === 'running') return billing;
+  const activeIds = new Set(activeBuyerIds);
+  const accounts = { ...billing.ledger.accounts };
+  for (const buyerId of activeIds) {
+    accounts[buyerId] = { accruedMs: accounts[buyerId]?.accruedMs ?? 0, active: true };
+  }
+  for (const [rawBuyerId, account] of Object.entries(accounts)) {
+    const buyerId = Number(rawBuyerId);
+    if (!activeIds.has(buyerId) && account.active) accounts[buyerId] = { ...account, active: false };
+  }
+  return {
+    ...billing,
+    ledger: { ...billing.ledger, status: 'running', checkpointAt: now, accounts },
+  };
+}
+
+export function pauseHourlyBilling(billing: HourlyBilling, now = Date.now()): HourlyBilling {
+  const checkpointed = checkpointHourlyBilling(billing, now);
+  if (checkpointed.ledger.status !== 'running') return checkpointed;
+  return {
+    ...checkpointed,
+    ledger: {
+      ...checkpointed.ledger,
+      status: 'paused',
+      checkpointAt: undefined,
+      accounts: Object.fromEntries(Object.entries(checkpointed.ledger.accounts).map(([id, account]) => [id, { ...account, active: false }])),
+    },
+  };
+}
+
+export function setHourlyAccountActive(billing: HourlyBilling, buyerId: BuyerId, active: boolean, now = Date.now()): HourlyBilling {
+  const checkpointed = checkpointHourlyBilling(billing, now);
+  const existing = checkpointed.ledger.accounts[buyerId];
+  if (!existing && !active) return checkpointed;
+  return {
+    ...checkpointed,
+    ledger: {
+      ...checkpointed.ledger,
+      accounts: {
+        ...checkpointed.ledger.accounts,
+        [buyerId]: { accruedMs: existing?.accruedMs ?? 0, active: active && checkpointed.ledger.status === 'running' },
+      },
+    },
+  };
+}
+
+export function removeHourlyAccount(billing: HourlyBilling, buyerId: BuyerId, now = Date.now()): HourlyBilling {
+  const checkpointed = checkpointHourlyBilling(billing, now);
+  const accounts = { ...checkpointed.ledger.accounts };
+  delete accounts[buyerId];
+  return { ...checkpointed, ledger: { ...checkpointed.ledger, accounts } };
+}
+
+export function resetHourlyBilling(billing: HourlyBilling): HourlyBilling {
+  return { ...billing, ledger: { status: 'idle', accumulatedMs: 0, accounts: {} } };
+}
+
+export function calculateBuyer(buyer: LeechBuyer, billing: LeechBilling, now = Date.now(), _buyers: LeechBuyer[] = [buyer]): BuyerCalculation {
   const expGained = buyer.start && buyer.current
     ? Math.max(0, expGainedBetween(buyer.start.level, buyer.start.expPercent, buyer.current.level, buyer.current.expPercent))
     : undefined;
@@ -167,7 +167,7 @@ export function calculateBuyer(buyer: LeechBuyer, billing: LeechBilling, now = D
     };
   }
 
-  const billableMs = getBuyerSplitBillableMs(buyer, buyers, now);
+  const billableMs = getBuyerBillableMs(billing, buyer.id, now);
   return {
     expGained,
     hourlyMesosDue: billableMs > 0 && buyer.start ? (billableMs / 3_600_000) * billing.hourlyRateMesos : undefined,
@@ -195,7 +195,7 @@ export function calculateInstance(instance: LeechInstance, now = Date.now()): In
     };
   }
 
-  const billableMs = instance.buyers.reduce((total, buyer) => total + (buyer.start ? getBuyerBillableMs(buyer, now) : 0), 0);
+  const billableMs = getBillableMs(instance.billing.ledger, now);
   const totalHourlyMesos = buyerCalculations.reduce(
     (total, calculation) => total + (calculation.hourlyMesosDue ?? 0),
     0,
