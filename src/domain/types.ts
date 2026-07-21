@@ -19,12 +19,6 @@ export type CharacterSnapshot = {
   source: 'api' | 'manual';
 };
 
-export type ExpTableRow = {
-  level: number;
-  expToLevel: number;
-  accumulatedExp: number;
-};
-
 export type BillingType = 'ratio' | 'hourly';
 export type BuyerId = number;
 
