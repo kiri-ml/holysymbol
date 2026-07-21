@@ -52,6 +52,7 @@ export const ko = {
   },
   calculator: {
     heading: '계산기',
+    expMesosRatio: '경험치 : 메소',
     from: '시작',
     to: '목표',
     result: '결과',

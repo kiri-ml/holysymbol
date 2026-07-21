@@ -747,7 +747,7 @@ function QuickEstimate({
           labels={
             estimate.billingType === 'ratio' ? (
               <div className="estimate-label-row estimate-label-row--single">
-                <span>{t('billing.ratio')}</span>
+                <span>{t('calculator.expMesosRatio')}</span>
               </div>
             ) : (
               <div className="estimate-label-row estimate-label-row--pricing">

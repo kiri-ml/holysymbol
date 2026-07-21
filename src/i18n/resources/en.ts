@@ -50,6 +50,7 @@ export const en = {
   },
   calculator: {
     heading: 'Calculator',
+    expMesosRatio: 'EXP : Mesos',
     from: 'From',
     to: 'To',
     result: 'Result',

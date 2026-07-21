@@ -52,6 +52,7 @@ export const ptBR = {
   },
   calculator: {
     heading: 'Calculadora',
+    expMesosRatio: 'EXP : Mesos',
     from: 'De',
     to: 'Até',
     result: 'Resultado',
