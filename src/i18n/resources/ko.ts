@@ -44,7 +44,7 @@ export const ko = {
     refreshing: '갱신 중...',
     reset: '초기화',
     start: '시작',
-    untitledRun: '이름 없는 런',
+    untitled: '제목 없음',
     ratioPrefix: '1 :',
     millionPerHour: 'M/시간',
     millionExpPerHour: 'M 경험치/시간',
@@ -100,7 +100,6 @@ export const ko = {
     thisCharacter: '이 캐릭터',
   },
   run: {
-    defaultName: '런',
     nameLabel: '쩔 런 {{number}} 이름',
     created: '{{date}} 생성',
     delete: '런 삭제',

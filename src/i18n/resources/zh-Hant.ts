@@ -44,7 +44,7 @@ export const zhHant = {
     refreshing: '刷新中...',
     reset: '重置',
     start: '開始',
-    untitledRun: '未命名場次',
+    untitled: '未命名',
     ratioPrefix: '1 :',
     millionPerHour: 'M/小時',
     millionExpPerHour: 'M經驗/小時',
@@ -100,7 +100,6 @@ export const zhHant = {
     thisCharacter: '該角色',
   },
   run: {
-    defaultName: '場次',
     nameLabel: 'Leech場次{{number}}名稱',
     created: '建立於{{date}}',
     delete: '刪除場次',

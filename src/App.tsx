@@ -41,7 +41,7 @@ import {
   setHourlyAccountActive,
   startHourlyBilling,
 } from './domain/calculator';
-import { formatCompact, formatDuration, formatExp, formatHours, formatLocalDateTime, formatMesosShort, formatMesosShortPrecise, formatMesosValue, formatPercent, formatRatio, formatRatioRange } from './domain/format';
+import { formatCompact, formatDuration, formatExp, formatHours, formatLocalDateTime, formatMesosShort, formatMesosShortPrecise, formatMesosValue, formatMonogram, formatPercent, formatRatio, formatRatioRange } from './domain/format';
 import { createId } from './domain/id';
 import { createInstanceWithBillingSettings } from './domain/instances';
 import type {
@@ -55,7 +55,7 @@ import type {
 } from './domain/types';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useInstancesStorage } from './hooks/useInstancesStorage';
-import { i18n, setLanguagePreference } from './i18n';
+import { setLanguagePreference } from './i18n';
 import { DEFAULT_LOCALE, isSupportedLocale, SUPPORTED_LOCALES } from './i18n/locales';
 import './styles/app.css';
 
@@ -64,6 +64,7 @@ type ThemeMode = 'system' | 'light' | 'dark';
 
 const COPY_FEEDBACK_MS = 1600;
 const SUCCESS_NOTICE_MS = 4000;
+const RUN_RAIL_MONOGRAM_WIDTH = 6;
 
 type QuickEstimateState = {
   fromLevel: number;
@@ -97,28 +98,19 @@ const DEFAULT_ESTIMATE: QuickEstimateState = {
   expPerHourMillions: 35,
 };
 
-function defaultRunName(createdAt: string) {
-  const name = i18n.t('run.defaultName');
-  const date = new Date(createdAt);
-  if (Number.isNaN(date.getTime())) return name;
+function runNameWithFallback(instance: LeechInstance, fallback: string) {
+  return instance.name.trim() || fallback;
+}
 
-  const time = date.toLocaleTimeString(undefined, {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-  const day = date.toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-  });
-
-  return `${day} ${time}`;
+function runDisplayName(instance: LeechInstance) {
+  return runNameWithFallback(instance, formatLocalDateTime(instance.createdAt));
 }
 
 function emptyInstance(billing: LeechBilling = DEFAULT_RATIO_BILLING, id = createId('leech')): LeechInstance {
   const createdAt = new Date().toISOString();
   return {
     id,
-    name: defaultRunName(createdAt),
+    name: '',
     billing,
     buyers: [],
     nextBuyerId: 0,
@@ -256,7 +248,7 @@ function exportInstances(instances: LeechInstance[], t: TFunction, now = Date.no
       const buyerCalc = calculateBuyer(buyer, instance.billing, now, instance.buyers);
       const due = instance.billing.type === 'ratio' ? buyerCalc.ratioMesosDue : buyerCalc.hourlyMesosDue;
       return [
-        instance.name,
+        runNameWithFallback(instance, t('common.untitled')),
         instance.createdAt,
         billingLabel(instance.billing, t),
         buyerLookupIgn(buyer),
@@ -1282,8 +1274,9 @@ function LeechInstanceCard({
       <div className="instance-header">
         <div>
           <input
-            className="instance-title-input"
+            className={`instance-title-input${instance.name.trim() ? '' : ' instance-title-input--empty'}`}
             value={instance.name}
+            placeholder={t('common.untitled')}
             onChange={(event) => onUpdate({ ...instance, name: event.target.value })}
             aria-label={t('run.nameLabel', { number: index + 1 })}
           />
@@ -1474,7 +1467,7 @@ function LeechInstanceCard({
               }}
               onDelete={() => {
                 const name = buyerLookupIgn(buyer) || t('buyer.thisCharacter');
-                if (!isEmptyBuyer(buyer) && !confirmDeletion(t('confirm.deleteBuyer', { name, run: instance.name }))) return;
+                if (!isEmptyBuyer(buyer) && !confirmDeletion(t('confirm.deleteBuyer', { name, run: runDisplayName(instance) }))) return;
                 const withoutBuyer = { ...instance, buyers: instance.buyers.filter((item) => item.id !== buyer.id) };
                 if (instance.billing.type === 'hourly') {
                   onUpdate(updateInstanceBilling(withoutBuyer, removeHourlyAccount(instance.billing, buyer.id, Date.now())));
@@ -1532,9 +1525,10 @@ function RunRail({
         <select value={selectedRunId ?? ''} onChange={(event) => onSelect(event.target.value)} aria-label={t('run.selected')}>
           {instances.map((instance) => {
             const summary = calculateInstance(instance, now);
+            const runName = runDisplayName(instance);
             return (
               <option key={instance.id} value={instance.id}>
-                {instance.name || t('common.untitledRun')} · {compactBillingLabel(instance.billing, t)} · {formatMesosShort(summary.totalMesosDue)}
+                {runName} · {compactBillingLabel(instance.billing, t)} · {formatMesosShort(summary.totalMesosDue)}
               </option>
             );
           })}
@@ -1545,6 +1539,7 @@ function RunRail({
         {instances.map((instance) => {
           const summary = calculateInstance(instance, now);
           const selected = instance.id === selectedRunId;
+          const runName = runDisplayName(instance);
           return (
             <button
               key={instance.id}
@@ -1552,15 +1547,18 @@ function RunRail({
               className={`run-tab${selected ? ' run-tab--active' : ''}`}
               onClick={() => onSelect(instance.id)}
               aria-current={selected ? 'true' : undefined}
+              aria-label={runName}
+              title={runName}
             >
-              <span>
-                <strong>{instance.name || t('common.untitledRun')}</strong>
+              <span className="run-tab__details">
+                <strong>{runName}</strong>
                 <small>{compactBillingLabel(instance.billing, t)}</small>
               </span>
-              <span>
+              <span className="run-tab__details">
                 <b>{formatMesosShort(summary.totalMesosDue)}</b>
                 <small>{t('buyer.count', { count: summary.buyerCount })}</small>
               </span>
+              <span className="run-tab__monogram" aria-hidden="true">{formatMonogram(runName, RUN_RAIL_MONOGRAM_WIDTH)}</span>
             </button>
           );
         })}
@@ -1703,7 +1701,7 @@ export default function App() {
       ? createInstanceWithBillingSettings(source, {
         id,
         createdAt,
-        name: defaultRunName(createdAt),
+        name: '',
       })
       : emptyInstance(DEFAULT_RATIO_BILLING, id);
     setHighlightedRunId(id);
@@ -1804,7 +1802,9 @@ export default function App() {
               onDueCopied={showCopiedBuyer}
               onUpdate={upsertInstance}
               onDelete={() => {
-                if (!isEmptyInstance(selectedInstance) && !confirmDeletion(t('confirm.deleteRun', { name: selectedInstance.name }))) return;
+                if (!isEmptyInstance(selectedInstance) && !confirmDeletion(t('confirm.deleteRun', {
+                  name: runDisplayName(selectedInstance),
+                }))) return;
                 setInstances((current) => (current.length <= 1 ? [emptyInstance()] : current.filter((item) => item.id !== selectedInstance.id)));
               }}
             />

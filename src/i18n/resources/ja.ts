@@ -44,7 +44,7 @@ export const ja = {
     refreshing: '更新中...',
     reset: 'リセット',
     start: '開始',
-    untitledRun: '無題のラン',
+    untitled: '無題',
     ratioPrefix: '1 :',
     millionPerHour: 'M/時',
     millionExpPerHour: 'M経験値/時',
@@ -100,7 +100,6 @@ export const ja = {
     thisCharacter: 'このキャラクター',
   },
   run: {
-    defaultName: 'ラン',
     nameLabel: 'Leechラン{{number}}の名前',
     created: '{{date}}作成',
     delete: 'ランを削除',

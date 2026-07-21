@@ -20,6 +20,30 @@ const FIXED_DECIMAL_FORMAT = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 2,
 });
 
+const GRAPHEME_SEGMENTER = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+const WIDE_SYMBOL_PATTERN = /\p{Extended_Pictographic}|\p{Regional_Indicator}/u;
+
+function isWideGrapheme(grapheme: string) {
+  if (WIDE_SYMBOL_PATTERN.test(grapheme)) return true;
+
+  const codePoint = grapheme.codePointAt(0) ?? 0;
+  return codePoint >= 0x1100 && (
+    codePoint <= 0x115f
+    || codePoint === 0x2329
+    || codePoint === 0x232a
+    || (codePoint >= 0x2e80 && codePoint <= 0xa4cf && codePoint !== 0x303f)
+    || (codePoint >= 0xac00 && codePoint <= 0xd7a3)
+    || (codePoint >= 0xf900 && codePoint <= 0xfaff)
+    || (codePoint >= 0xfe10 && codePoint <= 0xfe19)
+    || (codePoint >= 0xfe30 && codePoint <= 0xfe6f)
+    || (codePoint >= 0xff00 && codePoint <= 0xff60)
+    || (codePoint >= 0xffe0 && codePoint <= 0xffe6)
+    || (codePoint >= 0x1b000 && codePoint <= 0x1b001)
+    || (codePoint >= 0x1f200 && codePoint <= 0x1f251)
+    || (codePoint >= 0x20000 && codePoint <= 0x3fffd)
+  );
+}
+
 export function formatExp(value: number | undefined) {
   if (value === undefined || !Number.isFinite(value)) return '—';
   return EXP_FORMAT.format(Math.max(0, Math.round(value)));
@@ -51,6 +75,21 @@ export function formatMesosShortPrecise(value: number | undefined) {
 export function formatCompact(value: number | undefined) {
   if (value === undefined || !Number.isFinite(value)) return '—';
   return COMPACT_FORMAT.format(Math.max(0, value));
+}
+
+export function formatMonogram(label: string, maxWidth = 4) {
+  const graphemes = GRAPHEME_SEGMENTER.segment(label.replace(/\s/gu, ''));
+  const monogram: string[] = [];
+  let width = 0;
+
+  for (const { segment } of graphemes) {
+    const segmentWidth = isWideGrapheme(segment) ? 2 : 1;
+    if (width + segmentWidth > maxWidth) break;
+    width += segmentWidth;
+    monogram.push(segment);
+  }
+
+  return monogram.join('') || '—';
 }
 
 export function formatPercent(value: number | undefined) {

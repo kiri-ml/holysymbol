@@ -44,7 +44,7 @@ export const nl = {
     refreshing: 'Vernieuwen...',
     reset: 'Resetten',
     start: 'Starten',
-    untitledRun: 'Naamloze run',
+    untitled: 'Naamloos',
     ratioPrefix: '1 :',
     millionPerHour: 'M/uur',
     millionExpPerHour: 'M EXP/uur',
@@ -100,7 +100,6 @@ export const nl = {
     thisCharacter: 'dit personage',
   },
   run: {
-    defaultName: 'Run',
     nameLabel: 'Naam voor leech-run {{number}}',
     created: 'Aangemaakt op {{date}}',
     delete: 'Run verwijderen',

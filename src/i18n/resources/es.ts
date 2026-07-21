@@ -44,7 +44,7 @@ export const es = {
     refreshing: 'Actualizando...',
     reset: 'Restablecer',
     start: 'Iniciar',
-    untitledRun: 'Run sin nombre',
+    untitled: 'Sin título',
     ratioPrefix: '1 :',
     millionPerHour: 'M/h',
     millionExpPerHour: 'M EXP/h',
@@ -101,7 +101,6 @@ export const es = {
     thisCharacter: 'este personaje',
   },
   run: {
-    defaultName: 'Run',
     nameLabel: 'Nombre del run de leech {{number}}',
     created: 'Creado el {{date}}',
     delete: 'Eliminar run',

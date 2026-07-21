@@ -307,8 +307,14 @@ h3 {
 }
 
 .workbench-layout {
+  --run-rail-width: clamp(15.5rem, 16vw, 18rem);
+  --tools-column-width: clamp(18rem, 20vw, 22rem);
+
   display: grid;
-  grid-template-columns: 18rem minmax(0, 1fr) minmax(20rem, 22rem);
+  grid-template-columns:
+    var(--run-rail-width)
+    minmax(0, 1fr)
+    var(--tools-column-width);
   gap: var(--space-4);
   align-items: start;
   margin-top: var(--space-4);
@@ -438,6 +444,10 @@ h3 {
 .run-tab small {
   display: block;
   margin-top: 0.16rem;
+}
+
+.run-tab__monogram {
+  display: none;
 }
 
 .ledger-column,
@@ -851,6 +861,22 @@ h3 {
   font-weight: 820;
   color: var(--ink);
   border-radius: var(--radius-sm);
+}
+
+.instance-title-input--empty {
+  border: 1px dashed var(--primary);
+  background: var(--primary-softer);
+  padding: 0 var(--space-2);
+}
+
+.instance-title-input--empty::placeholder {
+  color: var(--primary-strong);
+  opacity: 1;
+}
+
+.instance-title-input--empty:focus {
+  border-style: solid;
+  background: var(--control);
 }
 
 .run-created-at {
@@ -1808,7 +1834,9 @@ input.ratio-tier-control::placeholder {
 
 @media (max-width: 1440px) {
   .workbench-layout {
-    grid-template-columns: 15.5rem minmax(0, 1fr);
+    --run-rail-width: clamp(14rem, calc(9.5rem + 6.667vw), 15.5rem);
+
+    grid-template-columns: var(--run-rail-width) minmax(0, 1fr);
   }
 
   .tools-column {
@@ -1848,8 +1876,7 @@ input.ratio-tier-control::placeholder {
   }
 
   .app-topbar,
-  .panel-heading,
-  .instance-header {
+  .panel-heading {
     align-items: stretch;
     flex-direction: column;
   }
@@ -1875,12 +1902,45 @@ input.ratio-tier-control::placeholder {
   }
 
   .workbench-layout {
-    grid-template-columns: 15.5rem minmax(0, 1fr);
+    --run-rail-width: 4.75rem;
+
+    gap: var(--space-3);
   }
 
   .run-rail {
     position: sticky;
     top: var(--space-3);
+    padding: var(--space-2);
+  }
+
+  .rail-header {
+    justify-content: center;
+    margin-bottom: var(--space-2);
+  }
+
+  .rail-header > div {
+    display: none;
+  }
+
+  .run-tab {
+    min-height: 3rem;
+    padding: var(--space-2);
+    grid-template-columns: 1fr;
+    place-items: center;
+    gap: 0;
+    text-align: center;
+  }
+
+  .run-tab__details {
+    display: none;
+  }
+
+  .run-tab__monogram {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 820;
+    line-height: 1;
+    letter-spacing: 0.02em;
   }
 
   .tools-column {
@@ -1902,7 +1962,6 @@ input.ratio-tier-control::placeholder {
   }
 
   .instance-billing,
-  .buyer-row-main,
   .snapshot-editor-grid {
     grid-template-columns: 1fr;
   }
@@ -1919,25 +1978,34 @@ input.ratio-tier-control::placeholder {
     border-block-start: 1px solid var(--border);
     border-inline-start: 0;
   }
+}
+
+@media (max-width: 860px) {
+  .buyer-row-main {
+    grid-template-columns: minmax(12rem, 0.85fr) minmax(0, 2.7fr);
+    grid-template-areas:
+      "identity metrics"
+      "actions metrics";
+  }
+
+  .buyer-identity-cell {
+    grid-area: identity;
+  }
 
   .buyer-row-metrics {
+    grid-area: metrics;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .buyer-row-actions {
-    display: inline-grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-2);
-    justify-self: start;
+    grid-area: actions;
+    grid-template-columns: repeat(2, auto);
+    justify-content: start;
   }
 
   .buyer-row-actions > .icon-button {
-    width: 100%;
-    min-width: 0;
-    height: 2.75rem;
-    min-height: 2.75rem;
+    width: auto;
     padding-inline: var(--space-3);
-    border-radius: 999px;
     gap: 0.4rem;
   }
 
@@ -1961,6 +2029,14 @@ input.ratio-tier-control::placeholder {
   .run-rail {
     position: static;
     width: 100%;
+  }
+
+  .rail-header {
+    justify-content: space-between;
+  }
+
+  .rail-header > div {
+    display: block;
   }
 
   .run-picker {
@@ -2075,9 +2151,19 @@ input.ratio-tier-control::placeholder {
   .timer-card__actions > button {
     width: 100%;
   }
+}
 
-  .buyer-row-metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+@media (max-width: 550px) {
+  .buyer-row-main {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "identity actions"
+      "metrics metrics";
+  }
+
+  .buyer-row-actions {
+    grid-template-columns: 1fr;
+    justify-content: stretch;
   }
 }
 

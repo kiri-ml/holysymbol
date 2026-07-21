@@ -42,7 +42,7 @@ export const en = {
     refreshing: 'Refreshing...',
     reset: 'Reset',
     start: 'Start',
-    untitledRun: 'Untitled run',
+    untitled: 'Untitled',
     ratioPrefix: '1 :',
     millionPerHour: 'M/h',
     millionExpPerHour: 'M EXP/h',
@@ -99,7 +99,6 @@ export const en = {
     thisCharacter: 'this character',
   },
   run: {
-    defaultName: 'Run',
     nameLabel: 'Name for leech run {{number}}',
     created: 'Created {{date}}',
     delete: 'Delete run',

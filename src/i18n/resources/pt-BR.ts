@@ -44,7 +44,7 @@ export const ptBR = {
     refreshing: 'Atualizando...',
     reset: 'Redefinir',
     start: 'Iniciar',
-    untitledRun: 'Run sem nome',
+    untitled: 'Sem título',
     ratioPrefix: '1 :',
     millionPerHour: 'M/h',
     millionExpPerHour: 'M EXP/h',
@@ -101,7 +101,6 @@ export const ptBR = {
     thisCharacter: 'este personagem',
   },
   run: {
-    defaultName: 'Run',
     nameLabel: 'Nome do run de leech {{number}}',
     created: 'Criado em {{date}}',
     delete: 'Excluir run',

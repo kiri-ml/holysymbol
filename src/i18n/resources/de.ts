@@ -44,7 +44,7 @@ export const de = {
     refreshing: 'Aktualisiere...',
     reset: 'Zurücksetzen',
     start: 'Start',
-    untitledRun: 'Unbenannter Run',
+    untitled: 'Unbenannt',
     ratioPrefix: '1 :',
     millionPerHour: 'M/Std.',
     millionExpPerHour: 'M EXP/Std.',
@@ -100,7 +100,6 @@ export const de = {
     thisCharacter: 'dieser Charakter',
   },
   run: {
-    defaultName: 'Run',
     nameLabel: 'Name für Leech-Run {{number}}',
     created: 'Erstellt am {{date}}',
     delete: 'Run löschen',
