@@ -53,8 +53,6 @@ export const en = {
     from: 'From',
     to: 'To',
     result: 'Result',
-    price: 'Price',
-    eph: 'EPH',
     expNeeded: 'EXP needed',
     expectedTime: 'Expected time',
     estimatedCost: 'Estimated cost',

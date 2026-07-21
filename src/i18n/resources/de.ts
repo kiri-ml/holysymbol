@@ -55,8 +55,6 @@ export const de = {
     from: 'Von',
     to: 'Bis',
     result: 'Ergebnis',
-    price: 'Preis',
-    eph: 'EPH',
     expNeeded: 'Benötigte EXP',
     expectedTime: 'Erwartete Zeit',
     estimatedCost: 'Geschätzte Kosten',

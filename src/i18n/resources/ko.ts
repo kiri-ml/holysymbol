@@ -55,8 +55,6 @@ export const ko = {
     from: '시작',
     to: '목표',
     result: '결과',
-    price: '가격',
-    eph: 'EPH',
     expNeeded: '필요 경험치',
     expectedTime: '예상 시간',
     estimatedCost: '예상 비용',

@@ -55,8 +55,6 @@ export const nl = {
     from: 'Van',
     to: 'Naar',
     result: 'Resultaat',
-    price: 'Prijs',
-    eph: 'EPH',
     expNeeded: 'Benodigde EXP',
     expectedTime: 'Verwachte tijd',
     estimatedCost: 'Geschatte kosten',

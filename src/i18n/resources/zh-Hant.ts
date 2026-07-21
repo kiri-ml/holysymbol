@@ -55,8 +55,6 @@ export const zhHant = {
     from: '起始',
     to: '目標',
     result: '結果',
-    price: '價格',
-    eph: 'EPH',
     expNeeded: '所需經驗',
     expectedTime: '預計時間',
     estimatedCost: '預計費用',

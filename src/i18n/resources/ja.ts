@@ -55,8 +55,6 @@ export const ja = {
     from: '開始',
     to: '目標',
     result: '結果',
-    price: '価格',
-    eph: 'EPH',
     expNeeded: '必要経験値',
     expectedTime: '予想時間',
     estimatedCost: '予想費用',

@@ -55,8 +55,6 @@ export const ptBR = {
     from: 'De',
     to: 'Até',
     result: 'Resultado',
-    price: 'Preço',
-    eph: 'EPH',
     expNeeded: 'EXP necessária',
     expectedTime: 'Tempo estimado',
     estimatedCost: 'Custo estimado',

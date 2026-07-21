@@ -55,8 +55,6 @@ export const fr = {
     from: 'De',
     to: 'À',
     result: 'Résultat',
-    price: 'Prix',
-    eph: 'EPH',
     expNeeded: 'EXP nécessaire',
     expectedTime: 'Temps estimé',
     estimatedCost: 'Coût estimé',

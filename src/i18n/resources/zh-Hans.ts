@@ -55,8 +55,6 @@ export const zhHans = {
     from: '起始',
     to: '目标',
     result: '结果',
-    price: '价格',
-    eph: 'EPH',
     expNeeded: '所需经验',
     expectedTime: '预计时间',
     estimatedCost: '预计费用',

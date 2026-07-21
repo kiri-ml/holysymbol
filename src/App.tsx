@@ -751,8 +751,8 @@ function QuickEstimate({
               </div>
             ) : (
               <div className="estimate-label-row estimate-label-row--pricing">
-                <span>{t('calculator.price')}</span>
-                <span>{t('calculator.eph')}</span>
+                <span>{t('common.millionPerHour')}</span>
+                <span>{t('common.millionExpPerHour')}</span>
               </div>
             )
           }
@@ -772,31 +772,25 @@ function QuickEstimate({
           ) : (
             <div className="estimate-pricing-inputs">
               <div>
-                <span className="unit-input">
-                  <EditableNumberInput
-                    type="number"
-                    min={0}
-                    step={0.5}
-                    value={estimate.hourlyRateMillions}
-                    aria-label={t('aria.hourlyPriceMillions')}
-                    onValueChange={(hourlyRateMillions) => onChange({ ...estimate, hourlyRateMillions })}
-                  />
-                  <span>{t('common.millionPerHour')}</span>
-                </span>
+                <EditableNumberInput
+                  type="number"
+                  min={0}
+                  step={0.5}
+                  value={estimate.hourlyRateMillions}
+                  aria-label={t('aria.hourlyPriceMillions')}
+                  onValueChange={(hourlyRateMillions) => onChange({ ...estimate, hourlyRateMillions })}
+                />
               </div>
               <div>
-                <span className="unit-input">
-                  <EditableNumberInput
-                    type="number"
-                    min={0}
-                    step={0.01}
-                    value={estimate.expPerHourMillions}
-                    normalize={normalizeNonNegativeHundredth}
-                    aria-label={t('aria.expRateMillions')}
-                    onValueChange={(expPerHourMillions) => onChange({ ...estimate, expPerHourMillions })}
-                  />
-                  <span>{t('common.millionExpPerHour')}</span>
-                </span>
+                <EditableNumberInput
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  value={estimate.expPerHourMillions}
+                  normalize={normalizeNonNegativeHundredth}
+                  aria-label={t('aria.expRateMillions')}
+                  onValueChange={(expPerHourMillions) => onChange({ ...estimate, expPerHourMillions })}
+                />
               </div>
             </div>
           )}
