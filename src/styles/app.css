@@ -1902,7 +1902,7 @@ input.ratio-tier-control::placeholder {
   }
 
   .workbench-layout {
-    --run-rail-width: 4.75rem;
+    --run-rail-width: 5rem;
 
     gap: var(--space-3);
   }
