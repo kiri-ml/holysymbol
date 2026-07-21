@@ -455,6 +455,10 @@ h3 {
   min-width: 0;
 }
 
+.workbench-content {
+  display: contents;
+}
+
 .tools-column {
   display: grid;
   gap: var(--space-4);
@@ -1839,9 +1843,15 @@ input.ratio-tier-control::placeholder {
     grid-template-columns: var(--run-rail-width) minmax(0, 1fr);
   }
 
+  .workbench-content {
+    display: grid;
+    grid-column: 2;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+
   .tools-column {
     position: static;
-    grid-column: 2;
     grid-template-columns: 1fr;
   }
 
@@ -1855,6 +1865,16 @@ input.ratio-tier-control::placeholder {
 
   .run-tools .tools-grid {
     display: contents;
+  }
+
+  .run-tools .tools-grid .tool-stat + .tool-stat {
+    border-top: 0;
+    border-left: 1px solid var(--border);
+  }
+
+  .run-tools .copy-metric {
+    border-right: 1px solid var(--border);
+    border-bottom: 0;
   }
 
   .estimate-grid {
@@ -1943,22 +1963,8 @@ input.ratio-tier-control::placeholder {
     letter-spacing: 0.02em;
   }
 
-  .tools-column {
-    grid-column: 2;
-    grid-template-columns: 1fr;
-  }
-
-  .run-tools,
   .estimate-grid {
     grid-template-columns: 1fr;
-  }
-
-  .run-tools .panel-heading {
-    grid-column: auto;
-  }
-
-  .run-tools .tools-grid {
-    display: grid;
   }
 
   .instance-billing,
@@ -2047,8 +2053,8 @@ input.ratio-tier-control::placeholder {
     display: none;
   }
 
-  .tools-column {
-    grid-column: auto;
+  .workbench-content {
+    grid-column: 1;
   }
 
   .app-topbar,
@@ -2154,6 +2160,24 @@ input.ratio-tier-control::placeholder {
 }
 
 @media (max-width: 550px) {
+  .run-tools {
+    grid-template-columns: 1fr;
+  }
+
+  .run-tools .panel-heading {
+    grid-column: auto;
+  }
+
+  .run-tools .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .run-tools .copy-metric {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
   .buyer-row-main {
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:

@@ -1787,34 +1787,36 @@ export default function App() {
       <div className="workbench-layout">
         <RunRail instances={displayedInstances} selectedRunId={selectedInstance?.id ?? null} now={now} onSelect={setSelectedRunId} onAdd={() => addInstance(selectedInstance)} />
 
-        <section className="ledger-column instances-section" aria-label={t('run.selectedLedger')}>
-          {selectedInstance ? (
-            <LeechInstanceCard
-              key={selectedInstance.id}
-              instance={selectedInstance}
-              index={displayedInstances.findIndex((instance) => instance.id === selectedInstance.id)}
-              highlighted={selectedInstance.id === highlightedRunId}
-              busyKey={busyKey}
-              now={now}
-              onFetchSnapshot={loadCharacter}
-              onFetchSnapshots={loadCharacters}
-              copiedBuyerId={copiedBuyerId}
-              onDueCopied={showCopiedBuyer}
-              onUpdate={upsertInstance}
-              onDelete={() => {
-                if (!isEmptyInstance(selectedInstance) && !confirmDeletion(t('confirm.deleteRun', {
-                  name: runDisplayName(selectedInstance),
-                }))) return;
-                setInstances((current) => (current.length <= 1 ? [emptyInstance()] : current.filter((item) => item.id !== selectedInstance.id)));
-              }}
-            />
-          ) : null}
-        </section>
+        <div className="workbench-content">
+          <section className="ledger-column instances-section" aria-label={t('run.selectedLedger')}>
+            {selectedInstance ? (
+              <LeechInstanceCard
+                key={selectedInstance.id}
+                instance={selectedInstance}
+                index={displayedInstances.findIndex((instance) => instance.id === selectedInstance.id)}
+                highlighted={selectedInstance.id === highlightedRunId}
+                busyKey={busyKey}
+                now={now}
+                onFetchSnapshot={loadCharacter}
+                onFetchSnapshots={loadCharacters}
+                copiedBuyerId={copiedBuyerId}
+                onDueCopied={showCopiedBuyer}
+                onUpdate={upsertInstance}
+                onDelete={() => {
+                  if (!isEmptyInstance(selectedInstance) && !confirmDeletion(t('confirm.deleteRun', {
+                    name: runDisplayName(selectedInstance),
+                  }))) return;
+                  setInstances((current) => (current.length <= 1 ? [emptyInstance()] : current.filter((item) => item.id !== selectedInstance.id)));
+                }}
+              />
+            ) : null}
+          </section>
 
-        <aside className="tools-column">
-          {selectedInstance ? <RunTools instance={selectedInstance} now={now} /> : null}
-          <QuickEstimate estimate={estimate} onChange={setEstimate} />
-        </aside>
+          <aside className="tools-column">
+            {selectedInstance ? <RunTools instance={selectedInstance} now={now} /> : null}
+            <QuickEstimate estimate={estimate} onChange={setEstimate} />
+          </aside>
+        </div>
       </div>
     </main>
   );
