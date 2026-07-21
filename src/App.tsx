@@ -1002,11 +1002,11 @@ function BuyerRow({
       <div className={`buyer-row-main${locked ? ' buyer-row-main--locked' : ''}`}>
         <div className="buyer-identity-cell">
           {lookupIgn ? (
-            <div className="avatar-frame avatar-frame--small">
+            <div className="avatar-frame">
               <img src={avatarUrl(lookupIgn, !locked)} alt="" loading="lazy" />
             </div>
           ) : (
-            <div className="avatar-frame avatar-frame--small avatar-frame--empty"><UserPlus size={18} /></div>
+            <div className="avatar-frame avatar-frame--empty"><UserPlus size={18} /></div>
           )}
           <div className="buyer-name-display">
             <strong>{buyer.ign || t('buyer.placeholderName')}</strong>
