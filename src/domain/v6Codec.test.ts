@@ -1,8 +1,41 @@
 import { describe, expect, it } from 'vitest';
+import v6HourlyFixture from './__fixtures__/persistence/v6-hourly.json';
+import v6RatioFixture from './__fixtures__/persistence/v6-ratio.json';
 import { decodeV6Instances, encodeV6Instances } from './v6Codec';
 import type { LeechInstance } from './types';
 
 describe('v6 codec', () => {
+  it('decodes the committed ratio and hourly fixtures', () => {
+    const ratio = decodeV6Instances(v6RatioFixture)![0];
+    expect(ratio).toMatchObject({
+      id: 'fixture-ratio',
+      billing: { type: 'ratio', expPerMesoRatio: 3.3 },
+      buyers: [{ id: 2, ign: 'RatioBuyer', locked: true }],
+      nextBuyerId: 3,
+      lastCurrentRefreshedAt: '2026-06-09T01:00:00.000Z',
+    });
+    expect(encodeV6Instances([ratio])).toEqual(v6RatioFixture);
+
+    const hourly = decodeV6Instances(v6HourlyFixture)![0];
+    expect(hourly).toMatchObject({
+      id: 'fixture-hourly',
+      billing: {
+        type: 'hourly',
+        hourlyRateMesos: 14_000_000,
+        ledger: {
+          status: 'running',
+          accumulatedMs: 120_000,
+          checkpointAt: 1_780_966_800_000,
+          accounts: {
+            0: { accruedMs: 90_000, active: true },
+            1: { accruedMs: 30_000, active: false },
+          },
+        },
+      },
+    });
+    expect(encodeV6Instances([hourly])).toEqual(v6HourlyFixture);
+  });
+
   it('encodes the compact schema exactly and round-trips tuple snapshots', () => {
     const original: LeechInstance = {
       id: 'run', name: 'Run',

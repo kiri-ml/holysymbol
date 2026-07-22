@@ -1,0 +1,84 @@
+@layer components {
+  .group {
+    display: grid;
+    grid-template-columns: repeat(var(--metric-group-columns, var(--metric-group-default-columns, 1)), minmax(0, 1fr));
+    min-width: 0;
+  }
+  .group[data-dividers='true'] { gap: 1px; background: var(--border); }
+  .group > * { --metric-background: var(--surface); }
+  .group > .copyButton { border: 0; }
+  .group[data-padding='small'] > * { --metric-item-padding: var(--space-2); }
+  .group[data-padding='medium'] > * { --metric-item-padding: var(--space-3); }
+
+  .root {
+    min-width: 0;
+    padding: var(--metric-item-padding, 0);
+    background: var(--metric-background, transparent);
+    color: inherit;
+    --metric-label-color: var(--muted);
+    --metric-label-size: var(--text-overline);
+    --metric-value-color: var(--ink);
+    --metric-value-size: 1.2rem;
+    --metric-detail-color: var(--muted);
+  }
+
+  .root[data-metric-variant='compact'] { --metric-label-size: 0.64rem; --metric-value-size: 1rem; }
+
+  .label {
+    display: block;
+    color: var(--metric-label-color);
+    font-size: var(--metric-label-size);
+    font-weight: var(--weight-strong);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .value {
+    display: block;
+    margin-top: 0.14rem;
+    color: var(--metric-value-color);
+    font-size: var(--metric-value-size);
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+
+  .detail {
+    display: block;
+    color: var(--metric-detail-color);
+    font-size: var(--text-caption);
+    line-height: 1.35;
+  }
+
+  .copyButton {
+    color: inherit;
+    font-weight: inherit;
+    text-align: left;
+    justify-content: normal;
+    align-items: normal;
+    gap: 0;
+  }
+
+  .copyButton:active:not(:disabled) { transform: none; }
+  .copyLabel { display: inline-flex; align-items: center; gap: 0.3rem; }
+
+  .copyAppearance {
+    display: block;
+    width: 100%;
+    min-height: 0;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: inherit;
+    text-align: left;
+    --metric-label-color: var(--primary-strong);
+    --metric-value-color: var(--primary-strong);
+    --metric-value-size: 1.55rem;
+  }
+
+  .copyAppearance:focus-visible { outline-color: var(--focus); }
+  .copyButton.copyAppearance[data-copied='true'] { background: var(--success-soft); --metric-label-color: var(--success); --metric-value-color: var(--success); }
+  .copyButton.copyAppearance[data-copied='true']:hover:not(:disabled),
+  .copyButton.copyAppearance[data-copied='true']:active:not(:disabled) { background: var(--success-soft); }
+
+  .group > .copyButton { border-radius: 0; }
+}

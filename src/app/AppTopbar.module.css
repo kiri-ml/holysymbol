@@ -1,0 +1,66 @@
+@layer components {
+  .container { container: app-topbar / inline-size; min-width: 0; }
+
+  .root {
+    --surface-padding: var(--panel-padding, var(--space-3) var(--space-4));
+    min-height: 4.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    box-shadow: var(--shadow-sm);
+  }
+  .brand { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+  .logo { width: var(--control-size-md); height: var(--control-size-md); object-fit: contain; flex: 0 0 auto; }
+  .brandHeading { --heading-gap: 0.1rem; }
+  .actions {
+    container: app-topbar-actions / inline-size;
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    align-items: center;
+  }
+  .actions > * { flex: 0 0 auto; }
+
+  .control { border-color: var(--border); background: var(--surface-2); color: var(--ink-soft); box-shadow: none; }
+  .theme { --segmented-option-gap: 0.35rem; }
+  .theme svg,
+  .export svg { flex: 0 0 auto; }
+  .export { align-self: center; font-weight: var(--weight-label); }
+  .export:hover:not(:disabled) { border-color: var(--border-strong); background: var(--control-hover); color: var(--ink); }
+
+  .language { min-width: 9.5rem; }
+  .language > span { border-radius: var(--radius-pill); background: var(--surface-2); }
+  .languageSelect { min-width: 0; border-radius: var(--radius-pill); font-size: var(--text-control); font-weight: var(--weight-label); }
+  .languageSelect option { background: var(--surface-2); color: var(--ink); }
+
+  @container app-topbar-actions (max-width: 38rem) {
+    .actions [data-responsive-button='low'] {
+      --button-low-priority-inline-size: var(--control-size-sm);
+      --button-low-priority-padding-inline: 0;
+      --button-low-priority-gap: 0;
+      --button-low-priority-label-display: none;
+    }
+  }
+
+  @container app-topbar-actions (max-width: 25rem) {
+    .actions [data-responsive-button='high'] {
+      --button-high-priority-inline-size: var(--control-size-md);
+      --button-high-priority-padding-inline: 0;
+      --button-high-priority-gap: 0;
+      --button-high-priority-label-display: none;
+    }
+  }
+
+  @container app-topbar (max-width: 46rem) {
+    .root { align-items: stretch; flex-direction: column; }
+    .actions { width: 100%; flex: 0 0 auto; justify-content: flex-start; }
+  }
+
+  @container app-topbar (max-width: 34rem) {
+    .language { flex: 1 1 9.5rem; min-width: 7rem; }
+  }
+}

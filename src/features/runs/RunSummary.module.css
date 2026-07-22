@@ -1,0 +1,16 @@
+@layer components {
+  .container { container: run-summary / inline-size; min-width: 0; }
+  .root { display: grid; gap: 0; overflow: hidden; }
+  .header { margin-bottom: var(--space-2); }
+  .metrics { --metric-group-columns: 1; border-radius: var(--radius-md); overflow: hidden; }
+
+  @container run-summary (min-width: 22rem) {
+    .metrics { --metric-group-columns: 2; }
+    .copy { grid-column: 1 / -1; }
+  }
+
+  @container run-summary (min-width: 34rem) {
+    .metrics { --metric-group-columns: 3; }
+    .copy { grid-column: auto; }
+  }
+}

@@ -1,0 +1,61 @@
+@layer components {
+  .shell {
+    width: 100%;
+    max-width: var(--content-max-width);
+    min-height: 100vh;
+    margin-inline: auto;
+    padding: var(--space-4);
+  }
+
+  .layout {
+    --run-rail-width: clamp(15.5rem, 16vw, 18rem);
+    --tools-column-width: clamp(18rem, 20vw, 22rem);
+    display: grid;
+    grid-template-columns: var(--run-rail-width) minmax(0, 1fr) var(--tools-column-width);
+    gap: var(--space-4);
+    align-items: start;
+    margin-top: var(--space-4);
+  }
+
+  .rail {
+    position: sticky;
+    top: var(--space-4);
+    align-self: start;
+    min-width: 0;
+  }
+  .content { display: contents; }
+  .ledger,
+  .tools { min-width: 0; }
+  .ledger { display: grid; gap: var(--space-4); }
+  .tools { position: sticky; top: var(--space-4); display: grid; gap: var(--space-4); }
+
+  @media (max-width: 1440px) {
+    .layout {
+      --run-rail-width: clamp(14rem, calc(9.5rem + 6.667vw), 15.5rem);
+      grid-template-columns: var(--run-rail-width) minmax(0, 1fr);
+    }
+    .content { display: grid; grid-column: 2; gap: var(--space-4); min-width: 0; }
+    .tools { position: static; grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 1080px) {
+    .shell { padding: var(--space-3); }
+    .layout { --run-rail-width: clamp(5rem, calc(24vw - 2.2rem), 14rem); gap: var(--space-3); }
+    .rail { top: var(--space-3); }
+  }
+
+  @media (max-width: 480px) {
+    .shell {
+      padding: var(--space-2);
+      --panel-radius: var(--radius-md);
+      --panel-padding: var(--space-3);
+    }
+    .layout { grid-template-columns: 1fr; }
+    .rail {
+      position: static;
+      --run-rail-picker-display: grid;
+      --run-rail-tabs-display: none;
+    }
+    .content { grid-column: 1; }
+  }
+}

@@ -1,0 +1,73 @@
+@layer components {
+  .page {
+    min-height: 100vh;
+    padding: var(--space-4);
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  .intro {
+    max-width: 70rem;
+    margin: 0 auto var(--space-6);
+  }
+
+  .intro h1 { font-size: 1.5rem; }
+  .intro p { margin-top: var(--space-2); color: var(--muted); line-height: 1.55; }
+  .intro code { color: var(--primary-strong); }
+
+  .list {
+    display: grid;
+    gap: var(--space-6);
+    max-width: 100rem;
+    margin-inline: auto;
+  }
+
+  .preview {
+    display: grid;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  .previewHeader {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .previewHeader h2 { font-size: 1rem; }
+  .previewHeader span { color: var(--muted); font-size: var(--text-label); }
+
+  .stage {
+    min-width: 0;
+    overflow-x: auto;
+    padding: var(--space-3);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--surface-2);
+  }
+
+  .viewport {
+    inline-size: min(var(--preview-width), 100%);
+    min-inline-size: min(var(--preview-min-width, 16rem), 100%);
+    max-inline-size: 100%;
+    resize: horizontal;
+    overflow: auto;
+    padding: 1px;
+  }
+}
+
+@layer components {
+  .primitiveGrid { container: primitive-gallery / inline-size; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+  .primitiveCard { display: grid; align-content: start; gap: var(--space-4); }
+  .controlSamples { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+  .fieldSamples { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); align-items: start; }
+  .previewMetrics { border-radius: var(--radius-md); overflow: hidden; }
+  .helpCopy { max-width: 22rem; color: var(--muted); line-height: 1.5; }
+
+  @container primitive-gallery (max-width: 42rem) {
+    .primitiveGrid { grid-template-columns: 1fr; }
+    .fieldSamples { grid-template-columns: 1fr; }
+    .previewMetrics { --metric-group-columns: 1; }
+  }
+}

@@ -1,8 +1,35 @@
 import { describe, expect, it } from 'vitest';
+import v5HourlyFixture from './__fixtures__/persistence/v5-hourly-running.json';
+import v5RatioFixture from './__fixtures__/persistence/v5-ratio.json';
 import { migrateV5Instances } from './v5Migrator';
 import type { HourlyBilling } from './types';
 
 describe('v5 migrator', () => {
+  it('migrates the committed ratio and running-hourly fixtures', () => {
+    const ratio = migrateV5Instances(v5RatioFixture, Date.parse('2026-06-09T01:00:00.000Z'))![0];
+    expect(ratio).toMatchObject({
+      id: 'legacy-ratio',
+      billing: { type: 'ratio', expPerMesoRatio: 3.3, tiers: [{ minLevel: 120, expPerMesoRatio: 4 }] },
+      buyers: [{ id: 0, ign: 'LegacyBuyer' }],
+      nextBuyerId: 1,
+    });
+
+    const now = Date.parse('2026-06-09T01:00:00.000Z');
+    const hourly = migrateV5Instances(v5HourlyFixture, now)![0];
+    expect(hourly.billing).toMatchObject({
+      type: 'hourly',
+      ledger: {
+        status: 'running',
+        accumulatedMs: 1_860_000,
+        checkpointAt: now,
+        accounts: {
+          0: { accruedMs: 2_700_000, active: true },
+          1: { accruedMs: 900_000, active: true },
+        },
+      },
+    });
+  });
+
   it('preserves an explicitly empty dataset and rejects invalid non-array data', () => {
     expect(migrateV5Instances([], 0)).toEqual([]);
     expect(migrateV5Instances(null, 0)).toBeUndefined();

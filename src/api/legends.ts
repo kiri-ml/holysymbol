@@ -1,45 +1,37 @@
+import {
+  ignKey,
+  MAX_BATCH_SIZE,
+  normalizeIgn,
+  normalizeIgns,
+  type CharacterApiPayload,
+  type CharacterBatchResponse,
+} from '../../shared/legendsCharacters';
 import { normalizeCharacter } from '../domain/character';
-import type { CharacterApiPayload, CharacterSnapshot } from '../domain/types';
-
-type BatchCharacterResult =
-  | { ign: string; character: CharacterApiPayload }
-  | { ign: string; error: { status: number; message: string } };
+import type { CharacterSnapshot } from '../domain/types';
 
 export type CharacterBatch = {
   snapshots: Map<string, CharacterSnapshot>;
   failures: string[];
 };
 
-const CHARACTER_BATCH_SIZE = 50;
-
-async function fetchJson<T>(path: string, errorMessage: string): Promise<T> {
-  const response = await fetch(path, {
-    headers: { accept: 'application/json' },
-  });
-  if (!response.ok) throw new Error(`${errorMessage} (${response.status})`);
-  return response.json() as Promise<T>;
-}
-
 export async function fetchCharacter(ign: string) {
-  const cleanIgn = ign.trim();
+  const cleanIgn = normalizeIgn(ign);
   if (!cleanIgn) throw new Error('Enter an IGN first.');
-  const payload = await fetchJson<CharacterApiPayload>(`/api/character/${encodeURIComponent(cleanIgn)}`, 'Could not fetch character');
-  return normalizeCharacter(payload, cleanIgn);
+
+  const result = await fetchCharacters([cleanIgn]);
+  const snapshot = result.snapshots.get(ignKey(cleanIgn));
+  if (!snapshot) throw new Error('Could not fetch character.');
+  return snapshot;
 }
 
 export async function fetchCharacters(igns: string[]): Promise<CharacterBatch> {
   const snapshots = new Map<string, CharacterSnapshot>();
   const failures: string[] = [];
-  const uniqueIgns = new Map<string, string>();
-  for (const rawIgn of igns) {
-    const ign = rawIgn.trim();
-    if (ign && !uniqueIgns.has(ign.toLocaleLowerCase())) uniqueIgns.set(ign.toLocaleLowerCase(), ign);
-  }
-  const cleanIgns = [...uniqueIgns.values()];
+  const cleanIgns = normalizeIgns(igns) ?? [];
 
-  for (let offset = 0; offset < cleanIgns.length; offset += CHARACTER_BATCH_SIZE) {
-    const batchIgns = cleanIgns.slice(offset, offset + CHARACTER_BATCH_SIZE);
-    let results: BatchCharacterResult[];
+  for (let offset = 0; offset < cleanIgns.length; offset += MAX_BATCH_SIZE) {
+    const batchIgns = cleanIgns.slice(offset, offset + MAX_BATCH_SIZE);
+    let results: CharacterBatchResponse<CharacterApiPayload>['results'];
     try {
       const response = await fetch('/api/characters', {
         method: 'POST',
@@ -47,7 +39,7 @@ export async function fetchCharacters(igns: string[]): Promise<CharacterBatch> {
         body: JSON.stringify({ igns: batchIgns }),
       });
       if (!response.ok) throw new Error(`Could not refresh characters (${response.status})`);
-      const payload = await response.json() as { results: BatchCharacterResult[] };
+      const payload = await response.json() as CharacterBatchResponse<CharacterApiPayload>;
       results = payload.results;
     } catch {
       failures.push(...batchIgns);
@@ -59,7 +51,7 @@ export async function fetchCharacters(igns: string[]): Promise<CharacterBatch> {
         continue;
       }
       try {
-        snapshots.set(result.ign.toLocaleLowerCase(), normalizeCharacter(result.character, result.ign));
+        snapshots.set(ignKey(result.ign), normalizeCharacter(result.character, result.ign));
       } catch {
         failures.push(result.ign);
       }

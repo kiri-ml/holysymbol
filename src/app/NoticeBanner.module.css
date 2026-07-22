@@ -1,0 +1,8 @@
+@layer components {
+  .root { margin-top: var(--space-4); display: flex; gap: var(--space-2); align-items: center; font-weight: var(--weight-control); }
+  .message { flex: 1; }
+  .dismiss { border: 0; background: transparent; color: currentColor; }
+  .dismiss:hover:not(:disabled) { background: color-mix(in srgb, currentColor 12%, transparent); }
+  .root[data-type='error'] { --surface-border: var(--danger); --surface-background: var(--danger-soft); color: var(--danger); }
+  .root[data-type='info'] { --surface-border: var(--info); --surface-background: var(--info-soft); color: var(--info); }
+}

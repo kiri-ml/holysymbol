@@ -1,0 +1,46 @@
+[
+  {
+    "id": "legacy-hourly",
+    "name": "Legacy Hourly",
+    "billing": {
+      "type": "hourly",
+      "hourlyRateMesos": 12000000,
+      "timer": {
+        "status": "running",
+        "accumulatedMs": 60000,
+        "lastStartedAt": "2026-06-09T00:30:00.000Z"
+      }
+    },
+    "buyers": [
+      {
+        "id": "buyer-a",
+        "ign": "A",
+        "start": {
+          "ign": "A",
+          "level": 120,
+          "expPercent": 0,
+          "capturedAt": "2026-06-09T00:00:00.000Z",
+          "source": "manual"
+        },
+        "hourly": {
+          "sessions": [{ "startedAt": "2026-06-09T00:00:00.000Z" }]
+        }
+      },
+      {
+        "id": "buyer-b",
+        "ign": "B",
+        "start": {
+          "ign": "B",
+          "level": 125,
+          "expPercent": 0,
+          "capturedAt": "2026-06-09T00:30:00.000Z",
+          "source": "manual"
+        },
+        "hourly": {
+          "sessions": [{ "startedAt": "2026-06-09T00:30:00.000Z" }]
+        }
+      }
+    ],
+    "createdAt": "2026-06-09T00:00:00.000Z"
+  }
+]

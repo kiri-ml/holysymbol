@@ -1,0 +1,24 @@
+@layer components {
+  .root {
+    display: inline-flex;
+    min-height: var(--control-size-md);
+    padding: 0.2rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    background: var(--surface-2);
+    gap: 0.18rem;
+    white-space: nowrap;
+  }
+  .root[data-size='sm'] { min-height: var(--control-size-sm); padding: 0.15rem; }
+
+  .option {
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    flex: var(--segmented-option-flex, 0 0 auto);
+    gap: var(--segmented-option-gap, 0.45rem);
+  }
+  .option:hover:not(:disabled) { background: var(--control-hover); color: var(--ink); }
+  .option[data-active='true'] { background: var(--control-selected); color: var(--primary-strong); box-shadow: var(--shadow-sm); }
+  .option[data-active='true']:hover:not(:disabled) { background: var(--control-selected); color: var(--primary-strong); }
+}

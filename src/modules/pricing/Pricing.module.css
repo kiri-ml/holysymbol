@@ -1,0 +1,18 @@
+@layer components {
+  .ratioField {
+    width: var(--pricing-field-width, max-content);
+    --field-control-width: var(--pricing-ratio-width, 7.5rem);
+    --field-control-size-override: var(--pricing-control-size, var(--control-size-md));
+  }
+
+  .fullWidth {
+    width: 100%;
+    --field-control-width: 100%;
+  }
+
+  .billingField {
+    min-height: 5rem;
+    align-content: space-between;
+    padding-block: var(--space-2);
+  }
+}

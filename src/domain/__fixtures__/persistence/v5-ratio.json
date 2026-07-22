@@ -1,0 +1,27 @@
+[
+  {
+    "id": "legacy-ratio",
+    "name": "Legacy Ratio",
+    "billing": {
+      "type": "ratio",
+      "expPerMesoRatio": 3.3,
+      "tiers": [{ "minLevel": 120, "expPerMesoRatio": 4 }]
+    },
+    "buyers": [
+      {
+        "id": "buyer-a",
+        "ign": "LegacyBuyer",
+        "start": {
+          "ign": "LegacyBuyer",
+          "level": 120,
+          "expPercent": 10,
+          "job": "Bishop",
+          "guild": "Pasta",
+          "capturedAt": "2026-06-09T00:00:00.000Z",
+          "source": "api"
+        }
+      }
+    ],
+    "createdAt": "2026-06-09T00:00:00.000Z"
+  }
+]

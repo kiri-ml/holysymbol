@@ -1,0 +1,84 @@
+@layer components {
+  .root {
+    --button-size: var(--control-size-md);
+    --button-padding-inline: var(--control-padding-md);
+    --button-expanded-padding-inline: var(--button-padding-inline);
+    --button-expanded-gap: 0.45rem;
+    min-width: var(--button-expanded-min-inline-size, auto);
+    min-height: var(--button-size);
+    border: 1px solid transparent;
+    border-radius: var(--radius-pill);
+    background: var(--primary);
+    color: var(--on-primary);
+    padding: 0 var(--button-expanded-padding-inline);
+    font-size: var(--text-control);
+    font-weight: var(--weight-control);
+    line-height: 1.2;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--button-expanded-gap);
+    outline: var(--focus-ring-width) solid transparent;
+    outline-offset: var(--focus-ring-offset);
+    transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard), opacity var(--motion-fast) var(--ease-standard), transform var(--motion-fast) var(--ease-standard);
+  }
+
+  .root[data-size='xs'] { --button-size: var(--control-size-xs); --button-padding-inline: 0.42rem; font-size: var(--text-caption); }
+  .root[data-size='sm'] { --button-size: var(--control-size-sm); --button-padding-inline: var(--control-padding-sm); font-size: 0.8125rem; }
+  .root[data-size='lg'] { --button-size: var(--control-size-lg); --button-padding-inline: var(--control-padding-lg); }
+
+  .root[data-variant='primary']:hover:not(:disabled) { background: var(--primary-strong); }
+  .root:active:not(:disabled) { transform: translateY(1px); }
+  .root:disabled { cursor: not-allowed; opacity: 0.52; }
+
+  .root[data-variant='ghost'] { border-color: transparent; background: transparent; color: inherit; }
+  .root[data-variant='ghost']:hover:not(:disabled) { background: var(--control-hover); color: inherit; }
+
+  .root[data-variant='secondary'] { border-color: transparent; background: var(--control); color: var(--ink); }
+  .root[data-variant='secondary']:hover:not(:disabled) { background: var(--control-hover); border-color: transparent; }
+
+  .root[data-variant='soft'] { border-color: transparent; background: var(--primary-softer); color: var(--primary-strong); }
+  .root[data-variant='soft']:hover:not(:disabled) { background: var(--primary-soft); color: var(--primary-strong); }
+
+  .root[data-variant='danger'] { background: var(--danger-soft); color: var(--danger); }
+  .root[data-variant='danger']:hover:not(:disabled) { background: var(--danger); color: oklch(0.99 0 0); }
+
+  .iconButton {
+    width: var(--button-size);
+    min-width: var(--button-size);
+    max-width: var(--button-size);
+    padding: 0;
+    flex: 0 0 auto;
+  }
+
+  .root[data-responsive-button='low'] {
+    width: var(--button-low-priority-inline-size, auto);
+    min-width: var(--button-low-priority-inline-size, var(--button-expanded-min-inline-size, auto));
+    padding-inline: var(--button-low-priority-padding-inline, var(--button-expanded-padding-inline));
+    gap: var(--button-low-priority-gap, var(--button-expanded-gap));
+  }
+
+  .root[data-responsive-button='high'] {
+    width: var(--button-high-priority-inline-size, auto);
+    min-width: var(--button-high-priority-inline-size, var(--button-expanded-min-inline-size, auto));
+    padding-inline: var(--button-high-priority-padding-inline, var(--button-expanded-padding-inline));
+    gap: var(--button-high-priority-gap, var(--button-expanded-gap));
+  }
+
+  .root[data-responsive-button='low'] .contentLabel { display: var(--button-low-priority-label-display, inline); }
+  .root[data-responsive-button='high'] .contentLabel { display: var(--button-high-priority-label-display, inline); }
+
+  .contentIcon { display: inline-flex; flex: 0 0 auto; }
+  .contentIcon > svg { width: 1em; height: 1em; }
+  .contentLabel { display: inline; white-space: nowrap; }
+  .contentLabelHidden { display: none; }
+
+  .spinner { animation: button-spin 850ms linear infinite; }
+
+  @keyframes button-spin { to { transform: rotate(360deg); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .spinner { animation-duration: 1.8s; }
+  }
+}

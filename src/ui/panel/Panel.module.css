@@ -1,0 +1,9 @@
+@layer components {
+  .root {
+    --surface-padding: var(--panel-padding, var(--space-4));
+    --surface-radius: var(--panel-radius, var(--radius-lg));
+    --panel-content-padding: var(--surface-padding);
+  }
+  .header { display: flex; justify-content: space-between; gap: var(--space-4); align-items: flex-start; }
+  .actions { flex: 0 0 auto; }
+}

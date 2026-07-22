@@ -1,6 +1,11 @@
-import { fetchCharacter, MAX_BATCH_SIZE, normalizeIgns } from '../../shared/legendsCharacters';
+import {
+  fetchLegendsCharacters,
+  MAX_BATCH_SIZE,
+  normalizeIgns,
+  type CharacterBatchResponse,
+} from '../../shared/legendsCharacters';
 
-function jsonResponse(body: unknown, init: ResponseInit = {}) {
+export function jsonResponse(body: unknown, init: ResponseInit = {}) {
   return new Response(JSON.stringify(body), {
     ...init,
     headers: {
@@ -11,6 +16,15 @@ function jsonResponse(body: unknown, init: ResponseInit = {}) {
   });
 }
 
+export async function createCharactersResponse(rawIgns: unknown) {
+  const igns = normalizeIgns(rawIgns);
+  if (!igns || igns.length === 0) return jsonResponse({ error: 'Provide at least one IGN.' }, { status: 400 });
+  if (igns.length > MAX_BATCH_SIZE) return jsonResponse({ error: `A maximum of ${MAX_BATCH_SIZE} IGNs is allowed.` }, { status: 400 });
+
+  const body: CharacterBatchResponse = { results: await fetchLegendsCharacters(igns) };
+  return jsonResponse(body);
+}
+
 export async function onRequestPost(context: { request: Request }) {
   let body: unknown;
   try {
@@ -19,9 +33,5 @@ export async function onRequestPost(context: { request: Request }) {
     return jsonResponse({ error: 'Invalid JSON body.' }, { status: 400 });
   }
 
-  const igns = normalizeIgns((body as { igns?: unknown } | null)?.igns);
-  if (!igns || igns.length === 0) return jsonResponse({ error: 'Provide at least one IGN.' }, { status: 400 });
-  if (igns.length > MAX_BATCH_SIZE) return jsonResponse({ error: `A maximum of ${MAX_BATCH_SIZE} IGNs is allowed.` }, { status: 400 });
-
-  return jsonResponse({ results: await Promise.all(igns.map(fetchCharacter)) });
+  return createCharactersResponse((body as { igns?: unknown } | null)?.igns);
 }

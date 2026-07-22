@@ -1,0 +1,54 @@
+@layer components {
+  .toolbarContainer {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    container: buyer-toolbar / inline-size;
+    margin-inline: calc(-1 * var(--panel-content-padding));
+    padding: var(--space-2) var(--panel-content-padding) var(--space-3);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .toolbar { display: flex; justify-content: space-between; gap: var(--space-4); align-items: center; }
+  .toolbarActions { container: buyer-actions / inline-size; display: flex; flex: 1 1 0; align-items: center; justify-content: flex-end; gap: var(--space-2); min-width: 0; }
+
+  .addForm { width: min(100%, 15rem); min-width: 0; }
+  .addGroup { width: 100%; }
+  .addInput { min-width: 0; }
+  .addButton { flex: 0 0 auto; white-space: nowrap; }
+
+  .refreshHelp { --help-popover-max-width: 30rem; }
+  .refreshButton { min-width: 0; white-space: nowrap; }
+  .tipTitle { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--warning); }
+  .tipGrid { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--space-2); font-size: 0.86rem; }
+  .tipGrid b { color: var(--ink); font-weight: var(--weight-label); white-space: nowrap; }
+  .tipGrid span { color: var(--muted); }
+
+  @container buyer-actions (max-width: 24rem) {
+    .toolbarActions [data-responsive-button='low'] {
+      --button-low-priority-inline-size: var(--control-size-md);
+      --button-low-priority-padding-inline: 0;
+      --button-low-priority-gap: 0;
+      --button-low-priority-label-display: none;
+    }
+  }
+
+  @container buyer-actions (max-width: 19rem) {
+    .toolbarActions [data-responsive-button='high'] {
+      --button-high-priority-inline-size: var(--control-size-md);
+      --button-high-priority-padding-inline: 0;
+      --button-high-priority-gap: 0;
+      --button-high-priority-label-display: none;
+    }
+  }
+
+  @container buyer-toolbar (max-width: 30rem) {
+    .toolbar { align-items: stretch; flex-direction: column; }
+    .toolbarActions { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+    .addForm,
+    .addGroup,
+    .refreshHelp,
+    .refreshButton { width: 100%; }
+    .tipGrid { grid-template-columns: 1fr; }
+  }
+}

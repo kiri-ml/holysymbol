@@ -1,0 +1,15 @@
+@layer components {
+  .container { container: run-billing / inline-size; min-width: 0; }
+  .root { display: grid; grid-template-columns: minmax(12rem, 0.62fr) minmax(18rem, 1.55fr); min-height: 6.5rem; border-block: 1px solid var(--border); }
+  .root[data-type='ratio'] { grid-template-columns: 1fr; }
+  .root[data-type='ratio'] .settings { align-content: center; }
+  .settings { display: grid; }
+  .timerPlacement { border-inline-start: 1px solid var(--border); }
+  .root[data-type='hourly'] .settings { padding-block: var(--space-2) var(--space-3); padding-inline: var(--space-1) var(--space-3); }
+
+  @container run-billing (max-width: 30rem) {
+    .root { grid-template-columns: 1fr; min-height: 0; }
+    .root[data-type='hourly'] .settings { padding-inline-end: 0; }
+    .timerPlacement { border-block-start: 1px solid var(--border); border-inline-start: 0; }
+  }
+}

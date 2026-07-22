@@ -1,0 +1,15 @@
+@layer components {
+  .root { display: grid; gap: var(--heading-gap, 0.2rem); min-width: 0; }
+  .eyebrow {
+    color: var(--heading-eyebrow-color, var(--muted));
+    font-size: var(--text-overline);
+    font-weight: var(--weight-strong);
+    letter-spacing: 0.08em;
+    line-height: 1.25;
+    text-transform: uppercase;
+  }
+  .title { margin: 0; color: var(--heading-title-color, var(--ink)); font-size: var(--heading-title-size, var(--text-title-md)); font-weight: var(--weight-strong); line-height: 1.2; }
+  .description { margin: 0; color: var(--heading-description-color, var(--muted)); font-size: var(--heading-description-size, var(--text-body)); line-height: 1.45; text-wrap: pretty; }
+  .root[data-size='small'] { --heading-title-size: var(--text-title-sm); --heading-description-size: var(--text-caption); }
+  .root[data-size='large'] { --heading-title-size: var(--text-title-lg); }
+}

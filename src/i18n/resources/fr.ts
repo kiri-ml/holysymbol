@@ -103,7 +103,7 @@ export const fr = {
     nameLabel: 'Nom du run de leech {{number}}',
     created: 'Créé le {{date}}',
     delete: 'Supprimer le run',
-    new: 'Nouveau run',
+    new: 'Nouveau',
     railLabel: 'Runs',
     railKicker: 'Runs',
     active: '{{count}} actifs',
@@ -147,6 +147,9 @@ export const fr = {
     runHourlyPriceMillions: 'Prix horaire du run en millions de mesos',
   },
   confirm: {
+    title: 'Confirmer l’action',
+    cancel: 'Annuler',
+    confirm: 'Confirmer',
     refreshSnapshot: 'Actualiser l’EXP de {{label}} ? Cela remplacera le niveau et les données d’EXP actuels.',
     resetTimer: 'Réinitialiser le minuteur du run et effacer toutes les sessions facturables des acheteurs ?',
     deleteBuyer: 'Supprimer {{name}} de {{run}} ?',

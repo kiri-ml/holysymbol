@@ -1,9 +1,23 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fetchCharacters } from './legends';
+import { fetchCharacter, fetchCharacters } from './legends';
 
 afterEach(() => vi.unstubAllGlobals());
 
-describe('fetchCharacters', () => {
+describe('character API', () => {
+  it('uses the batch endpoint for a single character lookup', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      results: [{ ign: 'Alice', character: { name: 'Alice', level: 120, exp: '42.5' } }],
+    }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(fetchCharacter(' Alice ')).resolves.toMatchObject({ ign: 'Alice', level: 120, expPercent: 42.5 });
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(fetchMock).toHaveBeenCalledWith('/api/characters', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({ igns: ['Alice'] }),
+    }));
+  });
+
   it('uses one batch request and separates successes from failures', async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
       results: [

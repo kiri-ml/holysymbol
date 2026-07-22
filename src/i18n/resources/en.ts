@@ -101,7 +101,7 @@ export const en = {
     nameLabel: 'Name for leech run {{number}}',
     created: 'Created {{date}}',
     delete: 'Delete run',
-    new: 'New run',
+    new: 'New',
     railLabel: 'Runs',
     railKicker: 'Runs',
     active: '{{count}} active',
@@ -145,6 +145,9 @@ export const en = {
     runHourlyPriceMillions: 'Run hourly price in millions of mesos',
   },
   confirm: {
+    title: 'Confirm action',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
     refreshSnapshot: 'Refresh {{label}} EXP? This will overwrite the current level and EXP data.',
     resetTimer: 'Reset the run timer and clear all buyer billable sessions?',
     deleteBuyer: 'Delete {{name}} from {{run}}?',
@@ -172,11 +175,5 @@ export const en = {
   },
 };
 
-type BuyerTranslations = Omit<typeof en.buyer, 'done_one' | 'done_other'> & (
-  | { done: string }
-  | { done_one: string; done_other: string }
-);
 
-export type LocaleTranslations = Omit<typeof en, 'buyer'> & {
-  buyer: BuyerTranslations;
-};
+export type LocaleTranslations = typeof en;

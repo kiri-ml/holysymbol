@@ -1,0 +1,22 @@
+@layer components {
+  .root {
+    min-width: 0;
+    border: 1px solid var(--surface-border, var(--surface-border-default, var(--border)));
+    border-radius: var(--surface-radius, var(--surface-radius-default, var(--radius-lg)));
+    background: var(--surface-background, var(--surface-background-default, var(--surface)));
+    padding: var(--surface-padding, var(--surface-padding-default, var(--space-4)));
+    color: inherit;
+  }
+
+  .root[data-variant='subtle'] { --surface-background-default: var(--surface-2); }
+  .root[data-variant='floating'] { box-shadow: var(--shadow-floating); }
+
+  .root[data-radius='medium'] { --surface-radius-default: var(--radius-md); }
+  .root[data-radius='large'] { --surface-radius-default: var(--radius-lg); }
+  .root[data-radius='pill'] { --surface-radius-default: var(--radius-pill); }
+
+  .root[data-padding='none'] { --surface-padding: 0; }
+  .root[data-padding='small'] { --surface-padding: var(--space-3); }
+  .root[data-padding='medium'] { --surface-padding: var(--space-4); }
+  .root[data-padding='large'] { --surface-padding: var(--space-6); }
+}

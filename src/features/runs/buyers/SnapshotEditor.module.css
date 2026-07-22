@@ -1,0 +1,23 @@
+@layer components {
+  .snapshot {
+    --snapshot-bg: var(--surface);
+    --snapshot-label: var(--muted);
+    --snapshot-strong: var(--ink);
+    --snapshot-divider: var(--border);
+    --surface-background: var(--snapshot-bg);
+    --surface-border: transparent;
+    container: snapshot-editor / inline-size;
+    display: grid;
+    gap: var(--space-2);
+  }
+  .snapshot[data-tone='start'] { --snapshot-bg: var(--success-soft); --snapshot-label: var(--success); }
+  .snapshot[data-tone='current'] { --snapshot-bg: var(--info-soft); --snapshot-label: var(--info); }
+  .snapshotHead { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-2); }
+  .snapshotMetric { --metric-label-color: var(--snapshot-label); --metric-value-color: var(--snapshot-strong); --metric-value-size: 1.2rem; }
+  .manualSnapshot { display: grid; gap: var(--space-2); align-items: end; padding-top: var(--space-2); border-top: 1px dashed var(--snapshot-divider); }
+  .levelExpGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  @container snapshot-editor (max-width: 34rem) {
+    .levelExpGrid { grid-template-columns: 1fr; }
+  }
+}

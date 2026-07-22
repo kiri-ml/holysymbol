@@ -11,8 +11,20 @@ import {
   startHourlyBilling,
 } from './calculator';
 import { LEGENDS_EXP_TO_LEVEL, expGainedBetween, expToLevel, rawExpAt } from './expTable';
-import { encodeInstances, migrateV5Instances, normalizeInstances } from './persistence';
+import { migrateV5Instances as migrateV5 } from './v5Migrator';
+import { decodeV6Instances, encodeV6Instances } from './v6Codec';
 import type { CharacterSnapshot, HourlyBilling, HourlyLedger, LeechBuyer, LeechInstance } from './types';
+
+const encodeInstances = encodeV6Instances;
+
+function normalizeInstances(value: unknown, fallback: LeechInstance[]) {
+  return decodeV6Instances(value) ?? fallback;
+}
+
+function migrateV5Instances(value: unknown, fallback: LeechInstance[], now = Date.now()) {
+  const migrated = migrateV5(value, now);
+  return migrated && migrated.length > 0 ? migrated : fallback;
+}
 
 function snapshot(level: number, expPercent: number, capturedAt = '2026-06-09T00:00:00.000Z'): CharacterSnapshot {
   return {
@@ -533,7 +545,7 @@ describe('EXP and billing math', () => {
         id: 0,
         ign: 'Buyer',
         start: {
-          ign: 'Buyer', level: 120, expPercent: 10, job: 'Bishop', guild: 'OldGuild', fame: 10,
+          ign: 'Buyer', level: 120, expPercent: 10, job: 'Bishop', guild: 'OldGuild',
           capturedAt: '2026-06-09T00:00:00.123Z', source: 'api',
         },
         current: {
@@ -563,13 +575,12 @@ describe('EXP and billing math', () => {
     expect(decodedBuyer.start).toMatchObject({ ign: 'Buyer', source: 'api' });
     expect(decodedBuyer.start).not.toMatchObject({ job: 'Bishop', guild: 'NewGuild' });
     expect(decodedBuyer.current).toMatchObject({ ign: 'Buyer', job: 'Bishop', guild: 'NewGuild', source: 'manual' });
-    expect(decodedBuyer.current).not.toHaveProperty('fame', 10);
   });
 
   it('round-trips the complete compact v6 payload with epoch timestamps', () => {
     const start = {
       ign: 'SameIGN', level: 120, expPercent: 12.5,
-      job: 'Bishop', guild: 'Guild', fame: 42,
+      job: 'Bishop', guild: 'Guild',
       capturedAt: '2026-06-09T00:00:00.123Z', source: 'api' as const,
     };
     const original: LeechInstance = {
@@ -612,8 +623,6 @@ describe('EXP and billing math', () => {
       createdAt: '2026-06-09T00:00:00.000Z',
       lastCurrentRefreshedAt: '2026-06-09T01:00:00.000Z',
     });
-    expect(decoded[0].buyers[0].start).not.toHaveProperty('fame');
-    expect(decoded[0].buyers[0].current).not.toHaveProperty('fame');
   });
 
   it('normalizes legacy and malformed ratio tier data', () => {

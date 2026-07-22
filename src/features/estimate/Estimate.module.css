@@ -1,0 +1,42 @@
+@layer components {
+  .container { container: estimate / inline-size; min-width: 0; }
+  .panel {
+    display: grid;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+  .header { min-width: 0; }
+  .modeControl { min-width: 0; }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 0; min-width: 0; }
+
+  .pricingInputs { display: grid; grid-template-columns: minmax(4.5rem, 0.8fr) minmax(5.5rem, 1fr); gap: var(--space-2); align-content: start; }
+  .levelInputs,
+  .labelLevelExp { display: grid; grid-template-columns: minmax(4.5rem, 0.85fr) minmax(5.5rem, 1fr); gap: var(--space-2); }
+
+  .labelRow { align-items: end; align-self: end; color: var(--ink-soft); display: grid; font-size: var(--text-label); font-weight: var(--weight-label); line-height: 1.2; text-align: right; }
+  .labelRow span { align-self: end; }
+  .labelSingle { grid-template-columns: 1fr; }
+  .labelPricing { grid-template-columns: minmax(4.5rem, 0.8fr) minmax(5.5rem, 1fr); }
+
+  .flowCard { display: grid; gap: var(--space-2); align-content: start; border-top: 1px solid var(--border); background: transparent; padding: var(--space-3) 0; }
+  .flowCard:first-child { border-top: 0; padding-top: 0; }
+  .flowTop { align-items: end; display: grid; }
+  .flowHeading { display: flex; grid-area: 1 / 1; align-items: center; gap: 0.38rem; justify-self: start; min-width: max-content; z-index: 1; }
+  .flowTop > .labelRow { grid-area: 1 / 1; width: 100%; }
+  .flowHeading span { width: 1.24rem; height: 1.24rem; border-radius: var(--radius-pill); display: inline-grid; place-items: center; color: var(--primary-strong); background: var(--primary-soft); font-size: var(--text-overline); font-weight: var(--weight-strong); font-variant-numeric: tabular-nums; }
+  .flowHeading strong { color: var(--ink); font-size: var(--text-control); line-height: 1.15; }
+
+  .result { --metric-group-columns: 1; border-radius: var(--radius-md); overflow: hidden; }
+  .resultItem { min-width: 0; --metric-value-size: 1.2rem; }
+  .resultItemFull { grid-column: 1; }
+
+  @container estimate (max-width: 26rem) {
+    .header { align-items: stretch; flex-direction: column; }
+    .modeControl { width: 100%; --segmented-option-flex: 1; }
+  }
+
+  @container estimate (min-width: 22rem) {
+    .result { --metric-group-columns: 2; }
+    .resultItemFull { grid-column: 1 / -1; }
+  }
+}

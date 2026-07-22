@@ -2,57 +2,23 @@ import i18n from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 import { DEFAULT_LOCALE, SUPPORTED_LOCALE_CODES, type SupportedLocale } from './locales';
-import { de } from './resources/de';
-import { en, type LocaleTranslations } from './resources/en';
-import { es } from './resources/es';
-import { fr } from './resources/fr';
-import { ja } from './resources/ja';
-import { ko } from './resources/ko';
-import { nl } from './resources/nl';
-import { ptBR } from './resources/pt-BR';
-import { zhHans } from './resources/zh-Hans';
-import { zhHant } from './resources/zh-Hant';
+import { i18nResources, translations } from './resources';
+import { validateTranslations } from './validation';
 
 const LANGUAGE_STORAGE_KEY = 'holy-symbol.language.v1';
 
-const resources = {
-  en: {
-    translation: en,
-  },
-  'zh-Hans': {
-    translation: zhHans,
-  },
-  'zh-Hant': {
-    translation: zhHant,
-  },
-  ko: {
-    translation: ko,
-  },
-  ja: {
-    translation: ja,
-  },
-  es: {
-    translation: es,
-  },
-  de: {
-    translation: de,
-  },
-  fr: {
-    translation: fr,
-  },
-  'pt-BR': {
-    translation: ptBR,
-  },
-  nl: {
-    translation: nl,
-  },
-} satisfies Record<SupportedLocale, { translation: LocaleTranslations }>;
+if (import.meta.env.DEV) {
+  const issues = validateTranslations(translations);
+  if (issues.length > 0) {
+    throw new Error(`Invalid translation resources: ${JSON.stringify(issues)}`);
+  }
+}
 
 void i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    resources,
+    resources: i18nResources,
     supportedLngs: SUPPORTED_LOCALE_CODES,
     fallbackLng: DEFAULT_LOCALE,
     detection: {

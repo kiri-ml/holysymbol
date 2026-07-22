@@ -1,0 +1,5 @@
+@layer components {
+  .list { display: grid; gap: var(--space-2); }
+  .empty { color: var(--muted); border: 0; border-radius: var(--radius-md); background: var(--surface-2); padding: var(--space-6); display: grid; place-items: center; gap: var(--space-2); text-align: center; }
+  .empty strong { color: var(--ink); }
+}

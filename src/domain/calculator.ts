@@ -147,7 +147,7 @@ export function resetHourlyBilling(billing: HourlyBilling): HourlyBilling {
   return { ...billing, ledger: { status: 'idle', accumulatedMs: 0, accounts: {} } };
 }
 
-export function calculateBuyer(buyer: LeechBuyer, billing: LeechBilling, now = Date.now(), _buyers: LeechBuyer[] = [buyer]): BuyerCalculation {
+export function calculateBuyer(buyer: LeechBuyer, billing: LeechBilling, now = Date.now()): BuyerCalculation {
   const expGained = buyer.start && buyer.current
     ? Math.max(0, expGainedBetween(buyer.start.level, buyer.start.expPercent, buyer.current.level, buyer.current.expPercent))
     : undefined;
@@ -179,7 +179,7 @@ export function calculateInstance(instance: LeechInstance, now = Date.now()): In
   const doneBuyerCount = instance.buyers.filter(
     (buyer) => (buyer.start || buyer.ign.trim()) && buyer.locked,
   ).length;
-  const buyerCalculations = instance.buyers.map((buyer) => calculateBuyer(buyer, instance.billing, now, instance.buyers));
+  const buyerCalculations = instance.buyers.map((buyer) => calculateBuyer(buyer, instance.billing, now));
   const totalExpGained = buyerCalculations.reduce((total, calculation) => total + (calculation.expGained ?? 0), 0);
 
   if (instance.billing.type === 'ratio') {

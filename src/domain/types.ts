@@ -1,20 +1,9 @@
-export type CharacterApiPayload = {
-  name?: string;
-  guild?: string | null;
-  level?: number | string;
-  job?: string;
-  exp?: string | number;
-  fame?: number | string;
-  [key: string]: unknown;
-};
-
 export type CharacterSnapshot = {
   ign: string;
   level: number;
   expPercent: number;
   job?: string;
   guild?: string;
-  fame?: number;
   capturedAt: string;
   source: 'api' | 'manual';
 };

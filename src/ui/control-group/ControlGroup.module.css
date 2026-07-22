@@ -1,0 +1,21 @@
+@layer components {
+  .root {
+    display: flex;
+    align-items: stretch;
+    min-width: 0;
+    width: var(--control-group-width, auto);
+  }
+  .root[data-width='full'] { --control-group-width: 100%; }
+  .root[data-orientation='vertical'] { flex-direction: column; }
+
+  .root[data-joined='true'] { border-radius: var(--radius-md); }
+  .root[data-joined='true']:focus-within { outline: var(--focus-ring); outline-offset: var(--focus-ring-offset); }
+  .root[data-joined='true'] > :where(input, select, button) { position: relative; border-radius: 0; }
+  .root[data-joined='true'] > :where(input, select, button):focus { z-index: 1; outline: 0; }
+  .root[data-joined='true'][data-orientation='horizontal'] > :where(input, select, button):first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); }
+  .root[data-joined='true'][data-orientation='horizontal'] > :where(input, select, button):last-child { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+  .root[data-joined='true'][data-orientation='horizontal'] > :where(input, select, button) + :where(input, select, button) { margin-left: -1px; }
+  .root[data-joined='true'][data-orientation='vertical'] > :where(input, select, button):first-child { border-radius: var(--radius-md) var(--radius-md) 0 0; }
+  .root[data-joined='true'][data-orientation='vertical'] > :where(input, select, button):last-child { border-radius: 0 0 var(--radius-md) var(--radius-md); }
+  .root[data-joined='true'][data-orientation='vertical'] > :where(input, select, button) + :where(input, select, button) { margin-top: -1px; }
+}

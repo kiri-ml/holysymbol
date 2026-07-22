@@ -1,0 +1,45 @@
+@layer components {
+  .timer {
+    --timer-accent: var(--primary);
+    --timer-bg: transparent;
+    --timer-status-bg: var(--surface-2);
+    container: timer-controls / inline-size;
+    background: var(--timer-bg);
+    padding-block: var(--space-2) var(--space-3);
+    padding-inline: var(--space-3);
+  }
+  .timer[data-status='running'] { --timer-accent: var(--success); --timer-bg: var(--success-soft); --timer-status-bg: var(--surface); }
+  .timer[data-status='paused'] { --timer-accent: var(--warning); --timer-bg: var(--warning-soft); --timer-status-bg: var(--surface); }
+  .controlField { display: grid; height: 5rem; gap: var(--space-1); align-content: space-between; min-width: 0; padding-block: var(--space-2); }
+  .label { color: var(--ink-soft); font-size: var(--text-label); font-weight: var(--weight-label); }
+  .timerHeader { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+  .timerBody { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: center; }
+  .timerMain { min-width: 0; }
+  .timerValue { display: block; margin-top: 0; color: var(--timer-accent); font-size: 1.45rem; line-height: 1.2; font-variant-numeric: tabular-nums; }
+  .status { min-height: 1.45rem; border: 1px solid color-mix(in oklch, var(--timer-accent) 42%, transparent); border-radius: var(--radius-pill); padding: 0.16rem 0.48rem; display: inline-flex; align-items: center; gap: 0.3rem; color: var(--timer-accent); background: var(--timer-status-bg); font-size: var(--text-caption); font-weight: var(--weight-strong); line-height: 1; text-transform: capitalize; }
+  .status::before { content: ''; width: 0.42rem; height: 0.42rem; border-radius: var(--radius-pill); background: currentColor; }
+  .timer[data-status='idle'] .status { color: var(--muted); }
+  .timer[data-status='idle'] .status::before { background: var(--border-strong); }
+  .timerActions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2); align-items: center; }
+  .timerToggle { --button-expanded-min-inline-size: 6.4rem; }
+  .timerReset { --button-expanded-min-inline-size: 5.9rem; }
+  .timerReset:hover:not(:disabled) { border-color: var(--warning); background: var(--warning-soft); color: var(--warning); }
+
+  @container timer-controls (max-width: 16rem) {
+    .timerActions {
+      --button-low-priority-inline-size: var(--control-size-md);
+      --button-low-priority-padding-inline: 0;
+      --button-low-priority-gap: 0;
+      --button-low-priority-label-display: none;
+    }
+  }
+
+  @container timer-controls (max-width: 12rem) {
+    .timerActions {
+      --button-high-priority-inline-size: var(--control-size-md);
+      --button-high-priority-padding-inline: 0;
+      --button-high-priority-gap: 0;
+      --button-high-priority-label-display: none;
+    }
+  }
+}

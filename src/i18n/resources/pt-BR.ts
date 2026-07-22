@@ -103,7 +103,7 @@ export const ptBR = {
     nameLabel: 'Nome do run de leech {{number}}',
     created: 'Criado em {{date}}',
     delete: 'Excluir run',
-    new: 'Novo run',
+    new: 'Novo',
     railLabel: 'Runs',
     railKicker: 'Runs',
     active: '{{count}} ativos',
@@ -147,6 +147,9 @@ export const ptBR = {
     runHourlyPriceMillions: 'Preço por hora do run em milhões de mesos',
   },
   confirm: {
+    title: 'Confirmar ação',
+    cancel: 'Cancelar',
+    confirm: 'Confirmar',
     refreshSnapshot: 'Atualizar a EXP de {{label}}? Isso substituirá o nível e a EXP atuais.',
     resetTimer: 'Redefinir o temporizador do run e limpar todas as sessões faturáveis dos compradores?',
     deleteBuyer: 'Excluir {{name}} de {{run}}?',

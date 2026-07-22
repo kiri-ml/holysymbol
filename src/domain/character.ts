@@ -1,4 +1,5 @@
-import type { CharacterApiPayload, CharacterSnapshot } from './types';
+import type { CharacterApiPayload } from '../../shared/legendsCharacters';
+import type { CharacterSnapshot } from './types';
 
 function toNumber(value: unknown) {
   if (value === undefined || value === null || value === '') return undefined;
@@ -22,7 +23,6 @@ export function normalizeCharacter(payload: CharacterApiPayload, fallbackIgn: st
     expPercent: parseExpPercent(payload.exp),
     job: payload.job ? String(payload.job) : undefined,
     guild: payload.guild ? String(payload.guild) : undefined,
-    fame: toNumber(payload.fame),
     capturedAt: new Date().toISOString(),
     source: 'api',
   };

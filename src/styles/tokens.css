@@ -1,0 +1,45 @@
+:root {
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+
+  --content-max-width: 120rem;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-pill: 999px;
+
+  --control-size-xs: 1.75rem;
+  --control-size-sm: 2rem;
+  --control-size-md: 2.5rem;
+  --control-size-lg: 2.75rem;
+  --control-padding-sm: 0.5rem;
+  --control-padding-md: 0.75rem;
+  --control-padding-lg: 1rem;
+
+  --text-overline: 0.68rem;
+  --text-caption: 0.75rem;
+  --text-label: 0.78rem;
+  --text-control: 0.875rem;
+  --text-body: 1rem;
+  --text-title-sm: 1rem;
+  --text-title-md: 1.12rem;
+  --text-title-lg: 1.35rem;
+
+  --weight-medium: 650;
+  --weight-control: 720;
+  --weight-label: 760;
+  --weight-strong: 820;
+
+  --motion-fast: 140ms;
+  --ease-standard: ease;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --focus-ring: var(--focus-ring-width) solid var(--focus);
+
+  --shadow-floating: 0 1.5rem 4rem rgb(15 23 42 / 0.28);
+}
