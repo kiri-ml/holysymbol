@@ -59,7 +59,7 @@
     }
   }
 
-  @container estimate (min-width: 22rem) {
+  @container estimate (min-width: 19rem) {
     .result { --metric-group-columns: 2; }
     .resultItemFull { grid-column: 1 / -1; }
   }
