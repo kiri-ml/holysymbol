@@ -44,6 +44,7 @@ export function QuickEstimate({
               value={estimate.billingType}
               className={styles.modeControl}
               ariaLabel={t('billing.estimateType')}
+              collapseLabels="low"
               onChange={(billingType) => updateEstimate({ billingType })}
             />
           )}

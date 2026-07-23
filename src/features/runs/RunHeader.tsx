@@ -28,7 +28,13 @@ export function RunHeader({ run, index, onRename, onChangeBillingType, onDelete 
         </p>
       </div>
       <div className={styles.actions}>
-        <PricingModeControl className={styles.modeControl} value={run.billing.type} ariaLabel={t('billing.type')} onChange={onChangeBillingType} />
+        <PricingModeControl
+          className={styles.modeControl}
+          value={run.billing.type}
+          ariaLabel={t('billing.type')}
+          collapseLabels="low"
+          onChange={onChangeBillingType}
+        />
         <IconButton variant="danger" onClick={onDelete} icon={<Trash2 size={16} />} aria-label={t('run.delete')} />
       </div>
     </div>

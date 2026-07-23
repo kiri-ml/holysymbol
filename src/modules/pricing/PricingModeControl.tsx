@@ -1,6 +1,7 @@
 import { Divide, Timer } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { BillingType } from '../../domain/types';
+import type { ButtonCollapsePriority } from '../../ui/button';
 import { SegmentedControl } from '../../ui/segmented-control';
 
 export type PricingModeControlProps = {
@@ -8,9 +9,16 @@ export type PricingModeControlProps = {
   onChange: (value: BillingType) => void;
   ariaLabel: string;
   className?: string;
+  collapseLabels?: ButtonCollapsePriority | 'never';
 };
 
-export function PricingModeControl({ value, onChange, ariaLabel, className }: PricingModeControlProps) {
+export function PricingModeControl({
+  value,
+  onChange,
+  ariaLabel,
+  className,
+  collapseLabels = 'never',
+}: PricingModeControlProps) {
   const { t } = useTranslation();
 
   return (
@@ -19,6 +27,7 @@ export function PricingModeControl({ value, onChange, ariaLabel, className }: Pr
       onChange={onChange}
       ariaLabel={ariaLabel}
       className={className}
+      collapseLabels={collapseLabels}
       options={[
         { value: 'ratio', label: t('billing.ratio'), icon: <Divide size={15} /> },
         { value: 'hourly', label: t('billing.hourly'), icon: <Timer size={15} /> },

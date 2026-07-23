@@ -6,6 +6,13 @@
     min-width: 0;
   }
   .header { min-width: 0; }
+  .header > :last-child {
+    container: estimate-mode-actions / inline-size;
+    display: flex;
+    justify-content: flex-end;
+    min-width: 4.75rem;
+    flex: 1 1 0;
+  }
   .modeControl { min-width: 0; }
   .grid { display: grid; grid-template-columns: 1fr; gap: 0; min-width: 0; }
 
@@ -30,9 +37,26 @@
   .resultItem { min-width: 0; --metric-value-size: 1.2rem; }
   .resultItemFull { grid-column: 1; }
 
-  @container estimate (max-width: 26rem) {
+  @container estimate-mode-actions (max-width: 14rem) {
+    .modeControl { width: auto; min-width: max-content; flex: 0 0 auto; }
+    .modeControl [data-responsive-button='low'] {
+      --button-low-priority-inline-size: var(--control-size-sm);
+      --button-low-priority-padding-inline: 0;
+      --button-low-priority-gap: 0;
+      --button-low-priority-label-display: none;
+    }
+  }
+
+  @container estimate (max-width: 16rem) {
     .header { align-items: stretch; flex-direction: column; }
+    .header > :last-child { width: 100%; flex: 0 0 auto; }
     .modeControl { width: 100%; --segmented-option-flex: 1; }
+    .modeControl [data-responsive-button='low'] {
+      --button-low-priority-inline-size: auto;
+      --button-low-priority-padding-inline: var(--control-padding-sm);
+      --button-low-priority-gap: 0.45rem;
+      --button-low-priority-label-display: inline;
+    }
   }
 
   @container estimate (min-width: 22rem) {
