@@ -64,6 +64,7 @@ export function RatioTierEditor({ billing, onUpdate }: {
               value={tierLevel}
               emptyValue={Number.NaN}
               emitEmptyOnChange
+              blurOnEnter={false}
               placeholder="120"
               aria-label={t('aria.ratioTierLevel', { number: billing.tiers.length + 1 })}
               onValueChange={setTierLevel}
