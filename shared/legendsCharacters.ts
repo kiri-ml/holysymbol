@@ -45,7 +45,7 @@ export async function fetchLegendsCharacter(ign: string): Promise<CharacterResul
       cache: 'no-store',
       headers: {
         accept: 'application/json',
-        'user-agent': 'holy-symbol/0.2.0 (+https://holysymbol.pages.dev)',
+        'user-agent': 'holy-symbol/0.3.0 (+https://holysymbol.pages.dev)',
       },
     });
     return response.ok
