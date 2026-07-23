@@ -19,7 +19,7 @@ export const zhHans = {
   },
   billing: {
     ratio: '按比例',
-    hourly: '按小时',
+    hourly: '按时间',
     type: '计费方式',
     estimateType: '估算计费方式',
     pricing: '价格',

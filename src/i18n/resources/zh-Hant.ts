@@ -19,7 +19,7 @@ export const zhHant = {
   },
   billing: {
     ratio: '按比例',
-    hourly: '按小時',
+    hourly: '按時間',
     type: '計費方式',
     estimateType: '估算計費方式',
     pricing: '價格',
