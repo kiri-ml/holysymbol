@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { AppTopbar } from './app/AppTopbar';
-import { NoticeBanner } from './app/NoticeBanner';
+import { NoticePopup } from './app/NoticePopup';
 import styles from './app/App.module.css';
 import { useCharacterRefresh } from './app/useCharacterRefresh';
 import { useNotice } from './app/useNotice';
@@ -21,7 +21,7 @@ export default function App() {
   return (
     <main className={styles.shell}>
       <AppTopbar theme={theme} exportDisabled={workspace.runs.length === 0} onThemeChange={setTheme} onExport={() => downloadRunsCsv(workspace.runs, t, now)} />
-      <NoticeBanner notice={notices.notice} onDismiss={notices.dismissNotice} />
+      <NoticePopup notice={notices.notice} onDismiss={notices.dismissNotice} />
 
       <div className={styles.layout}>
         <div className={styles.rail}>

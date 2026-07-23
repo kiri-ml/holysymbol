@@ -8,7 +8,7 @@ import type { Notice } from './notice';
 export function useCharacterRefresh({
   onNotice,
 }: {
-  onNotice: (notice: Notice) => void;
+  onNotice: (notice: Notice | null) => void;
 }) {
   const { t } = useTranslation();
   const [busyIgn, setBusyIgn] = useState<string | null>(null);
@@ -36,8 +36,7 @@ export function useCharacterRefresh({
       const batch = await fetchCharacters(igns);
       const refreshed = batch.snapshots.size;
       onNotice({
-        type: batch.failures.length > 0 ? 'error' : 'info',
-        transient: batch.failures.length === 0,
+        type: batch.failures.length > 0 ? 'error' : 'success',
         text: batch.failures.length > 0
           ? t('notice.batchRefreshPartial', { refreshed, failed: batch.failures.length })
           : t('notice.batchRefreshSuccess', { count: refreshed }),

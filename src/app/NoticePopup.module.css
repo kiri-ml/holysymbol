@@ -1,0 +1,43 @@
+@layer components {
+  .positioner {
+    position: fixed;
+    inset-block-end: var(--space-4);
+    inset-inline-end: var(--space-4);
+    z-index: 1100;
+    inline-size: min(22rem, calc(100vw - 2 * var(--space-4)));
+    pointer-events: none;
+  }
+
+  .root {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: var(--space-3);
+    align-items: center;
+    min-block-size: 5rem;
+    padding: var(--space-5) var(--space-4);
+    --surface-background: color-mix(in srgb, var(--notice-background) 88%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-weight: var(--weight-control);
+    pointer-events: auto;
+  }
+
+  .message { min-width: 0; line-height: 1.45; overflow-wrap: anywhere; }
+  .dismiss { border: 0; background: transparent; color: currentColor; }
+  .dismiss:hover:not(:disabled) { background: color-mix(in srgb, currentColor 12%, transparent); }
+  .root[data-type='error'] { --surface-border: var(--danger); --notice-background: var(--danger-soft); color: var(--danger); }
+  .root[data-type='success'] { --surface-border: var(--info); --notice-background: var(--info-soft); color: var(--info); }
+
+  @media (max-width: 480px) {
+    .positioner {
+      inset-block-end: var(--space-2);
+      inset-inline: var(--space-2);
+      inline-size: auto;
+    }
+
+    .root {
+      min-block-size: 4.5rem;
+      padding: var(--space-4) var(--space-3);
+    }
+  }
+}
