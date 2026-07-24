@@ -19,6 +19,6 @@
     gap: var(--segmented-option-gap, 0.45rem);
   }
   .option:hover:not(:disabled) { background: var(--control-hover); color: var(--ink); }
-  .option[data-active='true'] { background: var(--control-selected); color: var(--primary-strong); box-shadow: var(--shadow-sm); }
+  .option[data-active='true'] { background: var(--control-selected); color: var(--primary-strong); }
   .option[data-active='true']:hover:not(:disabled) { background: var(--control-selected); color: var(--primary-strong); }
 }

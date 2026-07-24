@@ -43,5 +43,4 @@ html[data-theme='light'] {
   --control: var(--surface-2);
   --control-selected: light-dark(oklch(1 0 0), oklch(0.31 0.026 235));
   --control-hover: light-dark(oklch(0.935 0.018 210), oklch(0.29 0.02 235));
-  --shadow-sm: 0 1px 2px light-dark(oklch(0.205 0.018 245 / 0.08), transparent);
 }
