@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="system">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,10 +7,41 @@
     <link rel="icon" type="image/png" href="/assets/icons/hs.png" />
     <link rel="icon" href="/assets/icons/favicon.ico" />
     <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/styles/index.css" />
     <title>Holy Symbol | Leech Calculator</title>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <div id="root">
+      <main class="app-frame" aria-busy="true">
+        <header class="app-shell__topbar">
+          <img
+            class="app-shell__logo"
+            src="/src/assets/hs.png"
+            width="40"
+            height="40"
+            alt=""
+          />
+          <span class="app-shell__title">Holy Symbol</span>
+        </header>
+
+        <div class="app-frame__layout" aria-hidden="true">
+          <div class="app-frame__rail">
+            <div class="app-shell__surface app-shell__rail"></div>
+          </div>
+
+          <div class="app-frame__content">
+            <section class="app-frame__ledger app-shell__surface app-shell__ledger"></section>
+
+            <aside class="app-frame__tools">
+              <div class="app-shell__surface app-shell__summary"></div>
+              <div class="app-shell__surface app-shell__estimate"></div>
+            </aside>
+          </div>
+        </div>
+
+        <p class="app-shell__status" role="status">Loading calculator</p>
+      </main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

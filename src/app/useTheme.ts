@@ -1,15 +1,14 @@
-import { useEffect } from 'react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useEffect, useState } from 'react';
+import { applyTheme, readStoredTheme, type ThemeMode, writeStoredTheme } from './theme';
 
-export type ThemeMode = 'system' | 'light' | 'dark';
-
-const THEME_STORAGE_KEY = 'legends-leech-calculator.theme.v1';
+export type { ThemeMode } from './theme';
 
 export function useTheme() {
-  const [theme, setTheme] = useLocalStorage<ThemeMode>(THEME_STORAGE_KEY, 'system');
+  const [theme, setTheme] = useState<ThemeMode>(() => readStoredTheme(window.localStorage));
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
+    applyTheme(document.documentElement, theme);
+    writeStoredTheme(window.localStorage, theme);
   }, [theme]);
 
   return [theme, setTheme] as const;

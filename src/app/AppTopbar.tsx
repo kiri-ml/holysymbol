@@ -8,6 +8,7 @@ import { SelectField } from '../ui/fields';
 import { HeadingGroup } from '../ui/heading';
 import { SegmentedControl } from '../ui/segmented-control';
 import { Surface } from '../ui/surface';
+import holySymbolLogo from '../assets/hs.png';
 import styles from './AppTopbar.module.css';
 import type { ThemeMode } from './useTheme';
 
@@ -53,7 +54,7 @@ export function AppTopbar({ theme, exportDisabled, onThemeChange, onExport }: { 
     <header className={styles.container}>
       <Surface className={styles.root} padding="small">
         <div className={styles.brand}>
-          <img src="/assets/icons/hs.png" alt="" className={styles.logo} />
+          <img src={holySymbolLogo} alt="" className={styles.logo} />
           <HeadingGroup className={styles.brandHeading} title={t('app.name')} description={t('app.tagline')} headingLevel={1} size="small" />
         </div>
         <div className={styles.actions}>

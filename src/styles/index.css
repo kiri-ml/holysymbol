@@ -4,3 +4,5 @@
 @import './themes.css' layer(theme);
 @import './reset.css' layer(reset);
 @import './base.css' layer(base);
+@import './app-frame.css' layer(components);
+@import './shell.css' layer(components);

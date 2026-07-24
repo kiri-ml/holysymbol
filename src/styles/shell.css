@@ -1,0 +1,65 @@
+@layer components {
+  .app-shell__topbar,
+  .app-shell__surface {
+    min-width: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+  }
+
+  .app-shell__topbar {
+    min-height: 4.25rem;
+    padding: var(--space-3) var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .app-shell__logo {
+    width: var(--control-size-md);
+    height: var(--control-size-md);
+    flex: 0 0 auto;
+    object-fit: contain;
+  }
+
+  .app-shell__title {
+    color: var(--ink);
+    font-size: var(--text-title-sm);
+    font-weight: var(--weight-strong);
+    line-height: 1.2;
+  }
+
+  .app-shell__rail {
+    min-height: 30rem;
+    background: var(--bg-rail);
+  }
+
+  .app-shell__ledger {
+    min-height: 38rem;
+  }
+
+  .app-shell__summary {
+    min-height: 11rem;
+  }
+
+  .app-shell__estimate {
+    min-height: 25rem;
+  }
+
+  .app-shell__status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 480px) {
+    .app-shell__rail {
+      min-height: 5rem;
+    }
+  }
+}

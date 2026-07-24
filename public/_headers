@@ -6,11 +6,7 @@
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
 
-/assets/index-*.js
-  ! Cache-Control
-  Cache-Control: public, max-age=31536000, immutable
-
-/assets/index-*.css
+/build/*
   ! Cache-Control
   Cache-Control: public, max-age=31536000, immutable
 
