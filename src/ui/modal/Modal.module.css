@@ -11,7 +11,7 @@
   }
 
   .frame {
-    inline-size: min(100%, var(--modal-width, 30rem));
+    inline-size: min(100%, 30rem);
     max-block-size: min(90vh, 48rem);
     overflow: auto;
     color: var(--ink);

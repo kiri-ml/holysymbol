@@ -4,6 +4,10 @@
     grid-template-columns: repeat(var(--metric-group-columns, var(--metric-group-default-columns, 1)), minmax(0, 1fr));
     min-width: 0;
   }
+  .group[data-columns='1'] { --metric-group-default-columns: 1; }
+  .group[data-columns='2'] { --metric-group-default-columns: 2; }
+  .group[data-columns='3'] { --metric-group-default-columns: 3; }
+  .group[data-columns='4'] { --metric-group-default-columns: 4; }
   .group[data-dividers='true'] { gap: 1px; background: var(--border); }
   .group > * { --metric-background: var(--surface); }
   .group > .copyButton { border: 0; }

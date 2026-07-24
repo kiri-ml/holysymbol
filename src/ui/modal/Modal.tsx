@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type CSSProperties, type KeyboardEvent, type MouseEvent, type ReactNode, type RefObject } from 'react';
+import { useEffect, useId, useRef, type KeyboardEvent, type MouseEvent, type ReactNode, type RefObject } from 'react';
 import { HeadingGroup } from '../heading';
 import { Surface } from '../surface';
 import styles from './Modal.module.css';
@@ -19,10 +19,9 @@ export type ModalProps = {
   footer?: ReactNode;
   onDismiss: () => void;
   initialFocusRef?: RefObject<HTMLElement | null>;
-  width?: string;
 };
 
-export function Modal({ title, description, children, footer, onDismiss, initialFocusRef, width }: ModalProps) {
+export function Modal({ title, description, children, footer, onDismiss, initialFocusRef }: ModalProps) {
   const titleId = useId();
   const descriptionId = useId();
   const dialogRef = useRef<HTMLDivElement | null>(null);
@@ -81,7 +80,6 @@ export function Modal({ title, description, children, footer, onDismiss, initial
         aria-describedby={description ? descriptionId : undefined}
         tabIndex={-1}
         onKeyDown={handleKeyDown}
-        style={{ '--modal-width': width } as CSSProperties}
       >
         <Surface className={styles.surface} variant="floating" padding="none">
           <div className={styles.content}>
