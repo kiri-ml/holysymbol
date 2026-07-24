@@ -4,6 +4,7 @@ import {
   INSTANCES_V6_STORAGE_KEY,
   hasLegacyInstances,
   loadInstances,
+  readV6StorageUpdate,
   saveInstances,
   type StorageLike,
 } from './instancesRepository';
@@ -25,10 +26,14 @@ function instance(id: string): LeechInstance {
 class FakeStorage implements StorageLike {
   values = new Map<string, string>();
   events: string[] = [];
+  failRead = false;
   failWrite = false;
   failRemove = false;
 
-  getItem(key: string) { return this.values.get(key) ?? null; }
+  getItem(key: string) {
+    if (this.failRead) throw new Error('read failed');
+    return this.values.get(key) ?? null;
+  }
   setItem(key: string, value: string) {
     this.events.push(`set:${key}`);
     if (this.failWrite) throw new Error('write failed');
@@ -83,7 +88,7 @@ describe('instances repository', () => {
     storage.values.set(INSTANCES_V5_STORAGE_KEY, JSON.stringify([instance('v5')]));
 
     expect(loadInstances(storage, [instance('fallback')], 100)).toEqual({
-      source: 'v6', instances: [],
+      source: 'v6', instances: [], fingerprint: '[]',
     });
   });
 
@@ -107,6 +112,7 @@ describe('instances repository', () => {
     storage.values.set(INSTANCES_V5_STORAGE_KEY, 'legacy');
     expect(saveInstances(storage, [instance('saved')], true)).toEqual({
       writeSucceeded: true, cleanupSucceeded: true, cleanupLegacy: false,
+      fingerprint: storage.values.get(INSTANCES_V6_STORAGE_KEY),
     });
     expect(storage.events).toEqual([
       `set:${INSTANCES_V6_STORAGE_KEY}`,
@@ -129,5 +135,34 @@ describe('instances repository', () => {
     expect(saveInstances(storage, [instance('saved')], true).cleanupLegacy).toBe(true);
     storage.failRemove = false;
     expect(saveInstances(storage, [instance('saved')], true).cleanupLegacy).toBe(false);
+  });
+
+  it('detects changed v6 data by its serialized fingerprint', () => {
+    const storage = new FakeStorage();
+    const saved = saveInstances(storage, [instance('saved')], false);
+    expect(saved.fingerprint).toBe(storage.values.get(INSTANCES_V6_STORAGE_KEY));
+
+    expect(readV6StorageUpdate(storage, saved.fingerprint)).toEqual({ status: 'unchanged' });
+
+    saveInstances(storage, [instance('newer')], false);
+    expect(readV6StorageUpdate(storage, saved.fingerprint)).toMatchObject({
+      status: 'updated',
+      instances: [{ id: 'newer' }],
+    });
+  });
+
+  it('accepts an externally saved empty dataset and ignores unavailable data', () => {
+    const storage = new FakeStorage();
+    storage.values.set(INSTANCES_V6_STORAGE_KEY, '[]');
+    expect(readV6StorageUpdate(storage, 'previous')).toEqual({
+      status: 'updated', fingerprint: '[]', instances: [],
+    });
+
+    storage.values.set(INSTANCES_V6_STORAGE_KEY, '{');
+    expect(readV6StorageUpdate(storage, 'previous')).toEqual({ status: 'unavailable' });
+    storage.values.delete(INSTANCES_V6_STORAGE_KEY);
+    expect(readV6StorageUpdate(storage, 'previous')).toEqual({ status: 'unavailable' });
+    storage.failRead = true;
+    expect(readV6StorageUpdate(storage, 'previous')).toEqual({ status: 'unavailable' });
   });
 });
