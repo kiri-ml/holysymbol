@@ -125,7 +125,7 @@ export function BuyerRow({
               refreshDisabled={busy || !editor.lookupIgn}
               refreshing={editor.refreshingSnapshot === 'start'}
               onDraftChange={editor.setStartDraft}
-              onCommitDraft={editor.commitStartDraft}
+              onApplyDraft={editor.applyStartDraft}
               onRefresh={() => void editor.refreshStart()}
             />
             <SnapshotEditor
@@ -137,7 +137,7 @@ export function BuyerRow({
               refreshDisabled={busy || !editor.lookupIgn}
               refreshing={editor.refreshingSnapshot === 'current'}
               onDraftChange={editor.setCurrentDraft}
-              onCommitDraft={editor.commitCurrentDraft}
+              onApplyDraft={editor.applyCurrentDraft}
               onRefresh={() => void editor.refreshCurrent()}
             />
           </div>

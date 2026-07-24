@@ -23,7 +23,7 @@ export function useRunWorkspace(clock: RunClock = systemRunClock) {
   const [selectedRunId, setSelectedRunId] = useLocalStorage<string | null>(
     SELECTED_RUN_STORAGE_KEY,
     null,
-    (value) => (typeof value === 'string' ? value : null),
+    { normalize: (value) => (typeof value === 'string' ? value : null) },
   );
   const [highlightedRunId, setHighlightedRunId] = useState<string | null>(null);
   const displayedRuns = useMemo(() => sortRunsByCreatedAt(runs), [runs]);

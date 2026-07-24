@@ -79,7 +79,7 @@ export function useBuyerRowEditor({
     }
   }
 
-  function commitDraft(kind: BuyerSnapshotKind, draft: DraftSnapshotState) {
+  function applyDraft(kind: BuyerSnapshotKind, draft: DraftSnapshotState) {
     const snapshot = kind === 'start' ? buyer.start : buyer.current;
     if (!draftDiffersFromSnapshot(draft, snapshot)) return;
     onSetManualSnapshot(buyer.id, kind, draft, t('buyer.entered'));
@@ -108,8 +108,8 @@ export function useBuyerRowEditor({
     setCurrentDraft,
     refreshStart: () => refresh('start'),
     refreshCurrent: () => refresh('current'),
-    commitStartDraft: (draft: DraftSnapshotState) => commitDraft('start', draft),
-    commitCurrentDraft: (draft: DraftSnapshotState) => commitDraft('current', draft),
+    applyStartDraft: (draft: DraftSnapshotState) => applyDraft('start', draft),
+    applyCurrentDraft: (draft: DraftSnapshotState) => applyDraft('current', draft),
     toggleCompleted,
     clearCompletionPreview: () => setCompletionPreviewSuppressed(false),
   };

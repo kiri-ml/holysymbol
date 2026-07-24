@@ -17,5 +17,3 @@ export { TextField } from './TextField';
 export type { TextFieldProps } from './TextField';
 export { TextInput } from './TextInput';
 export type { TextInputProps } from './TextInput';
-export { useCommittedFields } from './useCommittedFields';
-export type { CommittedFieldUpdate, UseCommittedFieldsOptions } from './useCommittedFields';
