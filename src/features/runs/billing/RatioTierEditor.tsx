@@ -3,10 +3,10 @@ import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { RatioBilling } from '../../../domain/types';
 import { RatioRateField } from '../../../modules/pricing';
-import { Button, IconButton } from '../../../ui/button';
+import { IconButton } from '../../../ui/button';
 import { classNames } from '../../../ui/classNames';
 import { ControlGroup } from '../../../ui/control-group';
-import { NumberInput } from '../../../ui/fields';
+import { InputField, NumberInput } from '../../../ui/fields';
 import styles from './RatioTierEditor.module.css';
 import { addRatioTier, canAddRatioTier, removeRatioTier, updateRatioTier } from './runBillingCommands';
 
@@ -25,39 +25,36 @@ export function RatioTierEditor({ billing, onUpdate }: {
     setTierLevel(Number.NaN);
   }
 
-  const rateField = (value: number, label: string, onRateChange: (value: number) => void, width: 'default' | 'full' = 'default') => (
-    <RatioRateField label={label} labelVisibility="screen-reader" width={width} value={value} onChange={onRateChange} />
-  );
-
   return (
     <div className={styles.tierEditor}>
-      <div className={classNames(styles.controlField, styles.tierCard, styles.tierBase)}>
-        <span className={styles.label}>{t('billing.baseRatio')}</span>
-        <div className={styles.controlRow}>
-          {rateField(billing.expPerMesoRatio, t('aria.runExpRatio'), (expPerMesoRatio) => onUpdate((current) => ({ ...current, expPerMesoRatio })), 'full')}
-        </div>
+      <div className={classNames(styles.tierCard, styles.tierBase)}>
+        <RatioRateField
+          label={t('billing.baseRatio')}
+          value={billing.expPerMesoRatio}
+          onChange={(expPerMesoRatio) => onUpdate((current) => ({ ...current, expPerMesoRatio }))}
+        />
       </div>
       {billing.tiers.map((tier, index) => (
-        <div className={classNames(styles.controlField, styles.tierCard)} key={tier.minLevel}>
-          <span className={classNames(styles.label, styles.tierLevel)}>{t('billing.tierLevel')} {tier.minLevel}</span>
-          <div className={styles.controlRow}>
-            {rateField(tier.expPerMesoRatio, t('aria.ratioTierRatio', { number: index + 1 }), (expPerMesoRatio) => onUpdate((current) => updateRatioTier(current, tier.minLevel, expPerMesoRatio)))}
-            <IconButton
-              variant="danger"
-              onClick={() => onUpdate((current) => removeRatioTier(current, tier.minLevel))}
-              icon={<Trash2 size={16} />}
-              aria-label={t('aria.removeRatioTier', { number: index + 1 })}
-            />
-          </div>
+        <div className={styles.tierCard} key={tier.minLevel}>
+          <RatioRateField
+            label={<span className={styles.tierLevel}>{t('billing.tierLevel')} {tier.minLevel}</span>}
+            value={tier.expPerMesoRatio}
+            onChange={(expPerMesoRatio) => onUpdate((current) => updateRatioTier(current, tier.minLevel, expPerMesoRatio))}
+          />
+          <IconButton
+            className={styles.removeButton}
+            variant="danger"
+            onClick={() => onUpdate((current) => removeRatioTier(current, tier.minLevel))}
+            icon={<Trash2 size={16} />}
+            aria-label={t('aria.removeRatioTier', { number: index + 1 })}
+          />
         </div>
       ))}
-      <div className={classNames(styles.controlField, styles.tierCard, styles.tierAdd)}>
-        <label className={styles.label} htmlFor={tierLevelId}>{t('billing.tierLevel')}</label>
+      <InputField className={classNames(styles.tierCard, styles.tierAdd)} label={t('billing.tierLevel')} controlId={tierLevelId}>
         <form onSubmit={(event) => { event.preventDefault(); addTier(); }}>
-          <ControlGroup className={styles.addGroup} width="full">
+          <ControlGroup width="full">
             <NumberInput
               id={tierLevelId}
-              className={styles.tierInput}
               min={1}
               max={200}
               step={1}
@@ -66,20 +63,17 @@ export function RatioTierEditor({ billing, onUpdate }: {
               emitEmptyOnChange
               blurOnEnter={false}
               placeholder="120"
-              aria-label={t('aria.ratioTierLevel', { number: billing.tiers.length + 1 })}
               onValueChange={setTierLevel}
             />
-            <Button
+            <IconButton
               type="submit"
-              className={styles.addButton}
               disabled={!canAddTier}
               icon={<Plus size={16} />}
-              label={t('billing.addTier')}
-              labelMode="responsive"
+              aria-label={t('billing.addTier')}
             />
           </ControlGroup>
         </form>
-      </div>
+      </InputField>
     </div>
   );
 }

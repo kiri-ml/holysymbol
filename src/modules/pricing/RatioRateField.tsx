@@ -13,7 +13,6 @@ export type RatioRateFieldProps = Omit<
   value: number;
   onChange: (value: number) => void;
   label: ReactNode;
-  width?: 'default' | 'full';
   size?: FieldControlSize;
 };
 
@@ -21,7 +20,6 @@ export function RatioRateField({
   value,
   onChange,
   label,
-  width = 'default',
   size = 'md',
   className,
   ...props
@@ -30,7 +28,7 @@ export function RatioRateField({
   return (
     <NumberField
       {...props}
-      className={classNames(styles.ratioField, width === 'full' && styles.fullWidth, className)}
+      className={classNames(styles.pricingField, className)}
       size={size}
       label={label}
       leading={t('common.ratioPrefix')}

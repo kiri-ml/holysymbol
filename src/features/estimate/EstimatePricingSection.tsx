@@ -19,7 +19,6 @@ export function EstimatePricingSection({ value, onChange }: { value: EstimatePri
         <RatioRateField
           label={t('aria.expPerMesoRatio')}
           labelVisibility="screen-reader"
-          width="full"
           value={value.expPerMesoRatio}
           onChange={(expPerMesoRatio) => onChange({ ...value, expPerMesoRatio })}
         />

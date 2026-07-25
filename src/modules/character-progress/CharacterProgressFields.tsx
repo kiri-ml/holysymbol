@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
+import { classNames } from '../../ui/classNames';
 import { InputFields, NumberField } from '../../ui/fields';
 import type { FieldControlSize, InputFieldsProps } from '../../ui/fields';
+import styles from './CharacterProgressFields.module.css';
 import { clampLevel, normalizePercent } from './progressValues';
 import type { LevelExpValue } from './progressValues';
 
@@ -11,7 +13,6 @@ export type CharacterProgressFieldsProps = Omit<InputFieldsProps, 'children' | '
   expLabel: ReactNode;
   labelVisibility?: 'visible' | 'screen-reader';
   fieldSize?: FieldControlSize;
-  layout?: 'two-column' | 'inherit';
 };
 
 export function CharacterProgressFields({
@@ -21,11 +22,11 @@ export function CharacterProgressFields({
   expLabel,
   labelVisibility = 'visible',
   fieldSize = 'md',
-  layout = 'two-column',
+  className,
   ...fieldsProps
 }: CharacterProgressFieldsProps) {
   return (
-    <InputFields {...fieldsProps} columns={layout === 'two-column' ? 2 : undefined}>
+    <InputFields {...fieldsProps} className={classNames(styles.fields, className)}>
       <NumberField
         label={levelLabel}
         labelVisibility={labelVisibility}
@@ -42,7 +43,7 @@ export function CharacterProgressFields({
         labelVisibility={labelVisibility}
         size={fieldSize}
         min={0}
-        max={99.999}
+        max={99.99}
         step={0.01}
         value={value.expPercent}
         normalize={normalizePercent}

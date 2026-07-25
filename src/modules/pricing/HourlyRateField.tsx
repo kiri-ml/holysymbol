@@ -33,7 +33,7 @@ export function HourlyRateField({
   return (
     <NumberField
       {...props}
-      className={classNames(layout === 'billing' && styles.billingField, className)}
+      className={classNames(styles.pricingField, layout === 'billing' && styles.billingField, className)}
       size={size}
       label={label}
       trailing={trailing === false ? undefined : (trailing ?? t('common.millionPerHourSpaced'))}

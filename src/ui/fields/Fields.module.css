@@ -65,13 +65,23 @@
     cursor: pointer;
   }
   .input::-webkit-inner-spin-button,
-  .input::-webkit-outer-spin-button { width: 1.25rem; min-height: var(--input-size); opacity: 1; }
+  .input::-webkit-outer-spin-button {
+    width: 1.1rem;
+    min-height: var(--input-size);
+    cursor: pointer;
+    opacity: 0.58;
+    transition: opacity var(--motion-fast) var(--ease-standard);
+  }
+  .input:hover::-webkit-inner-spin-button,
+  .input:hover::-webkit-outer-spin-button { opacity: 0.82; }
+  .input:focus::-webkit-inner-spin-button,
+  .input:focus::-webkit-outer-spin-button { opacity: 1; }
 
   .control {
     --field-control-size: var(--field-control-size-override, var(--control-size-md));
     width: var(--field-control-width, 100%);
     min-width: 0;
-    min-height: var(--field-control-size);
+    height: var(--field-control-size);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     color: var(--ink);
@@ -91,7 +101,8 @@
   .control:has(.input[aria-invalid='true']) { border-color: var(--danger); }
 
   .control .input {
-    min-height: var(--field-control-size);
+    height: 100%;
+    min-height: 0;
     border: 0;
     border-radius: 0;
     background: transparent;

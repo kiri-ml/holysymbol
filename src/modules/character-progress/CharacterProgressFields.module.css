@@ -1,0 +1,5 @@
+@layer components {
+  .fields {
+    grid-template-columns: minmax(4.5rem, 0.85fr) minmax(5.5rem, 1fr);
+  }
+}

@@ -25,8 +25,6 @@ export function EstimateProgressFields({
       labels={<div className={`${styles.labelRow} ${styles.labelLevelExp}`}><span>{t('common.level')}</span><span>{t('common.expPercent')}</span></div>}
     >
       <CharacterProgressFields
-        className={styles.levelInputs}
-        layout="inherit"
         value={value}
         onChange={onChange}
         levelLabel={t('aria.estimateLevel', { label: title })}

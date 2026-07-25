@@ -34,8 +34,6 @@ export function SnapshotEditor({ title, tone, snapshot, draft, refreshLabel, ref
       </div>
       <div className={styles.manualSnapshot}>
         <CharacterProgressFields
-          className={styles.levelExpGrid}
-          layout="inherit"
           value={draft}
           onChange={updateDraft}
           levelLabel={t('common.level')}
