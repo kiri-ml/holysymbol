@@ -52,7 +52,7 @@ export const zhHant = {
   },
   calculator: {
     heading: '計算器',
-    expMesosRatio: '經驗 : 楓幣',
+    expMesosRatio: '楓幣 : 經驗',
     from: '起始',
     to: '目標',
     result: '結果',

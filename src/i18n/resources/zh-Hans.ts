@@ -52,7 +52,7 @@ export const zhHans = {
   },
   calculator: {
     heading: '计算器',
-    expMesosRatio: '经验 : 金币',
+    expMesosRatio: '金币 : 经验',
     from: '起始',
     to: '目标',
     result: '结果',

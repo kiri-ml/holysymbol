@@ -52,7 +52,7 @@ export const ja = {
   },
   calculator: {
     heading: '計算機',
-    expMesosRatio: 'EXP : メル',
+    expMesosRatio: 'メル : EXP',
     from: '開始',
     to: '目標',
     result: '結果',
