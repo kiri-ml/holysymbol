@@ -5,6 +5,8 @@
     --field-control-size-override: var(--pricing-control-size, var(--control-size-md));
   }
 
+  .pricingField input { padding-inline-start: var(--space-2); }
+
   .billingField {
     min-height: 5rem;
     align-content: space-between;
