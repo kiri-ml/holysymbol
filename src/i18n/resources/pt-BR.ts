@@ -24,7 +24,7 @@ export const ptBR = {
     estimateType: 'Tipo de estimativa',
     pricing: 'Preço',
     expRatio: 'Proporção de EXP',
-    baseRatio: 'Proporção base',
+    baseRatio: 'Proporção',
     tierLevel: 'Nível ≥',
     addTier: 'Adicionar faixa',
     hourlyRate: 'Valor por hora',

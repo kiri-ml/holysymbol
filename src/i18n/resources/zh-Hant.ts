@@ -24,7 +24,7 @@ export const zhHant = {
     estimateType: '估算計費方式',
     pricing: '價格',
     expRatio: '經驗比例',
-    baseRatio: '基本比例',
+    baseRatio: '比例',
     tierLevel: '等級 ≥',
     addTier: '新增分級',
     hourlyRate: '小時價格',

@@ -24,7 +24,7 @@ export const zhHans = {
     estimateType: '估算计费方式',
     pricing: '价格',
     expRatio: '经验比例',
-    baseRatio: '基本比例',
+    baseRatio: '比例',
     tierLevel: '等级 ≥',
     addTier: '添加分级',
     hourlyRate: '小时价格',

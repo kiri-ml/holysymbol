@@ -24,7 +24,7 @@ export const de = {
     estimateType: 'Schätzungsart',
     pricing: 'Preis',
     expRatio: 'EXP-Verhältnis',
-    baseRatio: 'Basisverhältnis',
+    baseRatio: 'Verhältnis',
     tierLevel: 'Stufe ≥',
     addTier: 'Stufe hinzufügen',
     hourlyRate: 'Stundensatz',

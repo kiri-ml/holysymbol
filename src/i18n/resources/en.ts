@@ -22,7 +22,7 @@ export const en = {
     estimateType: 'Estimate pricing type',
     pricing: 'Pricing',
     expRatio: 'EXP ratio',
-    baseRatio: 'Base ratio',
+    baseRatio: 'Ratio',
     tierLevel: 'Level ≥',
     addTier: 'Add tier',
     hourlyRate: 'Hourly rate',

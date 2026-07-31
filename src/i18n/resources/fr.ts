@@ -24,7 +24,7 @@ export const fr = {
     estimateType: 'Type d’estimation',
     pricing: 'Prix',
     expRatio: 'Ratio d’EXP',
-    baseRatio: 'Ratio de base',
+    baseRatio: 'Ratio',
     tierLevel: 'Niveau ≥',
     addTier: 'Ajouter un palier',
     hourlyRate: 'Tarif horaire',

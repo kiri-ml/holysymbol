@@ -24,7 +24,7 @@ export const ko = {
     estimateType: '예상 요금 방식',
     pricing: '가격',
     expRatio: '경험치 비율',
-    baseRatio: '기본 비율',
+    baseRatio: '비율',
     tierLevel: '레벨 ≥',
     addTier: '단계 추가',
     hourlyRate: '시간당 가격',

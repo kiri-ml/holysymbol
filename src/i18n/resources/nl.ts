@@ -24,7 +24,7 @@ export const nl = {
     estimateType: 'Type schatting',
     pricing: 'Prijs',
     expRatio: 'EXP-ratio',
-    baseRatio: 'Basisratio',
+    baseRatio: 'Ratio',
     tierLevel: 'Niveau ≥',
     addTier: 'Trede toevoegen',
     hourlyRate: 'Uurtarief',

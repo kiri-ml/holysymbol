@@ -24,7 +24,7 @@ export const ja = {
     estimateType: '見積もり課金方式',
     pricing: '価格',
     expRatio: '経験値比率',
-    baseRatio: '基本比率',
+    baseRatio: '比率',
     tierLevel: 'レベル ≥',
     addTier: 'ティアを追加',
     hourlyRate: '時間単価',

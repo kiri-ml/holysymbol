@@ -29,7 +29,12 @@ export function RatioTierEditor({ billing, onUpdate }: {
     <div className={styles.tierEditor}>
       <div className={classNames(styles.tierCard, styles.tierBase)}>
         <RatioRateField
-          label={t('billing.baseRatio')}
+          label={(
+            <span className={styles.baseLabel}>
+              <span>{t('billing.baseRatio')}</span>
+              <span>{t('calculator.expMesosRatio')}</span>
+            </span>
+          )}
           value={billing.expPerMesoRatio}
           onChange={(expPerMesoRatio) => onUpdate((current) => ({ ...current, expPerMesoRatio }))}
         />
