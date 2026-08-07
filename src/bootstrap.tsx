@@ -8,6 +8,10 @@ export async function mountApplication() {
   let RootComponent: ComponentType = App;
   const previewRequested = import.meta.env.DEV && new URLSearchParams(window.location.search).has('responsive-preview');
 
+  if (window.location.pathname === '/receipt-demo' || window.location.pathname.startsWith('/r1/')) {
+    RootComponent = (await import('./features/receipt')).RatioReceiptDemo;
+  }
+
   if (previewRequested) {
     RootComponent = (await import('./dev/ResponsivePreview')).ResponsivePreview;
   }

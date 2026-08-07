@@ -1,0 +1,1 @@
+export { RatioReceiptDemo } from './RatioReceiptDemo';

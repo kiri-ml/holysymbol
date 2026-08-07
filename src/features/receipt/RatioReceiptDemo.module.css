@@ -1,0 +1,94 @@
+.page {
+  min-height: 100vh;
+  padding: clamp(1rem, 4vw, 3rem);
+}
+
+.shell {
+  width: min(64rem, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: var(--space-5);
+}
+
+.intro {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.intro p,
+.hint {
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.card {
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+  color: var(--muted);
+  font-size: var(--text-label);
+  font-weight: var(--weight-label);
+}
+
+.fieldWide { grid-column: 1 / -1; }
+
+.input,
+.output {
+  width: 100%;
+  min-height: var(--control-size-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--ink);
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+}
+
+.output {
+  overflow-wrap: anywhere;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+}
+
+.receipt {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.receipt div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.receipt dt {
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-label);
+  text-transform: uppercase;
+}
+
+.receipt dd { margin: 0; font-weight: var(--weight-strong); }
+.error { color: var(--danger); }
+
+@media (max-width: 44rem) {
+  .grid,
+  .fields { grid-template-columns: 1fr; }
+  .fieldWide { grid-column: auto; }
+}
