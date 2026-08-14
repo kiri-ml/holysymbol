@@ -18,22 +18,12 @@ const DEFAULT_RECEIPT: RatioReceipt = {
   ratio: 3.3,
 };
 
-function initialReceipt() {
-  try {
-    return window.location.pathname.startsWith('/r1/')
-      ? decodeRatioReceiptPath(window.location.pathname)
-      : DEFAULT_RECEIPT;
-  } catch {
-    return DEFAULT_RECEIPT;
-  }
-}
-
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : 'Unable to decode receipt';
 }
 
 export function RatioReceiptDemo() {
-  const [receipt, setReceipt] = useState<RatioReceipt>(initialReceipt);
+  const [receipt, setReceipt] = useState<RatioReceipt>(DEFAULT_RECEIPT);
   const generated = useMemo(() => {
     try {
       const path = ratioReceiptPath(receipt);
@@ -42,9 +32,7 @@ export function RatioReceiptDemo() {
       return { path: '', error: errorMessage(error) };
     }
   }, [receipt]);
-  const [decodeInput, setDecodeInput] = useState(() => window.location.pathname.startsWith('/r1/')
-    ? window.location.pathname
-    : encodeRatioReceipt(DEFAULT_RECEIPT));
+  const [decodeInput, setDecodeInput] = useState(() => encodeRatioReceipt(DEFAULT_RECEIPT));
   const decoded = useMemo(() => {
     try {
       const value = decodeInput.trim();

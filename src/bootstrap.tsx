@@ -8,8 +8,10 @@ export async function mountApplication() {
   let RootComponent: ComponentType = App;
   const previewRequested = import.meta.env.DEV && new URLSearchParams(window.location.search).has('responsive-preview');
 
-  if (window.location.pathname === '/receipt-demo' || window.location.pathname.startsWith('/r1/')) {
-    RootComponent = (await import('./features/receipt')).RatioReceiptDemo;
+  if (window.location.pathname === '/receipt-demo') {
+    RootComponent = (await import('./features/receipt/RatioReceiptDemo')).RatioReceiptDemo;
+  } else if (window.location.pathname.startsWith('/r1/')) {
+    RootComponent = (await import('./features/receipt/RatioReceiptPage')).RatioReceiptPage;
   }
 
   if (previewRequested) {
