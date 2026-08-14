@@ -15,7 +15,9 @@ type PagesContext = {
 };
 
 export function receiptAssetRequest(request: Request) {
-  const assetUrl = new URL('/receipt.html', request.url);
+  // Pages serves HTML assets at extensionless clean URLs. Requesting
+  // /receipt.html returns a 308 that would navigate the browser away from /r1/.
+  const assetUrl = new URL('/receipt', request.url);
   return new Request(assetUrl, request);
 }
 

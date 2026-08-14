@@ -15,7 +15,7 @@ const receipt: RatioReceipt = {
 describe('ratio receipt Discord metadata', () => {
   it('internally routes the public receipt URL to the dedicated HTML asset', () => {
     const request = receiptAssetRequest(new Request('https://holysymbol.pages.dev/r1/payload.Buyer123?source=discord'));
-    expect(request.url).toBe('https://holysymbol.pages.dev/receipt.html');
+    expect(request.url).toBe('https://holysymbol.pages.dev/receipt');
     expect(request.method).toBe('GET');
   });
 
