@@ -173,7 +173,7 @@ export const de = {
     expPerMeso: 'EXP pro Meso',
     backToCalculator: 'Zurück zum Rechner',
     invalidTitle: 'Ungültiger Beleg',
-    invalidBody: 'Dieser Beleglink ist unvollständig, beschädigt oder hat eine ungültige Prüfsumme.',
+    invalidBody: 'Dieser Beleglink ist ungültig oder beschädigt.',
   },
   csv: {
     instance: 'run',

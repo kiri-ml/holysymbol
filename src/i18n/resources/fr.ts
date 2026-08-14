@@ -173,7 +173,7 @@ export const fr = {
     expPerMeso: 'EXP par meso',
     backToCalculator: 'Retour au calculateur',
     invalidTitle: 'Reçu non valide',
-    invalidBody: 'Ce lien est incomplet, endommagé ou possède une somme de contrôle non valide.',
+    invalidBody: 'Ce lien de reçu est non valide ou endommagé.',
   },
   csv: {
     instance: 'run',

@@ -173,7 +173,7 @@ export const ko = {
     expPerMeso: '메소당 경험치',
     backToCalculator: '계산기로 돌아가기',
     invalidTitle: '잘못된 영수증',
-    invalidBody: '이 영수증 링크는 불완전하거나 손상되었거나 체크섬이 잘못되었습니다.',
+    invalidBody: '이 영수증 링크가 잘못되었거나 손상되었습니다.',
   },
   csv: {
     instance: '런',

@@ -50,6 +50,7 @@ describe('RatioReceiptPage', () => {
   it('renders a generic invalid state without sample receipt data', () => {
     const markup = renderReceipt('/r1/broken.Buyer123');
     expect(markup).toContain('Invalid receipt');
+    expect(markup).toContain('This receipt link is invalid or broken.');
     expect(markup).not.toContain('Buyer123');
     expect(markup).not.toContain('<input');
   });

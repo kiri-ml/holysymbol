@@ -173,7 +173,7 @@ export const zhHans = {
     expPerMeso: '每金币经验',
     backToCalculator: '返回计算器',
     invalidTitle: '收据无效',
-    invalidBody: '此收据链接不完整、已损坏或校验码无效。',
+    invalidBody: '此收据链接无效或已损坏。',
   },
   csv: {
     instance: '场次',

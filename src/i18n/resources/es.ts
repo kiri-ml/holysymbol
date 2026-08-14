@@ -173,7 +173,7 @@ export const es = {
     expPerMeso: 'EXP por meso',
     backToCalculator: 'Volver a la calculadora',
     invalidTitle: 'Recibo no válido',
-    invalidBody: 'Este enlace está incompleto, dañado o tiene una suma de comprobación no válida.',
+    invalidBody: 'Este enlace de recibo no es válido o está dañado.',
   },
   csv: {
     instance: 'run',

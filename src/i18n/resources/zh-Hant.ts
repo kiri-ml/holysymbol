@@ -173,7 +173,7 @@ export const zhHant = {
     expPerMeso: '每楓幣經驗',
     backToCalculator: '返回計算器',
     invalidTitle: '收據無效',
-    invalidBody: '此收據連結不完整、已損壞或校驗碼無效。',
+    invalidBody: '此收據連結無效或已損壞。',
   },
   csv: {
     instance: '場次',

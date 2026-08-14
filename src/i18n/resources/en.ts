@@ -171,7 +171,7 @@ export const en = {
     expPerMeso: 'EXP per meso',
     backToCalculator: 'Back to calculator',
     invalidTitle: 'Invalid receipt',
-    invalidBody: 'This receipt link is incomplete, damaged, or has an invalid checksum.',
+    invalidBody: 'This receipt link is invalid or broken.',
   },
   csv: {
     instance: 'instance',

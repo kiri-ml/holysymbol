@@ -173,7 +173,7 @@ export const nl = {
     expPerMeso: 'EXP per meso',
     backToCalculator: 'Terug naar calculator',
     invalidTitle: 'Ongeldig ontvangstbewijs',
-    invalidBody: 'Deze link is onvolledig, beschadigd of heeft een ongeldige controlesom.',
+    invalidBody: 'Deze ontvangstbewijslink is ongeldig of beschadigd.',
   },
   csv: {
     instance: 'run',

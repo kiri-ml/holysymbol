@@ -173,7 +173,7 @@ export const ptBR = {
     expPerMeso: 'EXP por meso',
     backToCalculator: 'Voltar à calculadora',
     invalidTitle: 'Recibo inválido',
-    invalidBody: 'Este link está incompleto, danificado ou tem uma soma de verificação inválida.',
+    invalidBody: 'Este link de recibo é inválido ou está danificado.',
   },
   csv: {
     instance: 'run',

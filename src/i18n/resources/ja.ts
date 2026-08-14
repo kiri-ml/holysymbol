@@ -173,7 +173,7 @@ export const ja = {
     expPerMeso: '1メルあたりのEXP',
     backToCalculator: '計算機に戻る',
     invalidTitle: '無効なレシート',
-    invalidBody: 'このレシートリンクは不完全、破損、またはチェックサムが無効です。',
+    invalidBody: 'このレシートリンクは無効または破損しています。',
   },
   csv: {
     instance: 'ラン',
