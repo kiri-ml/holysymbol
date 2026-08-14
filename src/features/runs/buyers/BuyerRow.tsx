@@ -1,4 +1,4 @@
-import { CircleCheckBig, CircleDashed, Trash2, UserPlus } from 'lucide-react';
+import { CircleCheckBig, CircleDashed, ReceiptText, Trash2, UserPlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { avatarUrl } from '../../../api/legends';
 import { formatCompact, formatDuration, formatExp, formatLocalDateTime } from '../../../domain/format';
@@ -8,11 +8,18 @@ import { classNames } from '../../../ui/classNames';
 import { CopyMesosMetric, Metric, MetricGroup } from '../../../ui/metric';
 import { Surface } from '../../../ui/surface';
 import type { BuyerSnapshotKind } from './buyerCommands';
+import { createBuyerReceiptLink } from './buyerReceiptLink';
 import styles from './BuyerRow.module.css';
 import { SnapshotEditor } from './SnapshotEditor';
 import { formatSnapshotShort } from './snapshotDraft';
 import type { DraftSnapshotState } from './snapshotDraft';
 import { useBuyerRowEditor } from './useBuyerRowEditor';
+
+const RECEIPT_UNAVAILABLE_KEYS = {
+  'missing-data': 'receipt.unavailableMissingData',
+  'tiered-pricing': 'receipt.unavailableTieredPricing',
+  encoding: 'receipt.unavailableEncoding',
+} as const;
 
 export function BuyerRow({
   billing,
@@ -47,6 +54,10 @@ export function BuyerRow({
     onSetManualSnapshot,
     onSetCompleted,
   });
+  const receiptLink = editor.locked ? createBuyerReceiptLink(buyer, billing) : undefined;
+  const unavailableReceiptLabel = receiptLink?.status === 'unavailable'
+    ? t(RECEIPT_UNAVAILABLE_KEYS[receiptLink.reason])
+    : undefined;
 
   return (
     <Surface as="article" className={styles.card} padding="none">
@@ -142,6 +153,26 @@ export function BuyerRow({
             />
           </div>
         </details>
+      ) : receiptLink?.status === 'available' ? (
+        <div className={styles.receiptFooter}>
+          <a
+            className={styles.receiptLink}
+            href={receiptLink.path}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={t('receipt.openForBuyer', { name: editor.displayIgn })}
+          >
+            <ReceiptText size={16} aria-hidden="true" />
+            <span>{t('receipt.view')}</span>
+          </a>
+        </div>
+      ) : receiptLink?.status === 'unavailable' ? (
+        <div className={styles.receiptFooter}>
+          <span className={styles.receiptUnavailable} aria-disabled="true">
+            <ReceiptText size={16} aria-hidden="true" />
+            <span>{unavailableReceiptLabel}</span>
+          </span>
+        </div>
       ) : null}
     </Surface>
   );

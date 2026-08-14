@@ -159,6 +159,11 @@ export const fr = {
   },
   receipt: {
     title: 'Reçu au ratio',
+    view: 'Voir le reçu',
+    openForBuyer: 'Ouvrir le reçu de {{name}} dans un nouvel onglet',
+    unavailableMissingData: 'Reçu indisponible — ajoutez un IGN valide et les deux instantanés',
+    unavailableTieredPricing: 'Reçu indisponible — les tarifs par paliers ne sont pas encore pris en charge',
+    unavailableEncoding: 'Reçu indisponible — les valeurs de facturation ne peuvent pas être encodées',
     validLink: 'Lien valide',
     mesosDue: 'Mesos dus',
     copyDue: 'Copier les mesos dus',

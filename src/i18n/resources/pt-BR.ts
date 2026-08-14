@@ -159,6 +159,11 @@ export const ptBR = {
   },
   receipt: {
     title: 'Recibo por proporção',
+    view: 'Ver recibo',
+    openForBuyer: 'Abrir o recibo de {{name}} em uma nova aba',
+    unavailableMissingData: 'Recibo indisponível — adicione um IGN válido e os dois registros',
+    unavailableTieredPricing: 'Recibo indisponível — preços por níveis ainda não são compatíveis',
+    unavailableEncoding: 'Recibo indisponível — os valores de cobrança não podem ser codificados',
     validLink: 'Link válido',
     mesosDue: 'Mesos devidos',
     copyDue: 'Copiar mesos devidos',

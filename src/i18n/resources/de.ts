@@ -159,6 +159,11 @@ export const de = {
   },
   receipt: {
     title: 'Verhältnisbeleg',
+    view: 'Beleg ansehen',
+    openForBuyer: 'Beleg für {{name}} in einem neuen Tab öffnen',
+    unavailableMissingData: 'Beleg nicht verfügbar – gültigen IGN und beide Momentaufnahmen hinzufügen',
+    unavailableTieredPricing: 'Beleg nicht verfügbar – Stufenpreise werden noch nicht unterstützt',
+    unavailableEncoding: 'Beleg nicht verfügbar – Abrechnungswerte können nicht codiert werden',
     validLink: 'Gültiger Link',
     mesosDue: 'Fällige Mesos',
     copyDue: 'Fällige Mesos kopieren',

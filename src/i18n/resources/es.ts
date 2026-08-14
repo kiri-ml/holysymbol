@@ -159,6 +159,11 @@ export const es = {
   },
   receipt: {
     title: 'Recibo por proporción',
+    view: 'Ver recibo',
+    openForBuyer: 'Abrir el recibo de {{name}} en una pestaña nueva',
+    unavailableMissingData: 'Recibo no disponible: añade un IGN válido y ambas capturas',
+    unavailableTieredPricing: 'Recibo no disponible: los precios por niveles aún no son compatibles',
+    unavailableEncoding: 'Recibo no disponible: no se pueden codificar los valores de facturación',
     validLink: 'Enlace válido',
     mesosDue: 'Mesos a pagar',
     copyDue: 'Copiar mesos a pagar',

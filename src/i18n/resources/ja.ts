@@ -159,6 +159,11 @@ export const ja = {
   },
   receipt: {
     title: '比率レシート',
+    view: 'レシートを見る',
+    openForBuyer: '{{name}}のレシートを新しいタブで開く',
+    unavailableMissingData: 'レシートを作成できません — 有効なIGNと両方のスナップショットを追加してください',
+    unavailableTieredPricing: 'レシートを作成できません — 段階料金はまだ対応していません',
+    unavailableEncoding: 'レシートを作成できません — 請求値をエンコードできません',
     validLink: '有効なリンク',
     mesosDue: '支払メル',
     copyDue: '支払メルをコピー',

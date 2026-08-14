@@ -16,6 +16,10 @@ const RATIO_RADIX = 1_125n;
 const MAX_DATA = LEVEL_RADIX * EXP_RADIX * LEVEL_RADIX * EXP_RADIX * RATIO_RADIX;
 const IGN_PATTERN = /^[A-Za-z0-9]{4,12}$/;
 
+export function isValidRatioReceiptIgn(value: string) {
+  return IGN_PATTERN.test(value);
+}
+
 export class RatioReceiptError extends Error {
   constructor(message: string) {
     super(message);
@@ -39,7 +43,7 @@ function hundredths(name: string, value: number, maximum: number) {
 }
 
 function packData(receipt: RatioReceipt) {
-  if (!IGN_PATTERN.test(receipt.ign)) {
+  if (!isValidRatioReceiptIgn(receipt.ign)) {
     throw new RatioReceiptError('IGN must contain 4 to 12 ASCII letters or numbers');
   }
   requireInteger('Start level', receipt.startLevel, 1, 200);
@@ -113,7 +117,7 @@ export function decodeRatioReceipt(payload: string): RatioReceipt {
   }
   const code = payload.slice(0, CODE_LENGTH);
   const ign = payload.slice(CODE_LENGTH + 1);
-  if (!IGN_PATTERN.test(ign)) throw new RatioReceiptError('IGN must contain 4 to 12 ASCII letters or numbers');
+  if (!isValidRatioReceiptIgn(ign)) throw new RatioReceiptError('IGN must contain 4 to 12 ASCII letters or numbers');
 
   const packed = decode60Bits(code);
   const expectedCrc = Number(packed & 0xffn);
