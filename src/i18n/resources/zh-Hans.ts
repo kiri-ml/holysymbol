@@ -163,7 +163,7 @@ export const zhHans = {
     openForBuyer: '在新标签页中打开 {{name}} 的收据',
     unavailableMissingData: '无法生成收据 — 请添加有效角色名和起止快照',
     unavailableEncoding: '无法生成收据 — 账单数据无法编码',
-    validLink: '链接有效',
+    validLink: '有效',
     mesosDue: '应付金币',
     copyDue: '复制应付金币',
     dueCopied: '已复制应付金币',

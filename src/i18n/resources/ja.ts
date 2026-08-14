@@ -163,7 +163,7 @@ export const ja = {
     openForBuyer: '{{name}}のレシートを新しいタブで開く',
     unavailableMissingData: 'レシートを作成できません — 有効なIGNと両方のスナップショットを追加してください',
     unavailableEncoding: 'レシートを作成できません — 請求値をエンコードできません',
-    validLink: '有効なリンク',
+    validLink: '有効',
     mesosDue: '支払メル',
     copyDue: '支払メルをコピー',
     dueCopied: '支払メルをコピーしました',

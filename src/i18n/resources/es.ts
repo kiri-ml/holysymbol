@@ -163,7 +163,7 @@ export const es = {
     openForBuyer: 'Abrir el recibo de {{name}} en una pestaña nueva',
     unavailableMissingData: 'Recibo no disponible: añade un IGN válido y ambas capturas',
     unavailableEncoding: 'Recibo no disponible: no se pueden codificar los valores de facturación',
-    validLink: 'Enlace válido',
+    validLink: 'Válido',
     mesosDue: 'Mesos a pagar',
     copyDue: 'Copiar mesos a pagar',
     dueCopied: 'Mesos a pagar copiados',

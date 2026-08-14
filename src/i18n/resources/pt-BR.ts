@@ -163,7 +163,7 @@ export const ptBR = {
     openForBuyer: 'Abrir o recibo de {{name}} em uma nova aba',
     unavailableMissingData: 'Recibo indisponível — adicione um IGN válido e os dois registros',
     unavailableEncoding: 'Recibo indisponível — os valores de cobrança não podem ser codificados',
-    validLink: 'Link válido',
+    validLink: 'Válido',
     mesosDue: 'Mesos devidos',
     copyDue: 'Copiar mesos devidos',
     dueCopied: 'Mesos devidos copiados',

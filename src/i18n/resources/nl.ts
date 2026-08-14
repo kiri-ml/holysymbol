@@ -163,7 +163,7 @@ export const nl = {
     openForBuyer: 'Ontvangstbewijs voor {{name}} in een nieuw tabblad openen',
     unavailableMissingData: 'Ontvangstbewijs niet beschikbaar — voeg een geldige IGN en beide momentopnamen toe',
     unavailableEncoding: 'Ontvangstbewijs niet beschikbaar — factuurwaarden kunnen niet worden gecodeerd',
-    validLink: 'Geldige link',
+    validLink: 'Geldig',
     mesosDue: 'Verschuldigde mesos',
     copyDue: 'Verschuldigde mesos kopiëren',
     dueCopied: 'Verschuldigde mesos gekopieerd',

@@ -163,7 +163,7 @@ export const de = {
     openForBuyer: 'Beleg für {{name}} in einem neuen Tab öffnen',
     unavailableMissingData: 'Beleg nicht verfügbar – gültigen IGN und beide Momentaufnahmen hinzufügen',
     unavailableEncoding: 'Beleg nicht verfügbar – Abrechnungswerte können nicht codiert werden',
-    validLink: 'Gültiger Link',
+    validLink: 'Gültig',
     mesosDue: 'Fällige Mesos',
     copyDue: 'Fällige Mesos kopieren',
     dueCopied: 'Fällige Mesos kopiert',
