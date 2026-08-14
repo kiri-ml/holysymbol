@@ -162,7 +162,6 @@ export const zhHans = {
     view: '查看收据',
     openForBuyer: '在新标签页中打开 {{name}} 的收据',
     unavailableMissingData: '无法生成收据 — 请添加有效角色名和起止快照',
-    unavailableTieredPricing: '无法生成收据 — 暂不支持分级定价',
     unavailableEncoding: '无法生成收据 — 账单数据无法编码',
     validLink: '链接有效',
     mesosDue: '应付金币',

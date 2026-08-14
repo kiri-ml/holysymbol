@@ -63,7 +63,7 @@ describe('BuyerRow receipt footer', () => {
     if (result.status === 'available') expect(markup).toContain(`href="${result.path}"`);
   });
 
-  it('shows a disabled explanation for incomplete and tiered ratio receipts', () => {
+  it('disables incomplete receipts and links tiered receipts', () => {
     const incomplete = renderBuyer({ ...buyer, locked: true, current: undefined }, ratio);
     expect(incomplete).toContain('aria-disabled="true"');
     expect(incomplete).toContain('add a valid IGN and both snapshots');
@@ -73,8 +73,8 @@ describe('BuyerRow receipt footer', () => {
       { ...buyer, locked: true },
       { ...ratio, tiers: [{ minLevel: 121, expPerMesoRatio: 4 }] },
     );
-    expect(tiered).toContain('tiered pricing is not supported yet');
-    expect(tiered).not.toContain('href="/r1/');
+    expect(tiered).toContain('View receipt');
+    expect(tiered).toContain('href="/r1/');
   });
 
   it('shows neither editor nor ratio receipt footer for a locked hourly buyer', () => {

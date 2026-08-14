@@ -17,7 +17,6 @@ import { useBuyerRowEditor } from './useBuyerRowEditor';
 
 const RECEIPT_UNAVAILABLE_KEYS = {
   'missing-data': 'receipt.unavailableMissingData',
-  'tiered-pricing': 'receipt.unavailableTieredPricing',
   encoding: 'receipt.unavailableEncoding',
 } as const;
 

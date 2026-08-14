@@ -160,7 +160,6 @@ export const en = {
     view: 'View receipt',
     openForBuyer: 'Open receipt for {{name}} in a new tab',
     unavailableMissingData: 'Receipt unavailable — add a valid IGN and both snapshots',
-    unavailableTieredPricing: 'Receipt unavailable — tiered pricing is not supported yet',
     unavailableEncoding: 'Receipt unavailable — billing values cannot be encoded',
     validLink: 'Valid link',
     mesosDue: 'Mesos due',

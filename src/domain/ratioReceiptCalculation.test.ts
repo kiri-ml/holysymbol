@@ -9,6 +9,7 @@ const base: RatioReceipt = {
   endLevel: 121,
   endExpPercent: 10.2,
   ratio: 3.3,
+  tiers: [],
 };
 
 describe('calculateRatioReceipt', () => {
@@ -16,6 +17,13 @@ describe('calculateRatioReceipt', () => {
     const result = calculateRatioReceipt(base);
     expect(result.expGained).toBeGreaterThan(0);
     expect(result.mesosDue).toBeCloseTo(result.expGained / base.ratio);
+  });
+
+  it('charges each EXP segment at its applicable tier ratio', () => {
+    const tiered = { ...base, endLevel: 122, tiers: [{ minLevel: 121, expPerMesoRatio: 4 }] };
+    const result = calculateRatioReceipt(tiered);
+    expect(result.mesosDue).toBeGreaterThan(0);
+    expect(result.mesosDue).not.toBeCloseTo(result.expGained / base.ratio);
   });
 
   it('returns zero when progress has not advanced', () => {

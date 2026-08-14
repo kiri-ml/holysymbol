@@ -16,6 +16,7 @@ const DEFAULT_RECEIPT: RatioReceipt = {
   endLevel: 121,
   endExpPercent: 10.2,
   ratio: 3.3,
+  tiers: [{ minLevel: 121, expPerMesoRatio: 4 }],
 };
 
 function errorMessage(error: unknown) {
@@ -48,8 +49,17 @@ export function RatioReceiptDemo() {
     }
   }, [decodeInput]);
 
-  function setNumber(field: keyof RatioReceipt, value: string) {
+  function setNumber(field: Exclude<keyof RatioReceipt, 'ign' | 'tiers'>, value: string) {
     setReceipt((current) => ({ ...current, [field]: Number(value) }));
+  }
+
+  function setTier(index: number, field: 'minLevel' | 'expPerMesoRatio', value: string) {
+    setReceipt((current) => ({
+      ...current,
+      tiers: current.tiers.map((tier, tierIndex) => tierIndex === index
+        ? { ...tier, [field]: Number(value) }
+        : tier),
+    }));
   }
 
   return (
@@ -58,7 +68,7 @@ export function RatioReceiptDemo() {
         <header className={styles.intro}>
           <p>Holy Symbol · codec demo</p>
           <h1>Ratio receipt URL</h1>
-          <p>Ten base64url characters hold the mixed-radix billing data and CRC-8. The IGN follows after a period.</p>
+          <p>The first ten base64url characters hold the core and CRC-8. Each ratio tier adds exactly three characters; the IGN follows after a period.</p>
         </header>
 
         <div className={styles.grid}>
@@ -89,6 +99,21 @@ export function RatioReceiptDemo() {
                 EXP per meso ratio
                 <input className={styles.input} type="number" min="0" max="11.24" step="0.01" value={receipt.ratio} onChange={(event) => setNumber('ratio', event.target.value)} />
               </label>
+              <fieldset className={`${styles.tiers} ${styles.fieldWide}`}>
+                <legend>Ratio tiers</legend>
+                {receipt.tiers.map((tier, index) => (
+                  <div className={styles.tier} key={index}>
+                    <label className={styles.field}>Minimum level
+                      <input className={styles.input} type="number" min="1" max="200" value={tier.minLevel} onChange={(event) => setTier(index, 'minLevel', event.target.value)} />
+                    </label>
+                    <label className={styles.field}>EXP per meso
+                      <input className={styles.input} type="number" min="0" max="13.09" step="0.01" value={tier.expPerMesoRatio} onChange={(event) => setTier(index, 'expPerMesoRatio', event.target.value)} />
+                    </label>
+                    <button type="button" className={styles.tierButton} onClick={() => setReceipt((current) => ({ ...current, tiers: current.tiers.filter((_, tierIndex) => tierIndex !== index) }))}>Remove</button>
+                  </div>
+                ))}
+                <button type="button" className={styles.tierButton} onClick={() => setReceipt((current) => ({ ...current, tiers: [...current.tiers, { minLevel: 1, expPerMesoRatio: current.ratio }] }))}>Add tier</button>
+              </fieldset>
             </div>
             {generated.error ? <p className={styles.error} role="alert">{generated.error}</p> : (
               <>
@@ -108,6 +133,7 @@ export function RatioReceiptDemo() {
               <dl className={styles.receipt}>
                 <div><dt>IGN</dt><dd>{decoded.receipt.ign}</dd></div>
                 <div><dt>Ratio</dt><dd>1:{decoded.receipt.ratio.toFixed(2)}</dd></div>
+                <div className={styles.receiptWide}><dt>Tiers</dt><dd>{decoded.receipt.tiers.length > 0 ? decoded.receipt.tiers.map((tier) => `Lv. ${tier.minLevel}: 1:${tier.expPerMesoRatio.toFixed(2)}`).join(' · ') : 'None'}</dd></div>
                 <div><dt>Start</dt><dd>Lv. {decoded.receipt.startLevel} · {decoded.receipt.startExpPercent.toFixed(2)}%</dd></div>
                 <div><dt>End</dt><dd>Lv. {decoded.receipt.endLevel} · {decoded.receipt.endExpPercent.toFixed(2)}%</dd></div>
               </dl>

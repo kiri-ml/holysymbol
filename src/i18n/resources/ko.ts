@@ -162,7 +162,6 @@ export const ko = {
     view: '영수증 보기',
     openForBuyer: '새 탭에서 {{name}}의 영수증 열기',
     unavailableMissingData: '영수증을 만들 수 없음 — 유효한 IGN과 두 스냅샷을 추가하세요',
-    unavailableTieredPricing: '영수증을 만들 수 없음 — 단계별 가격은 아직 지원되지 않습니다',
     unavailableEncoding: '영수증을 만들 수 없음 — 청구 값을 인코딩할 수 없습니다',
     validLink: '유효한 링크',
     mesosDue: '지불할 메소',

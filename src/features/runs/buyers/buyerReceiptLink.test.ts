@@ -31,6 +31,7 @@ describe('createBuyerReceiptLink', () => {
         endLevel: 121,
         endExpPercent: 10.2,
         ratio: 3.3,
+        tiers: [],
       });
     }
   });
@@ -40,9 +41,12 @@ describe('createBuyerReceiptLink', () => {
     expect(createBuyerReceiptLink({ ...buyer, ign: 'bad_name', start: undefined }, ratio)).toEqual({ status: 'unavailable', reason: 'missing-data' });
   });
 
-  it('does not flatten tiered pricing into an inaccurate v1 receipt', () => {
-    expect(createBuyerReceiptLink(buyer, { ...ratio, tiers: [{ minLevel: 121, expPerMesoRatio: 4 }] }))
-      .toEqual({ status: 'unavailable', reason: 'tiered-pricing' });
+  it('encodes the complete tiered pricing schedule', () => {
+    const result = createBuyerReceiptLink(buyer, { ...ratio, tiers: [{ minLevel: 121, expPerMesoRatio: 4 }] });
+    expect(result.status).toBe('available');
+    if (result.status === 'available') {
+      expect(decodeRatioReceiptPath(result.path).tiers).toEqual([{ minLevel: 121, expPerMesoRatio: 4 }]);
+    }
   });
 
   it('reports values outside the v1 encoding range', () => {

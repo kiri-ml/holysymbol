@@ -162,7 +162,6 @@ export const nl = {
     view: 'Ontvangstbewijs bekijken',
     openForBuyer: 'Ontvangstbewijs voor {{name}} in een nieuw tabblad openen',
     unavailableMissingData: 'Ontvangstbewijs niet beschikbaar — voeg een geldige IGN en beide momentopnamen toe',
-    unavailableTieredPricing: 'Ontvangstbewijs niet beschikbaar — staffelprijzen worden nog niet ondersteund',
     unavailableEncoding: 'Ontvangstbewijs niet beschikbaar — factuurwaarden kunnen niet worden gecodeerd',
     validLink: 'Geldige link',
     mesosDue: 'Verschuldigde mesos',

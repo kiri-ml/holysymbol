@@ -162,7 +162,6 @@ export const zhHant = {
     view: '查看收據',
     openForBuyer: '在新分頁中開啟 {{name}} 的收據',
     unavailableMissingData: '無法產生收據 — 請加入有效角色名稱和起訖快照',
-    unavailableTieredPricing: '無法產生收據 — 暫不支援分級定價',
     unavailableEncoding: '無法產生收據 — 帳單資料無法編碼',
     validLink: '連結有效',
     mesosDue: '應付楓幣',

@@ -12,6 +12,7 @@ const receipt: RatioReceipt = {
   endLevel: 121,
   endExpPercent: 10.2,
   ratio: 3.3,
+  tiers: [],
 };
 
 function renderReceipt(pathname: string) {
@@ -32,6 +33,14 @@ describe('RatioReceiptPage', () => {
     expect(markup).toContain('Lv.121 · 10.20%');
     expect(markup).toContain('href="/"');
     expect(markup).not.toContain('<input');
+  });
+
+  it('shows the complete tier schedule', () => {
+    const markup = renderReceipt(ratioReceiptPath({ ...receipt, tiers: [{ minLevel: 121, expPerMesoRatio: 4 }] }));
+    expect(markup).toContain('Pricing');
+    expect(markup).toContain('Level ≥ 1');
+    expect(markup).toContain('Level ≥ 121');
+    expect(markup).toContain('1:4');
   });
 
   it('renders a generic invalid state without sample receipt data', () => {

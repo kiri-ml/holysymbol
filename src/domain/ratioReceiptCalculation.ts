@@ -1,4 +1,5 @@
 import { expGainedBetween } from './expTable';
+import { calculateTieredRatioDue } from './calculator';
 import type { RatioReceipt } from './ratioReceipt';
 
 export type RatioReceiptCalculation = {
@@ -16,6 +17,12 @@ export function calculateRatioReceipt(receipt: RatioReceipt): RatioReceiptCalcul
 
   return {
     expGained,
-    mesosDue: receipt.ratio > 0 ? expGained / receipt.ratio : undefined,
+    mesosDue: calculateTieredRatioDue(
+      { type: 'ratio', expPerMesoRatio: receipt.ratio, tiers: receipt.tiers },
+      receipt.startLevel,
+      receipt.startExpPercent,
+      receipt.endLevel,
+      receipt.endExpPercent,
+    ),
   };
 }

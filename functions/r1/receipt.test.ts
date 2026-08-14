@@ -9,6 +9,7 @@ const receipt: RatioReceipt = {
   endLevel: 121,
   endExpPercent: 10.2,
   ratio: 3.3,
+  tiers: [],
 };
 
 describe('ratio receipt Discord metadata', () => {
@@ -26,6 +27,11 @@ describe('ratio receipt Discord metadata', () => {
     expect(tags).toContain('property="og:title"');
     expect(tags).toContain('property="og:description"');
     expect(tags).not.toContain('og:image');
+  });
+
+  it('summarizes tiered billing as its ratio range', () => {
+    const payload = encodeRatioReceipt({ ...receipt, tiers: [{ minLevel: 121, expPerMesoRatio: 4.5 }, { minLevel: 150, expPerMesoRatio: 3.8 }] });
+    expect(createReceiptPreviewMetadata(payload, `https://example.test/r1/${payload}`)?.description).toContain('1:3.3~4.5');
   });
 
   it('uses a receipt title when a zero ratio has no calculable charge', () => {

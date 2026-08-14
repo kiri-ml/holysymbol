@@ -31,7 +31,13 @@ export function createReceiptPreviewMetadata(payload: string, requestUrl: string
     canonicalUrl.hash = '';
     const due = calculation.mesosDue === undefined ? undefined : formatMesosShortPrecise(calculation.mesosDue);
     const progress = `Lv.${receipt.startLevel} ${formatPercent(receipt.startExpPercent)} → Lv.${receipt.endLevel} ${formatPercent(receipt.endExpPercent)}`;
-    const billing = `${formatRatio(receipt.ratio)} · ${formatCompact(calculation.expGained)} EXP`;
+    const ratios = [receipt.ratio, ...receipt.tiers.map((tier) => tier.expPerMesoRatio)];
+    const minimumRatio = Math.min(...ratios);
+    const maximumRatio = Math.max(...ratios);
+    const ratio = minimumRatio === maximumRatio
+      ? formatRatio(minimumRatio)
+      : `${formatRatio(minimumRatio)}~${maximumRatio.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
+    const billing = `${ratio} · ${formatCompact(calculation.expGained)} EXP`;
 
     return {
       title: due ? `${receipt.ign} · ${due} mesos due` : `${receipt.ign} · Ratio receipt`,

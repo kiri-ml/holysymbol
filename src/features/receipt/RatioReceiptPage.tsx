@@ -90,6 +90,21 @@ export function RatioReceiptPage() {
             </div>
           </dl>
 
+          {receipt.tiers.length > 0 ? (
+            <section className={styles.pricing} aria-labelledby="receipt-pricing">
+              <h2 id="receipt-pricing">{t('billing.pricing')}</h2>
+              <dl className={styles.schedule}>
+                <div><dt>{t('billing.tierLevel')} 1</dt><dd>{formatRatio(receipt.ratio)}</dd></div>
+                {receipt.tiers.map((tier) => (
+                  <div key={tier.minLevel}>
+                    <dt>{t('billing.tierLevel')} {tier.minLevel}</dt>
+                    <dd>{formatRatio(tier.expPerMesoRatio)}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          ) : null}
+
           {calculation.mesosDue === undefined ? <p className={styles.notice}>{t('receipt.zeroRatio')}</p> : null}
         </Surface>
         <footer className={styles.footer}><HomeLink /></footer>
