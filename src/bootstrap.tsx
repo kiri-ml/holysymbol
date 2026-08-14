@@ -9,8 +9,6 @@ export async function mountApplication() {
 
   if (window.location.pathname === '/receipt-demo') {
     RootComponent = (await import('./features/receipt/RatioReceiptDemo')).RatioReceiptDemo;
-  } else if (window.location.pathname.startsWith('/r1/')) {
-    RootComponent = (await import('./features/receipt/RatioReceiptPage')).RatioReceiptPage;
   } else {
     const [appModule, confirmationModule] = await Promise.all([
       import('./App'),

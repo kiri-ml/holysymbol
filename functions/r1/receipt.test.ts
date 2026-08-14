@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { encodeRatioReceipt, type RatioReceipt } from '../../src/domain/ratioReceipt';
-import { createReceiptPreviewMetadata, receiptOpenGraphTags } from './[receipt]';
+import { createReceiptPreviewMetadata, receiptAssetRequest, receiptOpenGraphTags } from './[receipt]';
 
 const receipt: RatioReceipt = {
   ign: 'Buyer123',
@@ -13,14 +13,20 @@ const receipt: RatioReceipt = {
 };
 
 describe('ratio receipt Discord metadata', () => {
+  it('internally routes the public receipt URL to the dedicated HTML asset', () => {
+    const request = receiptAssetRequest(new Request('https://holysymbol.pages.dev/r1/payload.Buyer123?source=discord'));
+    expect(request.url).toBe('https://holysymbol.pages.dev/receipt.html');
+    expect(request.method).toBe('GET');
+  });
+
   it('creates text-only receipt metadata from a valid payload', () => {
     const payload = encodeRatioReceipt(receipt);
-    const metadata = createReceiptPreviewMetadata(payload, `https://test.holysymbol.pages.dev/r1/${payload}?source=discord`);
+    const metadata = createReceiptPreviewMetadata(payload, `https://holysymbol.pages.dev/r1/${payload}?source=discord`);
 
     expect(metadata).toMatchObject({
       title: expect.stringMatching(/^Buyer123 · .* mesos due$/),
       description: expect.stringMatching(/^Lv\.120 25\.50% → Lv\.121 10\.20% · 1:3\.3 · .* EXP$/),
-      url: `https://test.holysymbol.pages.dev/r1/${payload}`,
+      url: `https://holysymbol.pages.dev/r1/${payload}`,
     });
     expect(metadata).not.toHaveProperty('image');
     const tags = receiptOpenGraphTags(metadata!);

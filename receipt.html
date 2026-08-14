@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en" data-theme="system">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A Holy Symbol ratio billing receipt." />
+    <link rel="icon" type="image/png" href="/assets/icons/hs.png" />
+    <link rel="icon" href="/assets/icons/favicon.ico" />
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/styles/index.css" />
+    <link rel="stylesheet" href="/src/styles/receipt-entry.css" />
+    <title>Ratio Receipt | Holy Symbol</title>
+  </head>
+  <body>
+    <div id="root">
+      <main class="receipt-entry" aria-busy="true">
+        <div class="receipt-entry__shell">
+          <div class="receipt-entry__brand">
+            <img src="/assets/icons/hs.png" width="28" height="28" alt="" />
+            <span>Holy Symbol</span>
+          </div>
+          <article class="receipt-entry__card" aria-hidden="true">
+            <div class="receipt-entry__heading"></div>
+            <div class="receipt-entry__line"></div>
+            <div class="receipt-entry__line receipt-entry__line--short"></div>
+            <div class="receipt-entry__total"></div>
+          </article>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="/src/receiptMain.tsx"></script>
+  </body>
+</html>

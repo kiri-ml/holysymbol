@@ -1,0 +1,44 @@
+.receipt-entry {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 5vw, 3rem);
+}
+
+.receipt-entry__shell {
+  width: min(38rem, 100%);
+  display: grid;
+  gap: var(--space-4);
+}
+
+.receipt-entry__brand {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--muted);
+  font-size: var(--text-label);
+  font-weight: var(--weight-label);
+}
+
+.receipt-entry__card {
+  display: grid;
+  gap: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+
+.receipt-entry__heading,
+.receipt-entry__line,
+.receipt-entry__total {
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+}
+
+.receipt-entry__heading { width: 42%; height: 2rem; }
+.receipt-entry__line { width: 100%; height: 2.75rem; }
+.receipt-entry__line--short { width: 72%; }
+.receipt-entry__total { justify-self: end; width: 38%; height: 3.25rem; }

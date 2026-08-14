@@ -11,8 +11,13 @@ export type ReceiptPreviewMetadata = {
 type PagesContext = {
   request: Request;
   params: { receipt: string };
-  next(): Promise<Response>;
+  next(input?: Request | string, init?: RequestInit): Promise<Response>;
 };
+
+export function receiptAssetRequest(request: Request) {
+  const assetUrl = new URL('/receipt.html', request.url);
+  return new Request(assetUrl, request);
+}
 
 function escapeHtmlAttribute(value: string) {
   return value
@@ -64,7 +69,7 @@ export function receiptOpenGraphTags(metadata: ReceiptPreviewMetadata) {
 
 export async function onRequestGet(context: PagesContext) {
   const metadata = createReceiptPreviewMetadata(context.params.receipt, context.request.url);
-  const response = await context.next();
+  const response = await context.next(receiptAssetRequest(context.request));
   if (!metadata || !response.headers.get('content-type')?.includes('text/html')) return response;
 
   return new HTMLRewriter()
