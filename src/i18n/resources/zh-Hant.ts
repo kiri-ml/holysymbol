@@ -168,7 +168,6 @@ export const zhHant = {
     copyDue: '複製應付楓幣',
     dueCopied: '已複製應付楓幣',
     details: '帳單明細',
-    expSubtotal: '經驗小計',
     total: '應付楓幣總額',
     progress: '角色進度',
     expPerMeso: '每楓幣經驗',

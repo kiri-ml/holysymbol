@@ -168,7 +168,6 @@ export const ko = {
     copyDue: '지불할 메소 복사',
     dueCopied: '지불할 메소가 복사됨',
     details: '청구 내역',
-    expSubtotal: 'EXP 소계',
     total: '총 지불 메소',
     progress: '캐릭터 진행도',
     expPerMeso: '메소당 경험치',

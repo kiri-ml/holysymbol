@@ -1,9 +1,9 @@
-import { ArrowLeft, BadgeCheck, CircleAlert } from 'lucide-react';
+import { ArrowLeft, BadgeCheck, Check, CircleAlert, Copy } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { formatExp, formatMesosShortPrecise, formatPercent, formatRatio } from '../../domain/format';
+import { formatExp, formatMesosShortPrecise, formatMesosValue, formatPercent, formatRatio } from '../../domain/format';
 import { decodeRatioReceiptPath } from '../../domain/ratioReceipt';
 import { calculateRatioReceipt } from '../../domain/ratioReceiptCalculation';
-import { CopyMesosMetric } from '../../ui/metric';
+import { useCopyToClipboard } from '../../ui/metric';
 import { Surface } from '../../ui/surface';
 import styles from './RatioReceiptPage.module.css';
 
@@ -20,6 +20,25 @@ function ReceiptBrand() {
 function HomeLink() {
   const { t } = useTranslation();
   return <a className={styles.home} href="/"><ArrowLeft size={16} aria-hidden="true" />{t('receipt.backToCalculator')}</a>;
+}
+
+function ReceiptTotal({ value }: { value: number | undefined }) {
+  const { t } = useTranslation();
+  const finiteValue = value !== undefined && Number.isFinite(value) ? value : undefined;
+  const copy = useCopyToClipboard({ text: finiteValue === undefined ? null : String(Math.max(0, Math.round(finiteValue))) });
+  return (
+    <button
+      type="button"
+      className={styles.totalButton}
+      disabled={finiteValue === undefined}
+      data-copied={copy.copied || undefined}
+      aria-label={copy.copied ? t('receipt.dueCopied') : t('receipt.copyDue')}
+      onClick={() => void copy.copy()}
+    >
+      <span className={styles.totalAmount}>{formatMesosShortPrecise(finiteValue)}{copy.copied ? <Check size={13} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}</span>
+      <small>{formatMesosValue(finiteValue)}</small>
+    </button>
+  );
 }
 
 export function RatioReceiptPage() {
@@ -75,23 +94,15 @@ export function RatioReceiptPage() {
                     </tr>
                   ))}
                 </tbody>
+                <tfoot>
+                  <tr>
+                    <th colSpan={3}>{t('receipt.total')}</th>
+                    <td><ReceiptTotal value={calculation.mesosDue} /></td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </section>
-
-          <div className={styles.summary}>
-            <div className={styles.subtotal}><span>{t('receipt.expSubtotal')}</span><strong>{formatExp(calculation.expGained)} EXP</strong></div>
-            <CopyMesosMetric
-              className={styles.total}
-              format="precise"
-              value={calculation.mesosDue}
-              disabled={calculation.mesosDue === undefined}
-              label={t('receipt.total')}
-              copiedLabel={t('common.copied')}
-              copyAriaLabel={t('receipt.copyDue')}
-              copiedAriaLabel={t('receipt.dueCopied')}
-            />
-          </div>
 
         </Surface>
         <footer className={styles.footer}><HomeLink /></footer>

@@ -168,7 +168,6 @@ export const es = {
     copyDue: 'Copiar mesos a pagar',
     dueCopied: 'Mesos a pagar copiados',
     details: 'Detalles de facturación',
-    expSubtotal: 'Subtotal de EXP',
     total: 'Total de mesos',
     progress: 'Progreso del personaje',
     expPerMeso: 'EXP por meso',

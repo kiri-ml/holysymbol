@@ -168,7 +168,6 @@ export const nl = {
     copyDue: 'Verschuldigde mesos kopiëren',
     dueCopied: 'Verschuldigde mesos gekopieerd',
     details: 'Factuurdetails',
-    expSubtotal: 'EXP-subtotaal',
     total: 'Totaal verschuldigde mesos',
     progress: 'Voortgang personage',
     expPerMeso: 'EXP per meso',

@@ -38,13 +38,13 @@ describe('RatioReceiptPage', () => {
   it('itemizes only the tier segments applied to the run', () => {
     const markup = renderReceipt(ratioReceiptPath({ ...receipt, tiers: [{ minLevel: 121, expPerMesoRatio: 4 }] }));
     expect(markup).toContain('Billing details');
-    expect(markup).toContain('EXP subtotal');
     expect(markup).toContain('Total mesos due');
     expect(markup).toContain('Lv.121 · 0.00%');
     expect(markup).toContain('1:3.3');
     expect(markup).toContain('1:4');
     expect(markup).not.toContain('Pricing');
     expect(markup).not.toContain('Level ≥');
+    expect(markup).not.toContain('EXP subtotal');
   });
 
   it('renders a generic invalid state without sample receipt data', () => {

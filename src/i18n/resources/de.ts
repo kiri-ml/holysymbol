@@ -168,7 +168,6 @@ export const de = {
     copyDue: 'Fällige Mesos kopieren',
     dueCopied: 'Fällige Mesos kopiert',
     details: 'Abrechnungsdetails',
-    expSubtotal: 'EXP-Zwischensumme',
     total: 'Mesos-Gesamtsumme',
     progress: 'Charakterfortschritt',
     expPerMeso: 'EXP pro Meso',

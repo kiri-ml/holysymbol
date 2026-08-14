@@ -166,7 +166,6 @@ export const en = {
     copyDue: 'Copy mesos due',
     dueCopied: 'Mesos due copied',
     details: 'Billing details',
-    expSubtotal: 'EXP subtotal',
     total: 'Total mesos due',
     progress: 'Character progress',
     expPerMeso: 'EXP per meso',

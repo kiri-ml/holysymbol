@@ -104,19 +104,43 @@
 .table td:first-child { display: grid; gap: 0.15rem; }
 .rangeTo { color: var(--muted); }
 
-.summary {
-  display: grid;
-  gap: var(--space-3);
-  border-top: 2px solid var(--ink);
+.table tfoot th,
+.table tfoot td {
+  border-top: 3px double var(--ink);
+  border-bottom: 0;
   padding-top: var(--space-4);
 }
 
-.subtotal { display: flex; justify-content: space-between; gap: var(--space-4); color: var(--muted); }
-.subtotal strong { color: var(--ink); font-variant-numeric: tabular-nums; }
-.total {
-  --metric-item-padding: var(--space-5);
-  --metric-value-size: clamp(2rem, 9vw, 3.25rem);
-  border-radius: var(--radius-lg);
+.table tfoot th {
+  color: var(--ink);
+  font-size: var(--text-title-sm);
+  letter-spacing: 0;
+  text-align: right;
+  text-transform: none;
+}
+
+.totalButton {
+  display: grid;
+  justify-items: end;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--primary-strong);
+  cursor: pointer;
+  font: inherit;
+  text-align: right;
+}
+
+.totalButton:focus-visible { border-radius: var(--radius-xs); outline: 2px solid var(--focus); outline-offset: 3px; }
+.totalButton[data-copied='true'] { color: var(--success); }
+.totalButton small { color: var(--muted); font-size: var(--text-caption); }
+.totalAmount {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-title-md);
+  font-weight: var(--weight-strong);
+  white-space: nowrap;
 }
 
 .footer {

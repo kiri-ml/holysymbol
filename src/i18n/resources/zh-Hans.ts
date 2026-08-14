@@ -168,7 +168,6 @@ export const zhHans = {
     copyDue: '复制应付金币',
     dueCopied: '已复制应付金币',
     details: '账单明细',
-    expSubtotal: '经验小计',
     total: '应付金币总额',
     progress: '角色进度',
     expPerMeso: '每金币经验',

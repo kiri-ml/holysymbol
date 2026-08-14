@@ -168,7 +168,6 @@ export const ja = {
     copyDue: '支払メルをコピー',
     dueCopied: '支払メルをコピーしました',
     details: '請求明細',
-    expSubtotal: 'EXP 小計',
     total: '支払メル合計',
     progress: 'キャラクター進行',
     expPerMeso: '1メルあたりのEXP',

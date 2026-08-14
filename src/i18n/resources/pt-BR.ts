@@ -168,7 +168,6 @@ export const ptBR = {
     copyDue: 'Copiar mesos devidos',
     dueCopied: 'Mesos devidos copiados',
     details: 'Detalhes da cobrança',
-    expSubtotal: 'Subtotal de EXP',
     total: 'Total de mesos devidos',
     progress: 'Progresso do personagem',
     expPerMeso: 'EXP por meso',
