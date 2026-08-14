@@ -50,7 +50,7 @@ describe('createBuyerReceiptLink', () => {
   });
 
   it('reports values outside the v1 encoding range', () => {
-    expect(createBuyerReceiptLink(buyer, { ...ratio, expPerMesoRatio: 11.25 }))
+    expect(createBuyerReceiptLink(buyer, { ...ratio, expPerMesoRatio: 11.26 }))
       .toEqual({ status: 'unavailable', reason: 'encoding' });
   });
 

@@ -22,8 +22,8 @@ const CORE_RATIO_STATES = (1n << 52n) / CORE_TAIL_RADIX;
 const TIER_RATIO_STATES = (1n << 18n) / LEVEL_RADIX;
 const MAX_CORE = CORE_RATIO_STATES * CORE_TAIL_RADIX;
 const MAX_TIER = TIER_RATIO_STATES * LEVEL_RADIX;
-const MAX_CORE_RATIO_UNITS = Number(CORE_RATIO_STATES - 1n);
-const MAX_TIER_RATIO_UNITS = Number(TIER_RATIO_STATES - 1n);
+const MAX_CORE_RATIO_UNITS = Number(CORE_RATIO_STATES);
+const MAX_TIER_RATIO_UNITS = Number(TIER_RATIO_STATES);
 const MAX_ENCODED_TIERS = 199;
 const IGN_PATTERN = /^[A-Za-z0-9]{4,12}$/;
 
@@ -50,6 +50,12 @@ function hundredths(name: string, value: number, maximum: number) {
   if (units < 0 || units > maximum || Math.abs(value * 100 - units) > 1e-7) {
     throw new RatioReceiptError(`${name} must be between 0 and ${(maximum / 100).toFixed(2)} with at most 0.01 precision`);
   }
+  return units;
+}
+
+function ratioHundredths(name: string, value: number, maximum: number) {
+  const units = hundredths(name, value, maximum);
+  if (units === 0) throw new RatioReceiptError(`${name} must be at least 0.01`);
   return units;
 }
 
@@ -108,18 +114,18 @@ function normalizeTiers(receipt: RatioReceipt) {
     }
   }
 
-  let ratioUnits = hundredths('Base ratio', receipt.ratio, MAX_CORE_RATIO_UNITS);
+  let ratioUnits = ratioHundredths('Base ratio', receipt.ratio, MAX_CORE_RATIO_UNITS);
   if (sorted[0]?.minLevel === 1) {
-    ratioUnits = hundredths('Level 1 tier ratio', sorted[0].expPerMesoRatio, MAX_CORE_RATIO_UNITS);
+    ratioUnits = ratioHundredths('Level 1 tier ratio', sorted[0].expPerMesoRatio, MAX_CORE_RATIO_UNITS);
     sorted.shift();
   }
   if (sorted.length > MAX_ENCODED_TIERS) throw new RatioReceiptError('Receipt has too many encodable ratio tiers');
 
   const tiers = sorted.map((tier) => {
-    const tierRatioUnits = hundredths('Tier ratio', tier.expPerMesoRatio, MAX_TIER_RATIO_UNITS);
-    return BigInt(tierRatioUnits) * LEVEL_RADIX + BigInt(tier.minLevel - 1);
+    const tierRatioUnits = ratioHundredths('Tier ratio', tier.expPerMesoRatio, MAX_TIER_RATIO_UNITS);
+    return BigInt(tierRatioUnits - 1) * LEVEL_RADIX + BigInt(tier.minLevel - 1);
   });
-  return { ratioUnits, tiers };
+  return { ratioUnits: ratioUnits - 1, tiers };
 }
 
 function packCore(receipt: RatioReceipt, ratioUnits: number) {
@@ -180,7 +186,7 @@ export function decodeRatioReceipt(payload: string): RatioReceipt {
       throw new RatioReceiptError('Receipt tiers must use strictly increasing levels above 1');
     }
     tierValues.push(value);
-    tiers.push({ minLevel, expPerMesoRatio: Number(value / LEVEL_RADIX) / 100 });
+    tiers.push({ minLevel, expPerMesoRatio: (Number(value / LEVEL_RADIX) + 1) / 100 });
   }
   if (crc8(core, tierValues, ign) !== expectedCrc) throw new RatioReceiptError('Receipt checksum does not match');
 
@@ -199,7 +205,7 @@ export function decodeRatioReceipt(payload: string): RatioReceipt {
     startExpPercent: startExp / 100,
     endLevel,
     endExpPercent: endExp / 100,
-    ratio: Number(core) / 100,
+    ratio: (Number(core) + 1) / 100,
     tiers,
   };
 }

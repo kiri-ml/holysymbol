@@ -1,6 +1,6 @@
-import { ArrowLeft, ArrowRight, BadgeCheck, CircleAlert } from 'lucide-react';
+import { ArrowLeft, BadgeCheck, CircleAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { formatCompact, formatExp, formatPercent, formatRatio } from '../../domain/format';
+import { formatExp, formatMesosShortPrecise, formatPercent, formatRatio } from '../../domain/format';
 import { decodeRatioReceiptPath } from '../../domain/ratioReceipt';
 import { calculateRatioReceipt } from '../../domain/ratioReceiptCalculation';
 import { CopyMesosMetric } from '../../ui/metric';
@@ -44,9 +44,6 @@ export function RatioReceiptPage() {
   }
 
   const calculation = calculateRatioReceipt(receipt);
-  const start = t('snapshot.short', { level: receipt.startLevel, expPercent: formatPercent(receipt.startExpPercent) });
-  const end = t('snapshot.short', { level: receipt.endLevel, expPercent: formatPercent(receipt.endExpPercent) });
-
   return (
     <main className={styles.page}>
       <div className={styles.shell}>
@@ -60,52 +57,42 @@ export function RatioReceiptPage() {
             <span className={styles.valid}><BadgeCheck size={15} aria-hidden="true" />{t('receipt.validLink')}</span>
           </header>
 
-          <CopyMesosMetric
-            className={styles.due}
-            format="precise"
-            value={calculation.mesosDue}
-            disabled={calculation.mesosDue === undefined}
-            label={t('receipt.mesosDue')}
-            copiedLabel={t('common.copied')}
-            copyAriaLabel={t('receipt.copyDue')}
-            copiedAriaLabel={t('receipt.dueCopied')}
-          />
-
-          <section className={styles.progress} aria-label={t('receipt.progress')}>
-            <div className={styles.snapshot}><span>{t('common.start')}</span><strong>{start}</strong></div>
-            <ArrowRight className={styles.arrow} size={20} aria-hidden="true" />
-            <div className={styles.snapshot}><span>{t('common.current')}</span><strong>{end}</strong></div>
+          <section className={styles.items} aria-labelledby="receipt-details">
+            <h2 id="receipt-details">{t('receipt.details')}</h2>
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead><tr><th>{t('receipt.progress')}</th><th>{t('billing.ratio')}</th><th>EXP</th><th>{t('common.due')}</th></tr></thead>
+                <tbody>
+                  {calculation.segments.map((segment, index) => (
+                    <tr key={`${segment.startLevel}-${segment.startExpPercent}-${index}`}>
+                      <td>
+                        <span>{t('snapshot.short', { level: segment.startLevel, expPercent: formatPercent(segment.startExpPercent) })}</span>
+                        <span className={styles.rangeTo}>→ {t('snapshot.short', { level: segment.endLevel, expPercent: formatPercent(segment.endExpPercent) })}</span>
+                      </td>
+                      <td>{formatRatio(segment.ratio)}</td>
+                      <td>{formatExp(segment.expGained)}</td>
+                      <td>{formatMesosShortPrecise(segment.mesosDue)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </section>
 
-          <dl className={styles.breakdown}>
-            <div>
-              <dt>{t('buyer.expGained')}</dt>
-              <dd>{formatCompact(calculation.expGained)}</dd>
-              <span className={styles.detail}>{formatExp(calculation.expGained)} EXP</span>
-            </div>
-            <div>
-              <dt>{t('billing.baseRatio')}</dt>
-              <dd>{formatRatio(receipt.ratio)}</dd>
-              <span className={styles.detail}>{t('receipt.expPerMeso')}</span>
-            </div>
-          </dl>
+          <div className={styles.summary}>
+            <div className={styles.subtotal}><span>{t('receipt.expSubtotal')}</span><strong>{formatExp(calculation.expGained)} EXP</strong></div>
+            <CopyMesosMetric
+              className={styles.total}
+              format="precise"
+              value={calculation.mesosDue}
+              disabled={calculation.mesosDue === undefined}
+              label={t('receipt.total')}
+              copiedLabel={t('common.copied')}
+              copyAriaLabel={t('receipt.copyDue')}
+              copiedAriaLabel={t('receipt.dueCopied')}
+            />
+          </div>
 
-          {receipt.tiers.length > 0 ? (
-            <section className={styles.pricing} aria-labelledby="receipt-pricing">
-              <h2 id="receipt-pricing">{t('billing.pricing')}</h2>
-              <dl className={styles.schedule}>
-                <div><dt>{t('billing.tierLevel')} 1</dt><dd>{formatRatio(receipt.ratio)}</dd></div>
-                {receipt.tiers.map((tier) => (
-                  <div key={tier.minLevel}>
-                    <dt>{t('billing.tierLevel')} {tier.minLevel}</dt>
-                    <dd>{formatRatio(tier.expPerMesoRatio)}</dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
-          ) : null}
-
-          {calculation.mesosDue === undefined ? <p className={styles.notice}>{t('receipt.zeroRatio')}</p> : null}
         </Surface>
         <footer className={styles.footer}><HomeLink /></footer>
       </div>

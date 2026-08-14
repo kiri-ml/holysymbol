@@ -97,7 +97,7 @@ export function RatioReceiptDemo() {
               </label>
               <label className={`${styles.field} ${styles.fieldWide}`}>
                 EXP per meso ratio
-                <input className={styles.input} type="number" min="0" max="11.24" step="0.01" value={receipt.ratio} onChange={(event) => setNumber('ratio', event.target.value)} />
+                <input className={styles.input} type="number" min="0.01" max="11.25" step="0.01" value={receipt.ratio} onChange={(event) => setNumber('ratio', event.target.value)} />
               </label>
               <fieldset className={`${styles.tiers} ${styles.fieldWide}`}>
                 <legend>Ratio tiers</legend>
@@ -107,7 +107,7 @@ export function RatioReceiptDemo() {
                       <input className={styles.input} type="number" min="1" max="200" value={tier.minLevel} onChange={(event) => setTier(index, 'minLevel', event.target.value)} />
                     </label>
                     <label className={styles.field}>EXP per meso
-                      <input className={styles.input} type="number" min="0" max="13.09" step="0.01" value={tier.expPerMesoRatio} onChange={(event) => setTier(index, 'expPerMesoRatio', event.target.value)} />
+                      <input className={styles.input} type="number" min="0.01" max="13.10" step="0.01" value={tier.expPerMesoRatio} onChange={(event) => setTier(index, 'expPerMesoRatio', event.target.value)} />
                     </label>
                     <button type="button" className={styles.tierButton} onClick={() => setReceipt((current) => ({ ...current, tiers: current.tiers.filter((_, tierIndex) => tierIndex !== index) }))}>Remove</button>
                   </div>

@@ -27,7 +27,7 @@ describe('RatioReceiptPage', () => {
     const markup = renderReceipt(ratioReceiptPath(receipt));
     expect(markup).toContain('Ratio receipt');
     expect(markup).toContain('Buyer123');
-    expect(markup).toContain('Mesos due');
+    expect(markup).toContain('Total mesos due');
     expect(markup).toContain('1:3.3');
     expect(markup).toContain('Lv.120 · 25.50%');
     expect(markup).toContain('Lv.121 · 10.20%');
@@ -35,12 +35,16 @@ describe('RatioReceiptPage', () => {
     expect(markup).not.toContain('<input');
   });
 
-  it('shows the complete tier schedule', () => {
+  it('itemizes only the tier segments applied to the run', () => {
     const markup = renderReceipt(ratioReceiptPath({ ...receipt, tiers: [{ minLevel: 121, expPerMesoRatio: 4 }] }));
-    expect(markup).toContain('Pricing');
-    expect(markup).toContain('Level ≥ 1');
-    expect(markup).toContain('Level ≥ 121');
+    expect(markup).toContain('Billing details');
+    expect(markup).toContain('EXP subtotal');
+    expect(markup).toContain('Total mesos due');
+    expect(markup).toContain('Lv.121 · 0.00%');
+    expect(markup).toContain('1:3.3');
     expect(markup).toContain('1:4');
+    expect(markup).not.toContain('Pricing');
+    expect(markup).not.toContain('Level ≥');
   });
 
   it('renders a generic invalid state without sample receipt data', () => {

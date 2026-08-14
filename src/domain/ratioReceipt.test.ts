@@ -27,8 +27,8 @@ describe('ratio receipt codec', () => {
   });
 
   it('supports every field boundary', () => {
-    const minimum: RatioReceipt = { ign: 'Ab12', startLevel: 1, startExpPercent: 0, endLevel: 1, endExpPercent: 0, ratio: 0, tiers: [] };
-    const maximum: RatioReceipt = { ign: 'Abcdef123456', startLevel: 200, startExpPercent: 99.99, endLevel: 200, endExpPercent: 99.99, ratio: 11.24, tiers: [{ minLevel: 200, expPerMesoRatio: 13.09 }] };
+    const minimum: RatioReceipt = { ign: 'Ab12', startLevel: 1, startExpPercent: 0, endLevel: 1, endExpPercent: 0, ratio: 0.01, tiers: [{ minLevel: 2, expPerMesoRatio: 0.01 }] };
+    const maximum: RatioReceipt = { ign: 'Abcdef123456', startLevel: 200, startExpPercent: 99.99, endLevel: 200, endExpPercent: 99.99, ratio: 11.25, tiers: [{ minLevel: 200, expPerMesoRatio: 13.1 }] };
     expect(decodeRatioReceipt(encodeRatioReceipt(minimum))).toEqual(minimum);
     expect(decodeRatioReceipt(encodeRatioReceipt(maximum))).toEqual(maximum);
   });
@@ -68,8 +68,10 @@ describe('ratio receipt codec', () => {
 
   it('rejects noncanonical and out-of-range input', () => {
     expect(() => encodeRatioReceipt({ ...receipt, ign: 'no' })).toThrow(RatioReceiptError);
-    expect(() => encodeRatioReceipt({ ...receipt, ratio: 11.25 })).toThrow(/11\.24/);
-    expect(() => encodeRatioReceipt({ ...receipt, tiers: [{ minLevel: 2, expPerMesoRatio: 13.1 }] })).toThrow(/13\.09/);
+    expect(() => encodeRatioReceipt({ ...receipt, ratio: 0 })).toThrow(/at least 0\.01/);
+    expect(() => encodeRatioReceipt({ ...receipt, ratio: 11.26 })).toThrow(/11\.25/);
+    expect(() => encodeRatioReceipt({ ...receipt, tiers: [{ minLevel: 2, expPerMesoRatio: 0 }] })).toThrow(/at least 0\.01/);
+    expect(() => encodeRatioReceipt({ ...receipt, tiers: [{ minLevel: 2, expPerMesoRatio: 13.11 }] })).toThrow(/13\.10/);
     expect(() => encodeRatioReceipt({ ...receipt, tiers: [{ minLevel: 2, expPerMesoRatio: 4 }, { minLevel: 2, expPerMesoRatio: 5 }] })).toThrow(/unique/);
     expect(() => decodeRatioReceipt(`${encodeRatioReceipt(receipt).split('.')[0]}A.Buyer123`)).toThrow(/length/);
     expect(() => encodeRatioReceipt({ ...receipt, startExpPercent: 1.234 })).toThrow(/precision/);

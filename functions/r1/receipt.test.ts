@@ -34,9 +34,8 @@ describe('ratio receipt Discord metadata', () => {
     expect(createReceiptPreviewMetadata(payload, `https://example.test/r1/${payload}`)?.description).toContain('1:3.3~4.5');
   });
 
-  it('uses a receipt title when a zero ratio has no calculable charge', () => {
-    const payload = encodeRatioReceipt({ ...receipt, ratio: 0 });
-    expect(createReceiptPreviewMetadata(payload, `https://example.test/r1/${payload}`)?.title).toBe('Buyer123 · Ratio receipt');
+  it('rejects a zero ratio before creating preview metadata', () => {
+    expect(() => encodeRatioReceipt({ ...receipt, ratio: 0 })).toThrow(/at least 0\.01/);
   });
 
   it('rejects damaged and malformed receipt payloads', () => {
