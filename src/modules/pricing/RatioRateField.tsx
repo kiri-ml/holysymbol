@@ -4,7 +4,6 @@ import { classNames } from '../../ui/classNames';
 import { NumberField } from '../../ui/fields';
 import type { FieldControlSize, NumberFieldProps } from '../../ui/fields';
 import styles from './Pricing.module.css';
-import { normalizeRatio } from './pricingValues';
 
 export type RatioRateFieldProps = Omit<
   NumberFieldProps,
@@ -36,7 +35,6 @@ export function RatioRateField({
       step={0.1}
       value={value}
       emptyValue={0.1}
-      normalize={normalizeRatio}
       onValueChange={onChange}
     />
   );
